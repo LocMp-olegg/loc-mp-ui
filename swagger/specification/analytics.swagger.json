@@ -1,0 +1,1094 @@
+{
+  "openapi": "3.0.4",
+  "info": {
+    "title": "LocMp.Analytics.Api",
+    "description": "Analytics microservice for Local Marketplace",
+    "version": "v1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:5000",
+      "description": "Local Development"
+    }
+  ],
+  "paths": {
+    "/api/analytics/AdminDashboard/disputes": {
+      "get": {
+        "tags": [
+          "AdminDashboard"
+        ],
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DisputeSummaryDto"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DisputeSummaryDto"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DisputeSummaryDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/analytics/AdminDashboard/geography": {
+      "get": {
+        "tags": [
+          "AdminDashboard"
+        ],
+        "parameters": [
+          {
+            "name": "period",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/PeriodType"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GeographicActivityDto"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GeographicActivityDto"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GeographicActivityDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/analytics/AdminDashboard/platform": {
+      "get": {
+        "tags": [
+          "AdminDashboard"
+        ],
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PlatformDailySummaryDto"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PlatformDailySummaryDto"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PlatformDailySummaryDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/analytics/AdminDashboard/sellers/leaderboard": {
+      "get": {
+        "tags": [
+          "AdminDashboard"
+        ],
+        "parameters": [
+          {
+            "name": "period",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/PeriodType"
+            }
+          },
+          {
+            "name": "top",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SellerLeaderboardDto"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SellerLeaderboardDto"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SellerLeaderboardDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/analytics/AdminDashboard/users/growth": {
+      "get": {
+        "tags": [
+          "AdminDashboard"
+        ],
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UserGrowthDto"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UserGrowthDto"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UserGrowthDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/analytics/HealthCheck": {
+      "get": {
+        "tags": [
+          "HealthCheck"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/analytics/SellerDashboard/product-ratings": {
+      "get": {
+        "tags": [
+          "SellerDashboard"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/SellerProductRatingsDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SellerProductRatingsDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SellerProductRatingsDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/analytics/SellerDashboard/product-views": {
+      "get": {
+        "tags": [
+          "SellerDashboard"
+        ],
+        "parameters": [
+          {
+            "name": "productId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ProductViewCounterDto"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ProductViewCounterDto"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ProductViewCounterDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/analytics/SellerDashboard/rating-history": {
+      "get": {
+        "tags": [
+          "SellerDashboard"
+        ],
+        "parameters": [
+          {
+            "name": "days",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 30
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SellerRatingHistoryDto"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SellerRatingHistoryDto"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SellerRatingHistoryDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/analytics/SellerDashboard/sales": {
+      "get": {
+        "tags": [
+          "SellerDashboard"
+        ],
+        "parameters": [
+          {
+            "name": "period",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/PeriodType"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/SellerSalesSummaryDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SellerSalesSummaryDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SellerSalesSummaryDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/analytics/SellerDashboard/stock-alerts": {
+      "get": {
+        "tags": [
+          "SellerDashboard"
+        ],
+        "parameters": [
+          {
+            "name": "onlyUnacknowledged",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/StockAlertDto"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/StockAlertDto"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/StockAlertDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/analytics/SellerDashboard/stock-alerts/{id}/acknowledge": {
+      "post": {
+        "tags": [
+          "SellerDashboard"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/analytics/SellerDashboard/top-products": {
+      "get": {
+        "tags": [
+          "SellerDashboard"
+        ],
+        "parameters": [
+          {
+            "name": "period",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/PeriodType"
+            }
+          },
+          {
+            "name": "top",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TopProductDto"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TopProductDto"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TopProductDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "DisputeSummaryDto": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "openedCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "resolvedCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "buyerFavoredCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "sellerFavoredCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "averageResolutionMinutes": {
+            "type": "number",
+            "format": "double"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
+      "GeographicActivityDto": {
+        "type": "object",
+        "properties": {
+          "complexId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "complexName": {
+            "type": "string",
+            "nullable": true
+          },
+          "periodType": {
+            "$ref": "#/components/schemas/PeriodType"
+          },
+          "periodStart": {
+            "type": "string",
+            "format": "date"
+          },
+          "activeSellers": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "activeBuyers": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalOrders": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalRevenue": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "additionalProperties": false
+      },
+      "PeriodType": {
+        "enum": [
+          "Daily",
+          "Weekly",
+          "Monthly"
+        ],
+        "type": "string"
+      },
+      "PlatformDailySummaryDto": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "newRegistrations": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "activeBuyers": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "activeSellers": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "blockedUsers": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalOrders": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "completedOrders": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "cancelledOrders": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "disputedOrders": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "grossMerchandiseValue": {
+            "type": "number",
+            "format": "double"
+          },
+          "averageOrderValue": {
+            "type": "number",
+            "format": "double"
+          },
+          "newProducts": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "newReviews": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ProductRatingSummaryDto": {
+        "type": "object",
+        "properties": {
+          "productId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "productName": {
+            "type": "string",
+            "nullable": true
+          },
+          "averageRating": {
+            "type": "number",
+            "format": "double"
+          },
+          "reviewCount": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ProductViewCounterDto": {
+        "type": "object",
+        "properties": {
+          "productId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "totalViews": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "viewsToday": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "viewsThisWeek": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "lastViewedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
+      "SellerLeaderboardDto": {
+        "type": "object",
+        "properties": {
+          "sellerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sellerName": {
+            "type": "string",
+            "nullable": true
+          },
+          "periodType": {
+            "$ref": "#/components/schemas/PeriodType"
+          },
+          "periodStart": {
+            "type": "string",
+            "format": "date"
+          },
+          "totalRevenue": {
+            "type": "number",
+            "format": "double"
+          },
+          "orderCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "averageRating": {
+            "type": "number",
+            "format": "double"
+          },
+          "revenueRank": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "orderCountRank": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "ranksComputedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "shops": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ShopLeaderboardDto"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "SellerProductRatingsDto": {
+        "type": "object",
+        "properties": {
+          "overallAverageRating": {
+            "type": "number",
+            "format": "double"
+          },
+          "totalReviewCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "shops": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ShopRatingsDto"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "SellerRatingHistoryDto": {
+        "type": "object",
+        "properties": {
+          "recordedAt": {
+            "type": "string",
+            "format": "date"
+          },
+          "averageRating": {
+            "type": "number",
+            "format": "double"
+          },
+          "reviewCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "newReviewsToday": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "SellerSalesSummaryDto": {
+        "type": "object",
+        "properties": {
+          "periodType": {
+            "$ref": "#/components/schemas/PeriodType"
+          },
+          "periodStart": {
+            "type": "string",
+            "format": "date"
+          },
+          "totalRevenue": {
+            "type": "number",
+            "format": "double"
+          },
+          "orderCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "averageOrderValue": {
+            "type": "number",
+            "format": "double"
+          },
+          "completedCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "cancelledCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "disputedCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ShopLeaderboardDto": {
+        "type": "object",
+        "properties": {
+          "shopId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "shopName": {
+            "type": "string",
+            "nullable": true
+          },
+          "totalRevenue": {
+            "type": "number",
+            "format": "double"
+          },
+          "orderCount": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ShopRatingsDto": {
+        "type": "object",
+        "properties": {
+          "shopId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "shopName": {
+            "type": "string",
+            "nullable": true
+          },
+          "shopAverageRating": {
+            "type": "number",
+            "format": "double"
+          },
+          "shopReviewCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "products": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductRatingSummaryDto"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "StockAlertDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "productId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "productName": {
+            "type": "string",
+            "nullable": true
+          },
+          "currentStock": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "alertType": {
+            "$ref": "#/components/schemas/StockAlertType"
+          },
+          "isAcknowledged": {
+            "type": "boolean"
+          },
+          "acknowledgedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
+      "StockAlertType": {
+        "enum": [
+          "OutOfStock",
+          "LowStock"
+        ],
+        "type": "string"
+      },
+      "TopProductDto": {
+        "type": "object",
+        "properties": {
+          "productId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "productName": {
+            "type": "string",
+            "nullable": true
+          },
+          "periodType": {
+            "$ref": "#/components/schemas/PeriodType"
+          },
+          "periodStart": {
+            "type": "string",
+            "format": "date"
+          },
+          "totalSold": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalRevenue": {
+            "type": "number",
+            "format": "double"
+          },
+          "viewCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "favoriteCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
+      "UserGrowthDto": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "newRegistrations": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "activeBuyers": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "activeSellers": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "blockedUsers": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "AdminDashboard"
+    },
+    {
+      "name": "HealthCheck"
+    },
+    {
+      "name": "SellerDashboard"
+    }
+  ]
+}

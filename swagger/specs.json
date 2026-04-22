@@ -1,0 +1,8 @@
+[
+  "analytics.swagger.json",
+  "catalog.swagger.json",
+  "identity.swagger.json",
+  "notifications.swagger.json",
+  "orders.swagger.json",
+  "reviews.swagger.json"
+]
