@@ -22,4 +22,11 @@ export default defineConfig([
       globals: globals.browser,
     },
   },
+  {
+    // Context files always export both a Provider component and a use* hook — that's the pattern
+    files: ['src/contexts/**/*.tsx'],
+    rules: {
+      'react-refresh/only-export-components': 'off',
+    },
+  },
 ])
