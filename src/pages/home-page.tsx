@@ -1,11 +1,9 @@
 import { useState } from 'react'
 import { useCatalogHome } from '@/hooks/use-catalog-home'
-import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { CategorySection } from '@/components/catalog/category-section'
 
 export function HomePage() {
   const { data, loading, error } = useCatalogHome()
-  const showSpinner = useDelayedLoading(loading)
   const [activeRootId, setActiveRootId] = useState<string>('all')
 
   const visibleSections =
@@ -22,18 +20,18 @@ export function HomePage() {
         <p className="text-muted-foreground text-sm">Товары из вашего района</p>
       </div>
 
-      {/* Filter pills skeleton — only after 300ms */}
-      {showSpinner ? (
+      {/* Filter pills — root categories */}
+      {loading ? (
         <div className="flex gap-2 px-4 md:px-6 pb-3 mb-2">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-8 w-24 rounded-full bg-muted animate-pulse flex-shrink-0" />
+            <div key={i} className="h-8 w-24 rounded-full bg-muted animate-pulse shrink-0" />
           ))}
         </div>
       ) : !error && data ? (
         <div className="flex gap-2 overflow-x-auto scrollbar-hide px-4 md:px-6 pb-3 mb-2">
           <button
             onClick={() => setActiveRootId('all')}
-            className={`flex items-center gap-1.5 px-3 md:px-3.5 py-1.5 rounded-full text-sm font-medium transition-all whitespace-nowrap flex-shrink-0 cursor-pointer ${
+            className={`flex items-center gap-1.5 px-3 md:px-3.5 py-1.5 rounded-full text-sm font-medium transition-all whitespace-nowrap shrink-0 cursor-pointer ${
               activeRootId === 'all'
                 ? 'bg-primary text-primary-foreground shadow-sm'
                 : 'bg-card border border-border text-muted-foreground hover:border-primary/50 hover:text-primary hover:bg-muted shadow-sm'
@@ -45,7 +43,7 @@ export function HomePage() {
             <button
               key={cat.id}
               onClick={() => setActiveRootId(cat.id)}
-              className={`flex items-center gap-1.5 px-3 md:px-3.5 py-1.5 rounded-full text-sm font-medium transition-all whitespace-nowrap flex-shrink-0 cursor-pointer ${
+              className={`flex items-center gap-1.5 px-3 md:px-3.5 py-1.5 rounded-full text-sm font-medium transition-all whitespace-nowrap shrink-0 cursor-pointer ${
                 activeRootId === cat.id
                   ? 'bg-primary text-primary-foreground shadow-sm'
                   : 'bg-card border border-border text-muted-foreground hover:border-primary/50 hover:text-primary hover:bg-muted shadow-sm'
@@ -65,6 +63,7 @@ export function HomePage() {
         </div>
       )}
 
+      {/* Sections render immediately — each loads its products lazily */}
       {!error &&
         visibleSections.map((category) => (
           <CategorySection key={category.id} category={category} />

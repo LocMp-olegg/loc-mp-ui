@@ -58,8 +58,8 @@ export function CategorySection({ category }: Props) {
       </div>
 
       <div className="relative">
-        <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
-        <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
+        <div className="absolute left-0 top-0 bottom-0 w-8 bg-linear-to-r from-background to-transparent z-10 pointer-events-none" />
+        <div className="absolute right-0 top-0 bottom-0 w-8 bg-linear-to-l from-background to-transparent z-10 pointer-events-none" />
 
         <div
           ref={scrollRef}
@@ -69,16 +69,16 @@ export function CategorySection({ category }: Props) {
             ? Array.from({ length: SKELETON_COUNT }).map((_, i) => (
                 <div
                   key={i}
-                  className="w-56 flex-shrink-0 rounded-2xl bg-muted animate-pulse"
+                  className="w-56 shrink-0 rounded-2xl bg-muted animate-pulse"
                   style={{ height: 340 }}
                 />
               ))
             : products.map((product) => <ProductCard key={product.id} product={product} />)}
 
-          {!loading && products.length > 0 && (
+          {!loading && products.length >= 10 && (
             <Link
               to={`/category/${category.id}`}
-              className="flex-shrink-0 w-40 flex flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-border hover:border-primary hover:bg-muted transition-colors text-muted-foreground hover:text-primary"
+              className="shrink-0 w-40 flex flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-border hover:border-primary hover:bg-muted transition-colors text-muted-foreground hover:text-primary"
               aria-label={`Смотреть все в категории ${category.name}`}
             >
               <div className="w-10 h-10 rounded-full border border-current flex items-center justify-center">

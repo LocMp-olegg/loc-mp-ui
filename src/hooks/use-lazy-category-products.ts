@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
 import { fetchCategoryProducts } from '@/lib/catalog'
-import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import type { Product } from '@/types/product'
 
 interface State {
@@ -13,9 +12,6 @@ export function useLazyCategoryProducts(
 ): State & { ref: React.RefObject<HTMLElement | null> } {
   const ref = useRef<HTMLElement>(null)
   const [state, setState] = useState<State>({ products: [], loading: true })
-
-  // Only show skeleton after 300ms — prevents flash on fast connections
-  const showSkeleton = useDelayedLoading(state.loading)
 
   useEffect(() => {
     const el = ref.current
@@ -37,5 +33,5 @@ export function useLazyCategoryProducts(
     return () => observer.disconnect()
   }, [categoryId])
 
-  return { products: state.products, loading: showSkeleton, ref }
+  return { ...state, ref }
 }
