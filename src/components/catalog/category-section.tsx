@@ -2,38 +2,35 @@ import { useRef } from 'react'
 import { ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { ProductCard } from '@/components/product/product-card'
-import type { Category } from '@/types/product'
+import { useLazyCategoryProducts } from '@/hooks/use-lazy-category-products'
+import type { LeafCategory } from '@/lib/catalog'
 
 interface Props {
-  category: Category
+  category: LeafCategory
 }
 
+const SKELETON_COUNT = 4
+
 export function CategorySection({ category }: Props) {
+  const { products, loading, ref } = useLazyCategoryProducts(category.id)
   const scrollRef = useRef<HTMLDivElement>(null)
 
   const scroll = (direction: 'left' | 'right'): void => {
-    if (!scrollRef.current) return
-    scrollRef.current.scrollBy({
+    scrollRef.current?.scrollBy({
       left: direction === 'left' ? -280 : 280,
       behavior: 'smooth',
     })
   }
 
   return (
-    <section className="mb-10">
-      <div className="flex items-end justify-between mb-4 px-4 md:px-6">
-        <div className="flex items-center gap-2.5">
-          <span className="text-2xl md:text-3xl leading-none" aria-hidden="true">
-            {category.emoji}
-          </span>
-          <div className="flex flex-col">
-            <h2 className="text-lg md:text-xl font-bold text-foreground leading-tight tracking-tight">
-              {category.name}
-            </h2>
-            <span className="text-xs font-medium text-muted-foreground mt-0.5">
-              {category.products.length} товаров
-            </span>
-          </div>
+    <section ref={ref} className="mb-10">
+      <div className="flex items-center justify-between mb-4 px-4 md:px-6">
+        <div className="flex items-center gap-2">
+          <span className="text-2xl leading-none">{category.emoji}</span>
+          <h2 className="text-xl font-bold text-foreground">{category.name}</h2>
+          {!loading && (
+            <span className="text-sm text-muted-foreground font-normal">{products.length}</span>
+          )}
         </div>
 
         <div className="flex items-center gap-1.5">
@@ -61,7 +58,6 @@ export function CategorySection({ category }: Props) {
       </div>
 
       <div className="relative">
-        {/* Fade edges */}
         <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
         <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
 
@@ -69,9 +65,28 @@ export function CategorySection({ category }: Props) {
           ref={scrollRef}
           className="flex gap-3 overflow-x-auto scrollbar-hide px-4 md:px-6 py-2"
         >
-          {category.products.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
+          {loading
+            ? Array.from({ length: SKELETON_COUNT }).map((_, i) => (
+                <div
+                  key={i}
+                  className="w-56 flex-shrink-0 rounded-2xl bg-muted animate-pulse"
+                  style={{ height: 340 }}
+                />
+              ))
+            : products.map((product) => <ProductCard key={product.id} product={product} />)}
+
+          {!loading && products.length > 0 && (
+            <Link
+              to={`/category/${category.id}`}
+              className="flex-shrink-0 w-40 flex flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-border hover:border-primary hover:bg-muted transition-colors text-muted-foreground hover:text-primary"
+              aria-label={`Смотреть все в категории ${category.name}`}
+            >
+              <div className="w-10 h-10 rounded-full border border-current flex items-center justify-center">
+                <ArrowRight className="w-5 h-5" />
+              </div>
+              <span className="text-sm font-medium text-center px-3">Смотреть все</span>
+            </Link>
+          )}
         </div>
       </div>
     </section>

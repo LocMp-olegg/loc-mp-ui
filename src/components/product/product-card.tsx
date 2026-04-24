@@ -1,14 +1,12 @@
-import { useCallback } from 'react'
+import { useState, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Heart, Minus, Plus, ShoppingCart, Star, Store } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { ProductImageSlider } from './product-image-slider'
-import { useCart } from '@/contexts/cart-context'
-import { useFavorites } from '@/contexts/favorites-context'
 import { ShimmerButton } from '@/components/aceternity/shimmer-button'
+import { useProductActions } from '@/hooks/use-product-actions'
 import { cn } from '@/lib/utils'
 import type { Product } from '@/types/product'
-import { useState } from 'react'
 
 interface Props {
   product: Product
@@ -19,42 +17,13 @@ export function ProductCard({ product, className }: Props) {
   const [spotlightPos, setSpotlightPos] = useState({ x: 0, y: 0 })
   const [isHovered, setIsHovered] = useState(false)
 
-  const { addToCart, updateQuantity, items } = useCart()
-  const { toggleFavorite, isFavorite } = useFavorites()
-
-  const favorite = isFavorite(product.id)
-  const cartItem = items.find((item) => item.product.id === product.id)
-  const quantity = cartItem?.quantity ?? 0
+  const { quantity, isFavorite, onAdd, onDecrement, onIncrement, onToggleFavorite } =
+    useProductActions(product)
 
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLElement>) => {
     const rect = e.currentTarget.getBoundingClientRect()
     setSpotlightPos({ x: e.clientX - rect.left, y: e.clientY - rect.top })
   }, [])
-
-  const handleAddToCart = (e: React.MouseEvent): void => {
-    e.preventDefault()
-    e.stopPropagation()
-    if (!product.isAvailable) return
-    addToCart(product)
-  }
-
-  const handleDecrement = (e: React.MouseEvent): void => {
-    e.preventDefault()
-    e.stopPropagation()
-    updateQuantity(product.id, quantity - 1)
-  }
-
-  const handleIncrement = (e: React.MouseEvent): void => {
-    e.preventDefault()
-    e.stopPropagation()
-    updateQuantity(product.id, quantity + 1)
-  }
-
-  const handleToggleFavorite = (e: React.MouseEvent): void => {
-    e.preventDefault()
-    e.stopPropagation()
-    toggleFavorite(product.id)
-  }
 
   return (
     <motion.article
@@ -81,21 +50,20 @@ export function ProductCard({ product, className }: Props) {
         }}
       />
 
-      {/* Favorite button */}
+      {/* Favorite */}
       <button
-        onClick={handleToggleFavorite}
-        aria-label={favorite ? 'Убрать из избранного' : 'В избранное'}
+        onClick={onToggleFavorite}
+        aria-label={isFavorite ? 'Убрать из избранного' : 'В избранное'}
         className={cn(
           'absolute top-2.5 right-2.5 z-20 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 cursor-pointer',
-          favorite
+          isFavorite
             ? 'bg-destructive text-destructive-foreground shadow-md scale-110'
             : 'bg-card/80 backdrop-blur-sm text-muted-foreground hover:text-destructive hover:bg-card shadow-sm',
         )}
       >
-        <Heart className={cn('w-3.5 h-3.5', favorite && 'fill-current')} />
+        <Heart className={cn('w-3.5 h-3.5', isFavorite && 'fill-current')} />
       </button>
 
-      {/* Clickable image + info area */}
       <Link to={`/product/${product.id}`} className="block flex-1">
         <ProductImageSlider images={product.images} alt={product.name} />
 
@@ -125,7 +93,7 @@ export function ProductCard({ product, className }: Props) {
         <span className="text-xs text-muted-foreground ml-1">/ {product.unit}</span>
       </div>
 
-      {/* Cart controls — full width */}
+      {/* Cart controls */}
       <div className="px-3 pb-3">
         <AnimatePresence mode="wait" initial={false}>
           {quantity > 0 ? (
@@ -138,7 +106,7 @@ export function ProductCard({ product, className }: Props) {
               className="flex items-center justify-between w-full rounded-xl bg-muted px-1 h-9"
             >
               <button
-                onClick={handleDecrement}
+                onClick={onDecrement}
                 aria-label="Уменьшить количество"
                 className="w-7 h-7 rounded-lg hover:bg-primary hover:text-primary-foreground text-foreground flex items-center justify-center transition-colors cursor-pointer"
               >
@@ -146,7 +114,7 @@ export function ProductCard({ product, className }: Props) {
               </button>
               <span className="text-sm font-semibold text-foreground tabular-nums">{quantity}</span>
               <button
-                onClick={handleIncrement}
+                onClick={onIncrement}
                 aria-label="Увеличить количество"
                 className="w-7 h-7 rounded-lg bg-primary text-primary-foreground flex items-center justify-center hover:opacity-90 transition-opacity cursor-pointer"
               >
@@ -162,7 +130,7 @@ export function ProductCard({ product, className }: Props) {
               transition={{ duration: 0.15 }}
             >
               <ShimmerButton
-                onClick={handleAddToCart}
+                onClick={onAdd}
                 disabled={!product.isAvailable}
                 aria-label="Добавить в корзину"
                 className="w-full h-9 text-xs font-semibold"

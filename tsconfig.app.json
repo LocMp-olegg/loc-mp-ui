@@ -23,7 +23,6 @@
 
     "strict": true,
     "noImplicitReturns": true,
-    "exactOptionalPropertyTypes": true,
     "paths": { "@/*": ["./src/*"] }
   },
   "include": ["src"],
