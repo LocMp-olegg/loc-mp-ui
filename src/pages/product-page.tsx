@@ -26,7 +26,7 @@ function ProductSkeleton() {
 
 export function ProductPage() {
   const { id } = useParams<{ id: string }>()
-  const { product, reviews, loading, error } = useProductDetail(id)
+  const { product, reviews, rating, loading, error } = useProductDetail(id)
 
   if (loading) return <ProductSkeleton />
 
@@ -69,11 +69,7 @@ export function ProductPage() {
       {/* Reviews */}
       <section>
         <h2 className="text-xl font-bold text-foreground mb-4">Отзывы</h2>
-        <ProductReviews
-          reviews={reviews}
-          rating={product.rating}
-          reviewCount={product.reviewCount}
-        />
+        <ProductReviews reviews={reviews} aggregate={rating} />
       </section>
     </div>
   )

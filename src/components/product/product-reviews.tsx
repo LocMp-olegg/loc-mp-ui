@@ -1,12 +1,11 @@
 import { Star } from 'lucide-react'
 import { ReviewCard } from './review-card'
 import { pluralize } from '@/lib/utils'
-import type { ReviewItem } from '@/types/product-detail'
+import type { RatingAggregate, ReviewItem } from '@/types/product-detail'
 
 interface Props {
   reviews: ReviewItem[]
-  rating: number
-  reviewCount: number
+  aggregate: RatingAggregate | null
 }
 
 function RatingBar({ label, count, total }: { label: string; count: number; total: number }) {
@@ -23,7 +22,10 @@ function RatingBar({ label, count, total }: { label: string; count: number; tota
   )
 }
 
-export function ProductReviews({ reviews, rating, reviewCount }: Props) {
+export function ProductReviews({ reviews, aggregate }: Props) {
+  const rating = aggregate?.averageRating ?? 0
+  const reviewCount = aggregate?.reviewCount ?? 0
+
   if (reviewCount === 0) {
     return (
       <div className="rounded-2xl border border-border bg-card/40 px-6 py-10 text-center">
@@ -32,10 +34,13 @@ export function ProductReviews({ reviews, rating, reviewCount }: Props) {
     )
   }
 
-  const counts = [5, 4, 3, 2, 1].map((stars) => ({
-    stars,
-    count: reviews.filter((r) => r.rating === stars).length,
-  }))
+  const counts = [
+    { stars: 5, count: aggregate?.fiveStar ?? 0 },
+    { stars: 4, count: aggregate?.fourStar ?? 0 },
+    { stars: 3, count: aggregate?.threeStar ?? 0 },
+    { stars: 2, count: aggregate?.twoStar ?? 0 },
+    { stars: 1, count: aggregate?.oneStar ?? 0 },
+  ]
 
   return (
     <div className="flex flex-col gap-5">

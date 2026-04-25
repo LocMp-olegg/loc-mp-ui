@@ -1,6 +1,6 @@
 import { ReviewsService } from '@/api/reviews'
 import type { ReviewSummaryDto } from '@/api/reviews'
-import type { ReviewItem } from '@/types/product-detail'
+import type { RatingAggregate, ReviewItem } from '@/types/product-detail'
 
 function mapReview(dto: ReviewSummaryDto): ReviewItem {
   return {
@@ -13,6 +13,22 @@ function mapReview(dto: ReviewSummaryDto): ReviewItem {
     response: dto.response
       ? { comment: dto.response.comment ?? '', createdAt: dto.response.createdAt ?? '' }
       : null,
+  }
+}
+
+export async function fetchProductRating(productId: string): Promise<RatingAggregate> {
+  const dto = await ReviewsService.getApiReviewsReviewsRating({
+    subjectType: 'Product',
+    subjectId: productId,
+  })
+  return {
+    averageRating: dto.averageRating ?? 0,
+    reviewCount: dto.reviewCount ?? 0,
+    oneStar: dto.oneStar ?? 0,
+    twoStar: dto.twoStar ?? 0,
+    threeStar: dto.threeStar ?? 0,
+    fourStar: dto.fourStar ?? 0,
+    fiveStar: dto.fiveStar ?? 0,
   }
 }
 

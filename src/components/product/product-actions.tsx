@@ -16,16 +16,23 @@ export function ProductActions({ product }: Props) {
   const maxQuantity = product.isMadeToOrder ? undefined : product.stockQuantity
 
   return (
-    <div className="flex flex-col gap-4 rounded-2xl border border-border bg-card/60 backdrop-blur-sm p-5">
+    <div className="relative flex flex-col gap-4 rounded-2xl border border-border bg-card/60 backdrop-blur-sm p-5">
+      <div className="absolute top-4 right-4 z-10">
+        <FavoriteButton
+          isFavorite={isFavorite}
+          onClick={onToggleFavorite}
+          className="[&_svg]:w-6 [&_svg]:h-6"
+        />
+      </div>
       {/* Rating */}
       {product.reviewCount > 0 && (
-        <div>
+        <div className="pr-14">
           <RatingBadge rating={product.rating} reviewCount={product.reviewCount} />
         </div>
       )}
 
       {/* Price */}
-      <div className="flex items-baseline gap-2">
+      <div className="flex items-baseline gap-2 pr-14">
         <span className="text-3xl font-bold text-foreground">
           {product.price.toLocaleString('ru-RU')} ₽
         </span>
@@ -40,7 +47,7 @@ export function ProductActions({ product }: Props) {
             <span className="text-foreground">
               {product.isMadeToOrder
                 ? 'Под заказ'
-                : `В наличии: ${product.stockQuantity} ${product.unit}`}
+                : `В наличии: ${product.stockQuantity}`}
             </span>
           </>
         ) : (
@@ -51,20 +58,15 @@ export function ProductActions({ product }: Props) {
         )}
       </div>
 
-      {/* Cart + Favorite */}
-      <div className="flex items-center gap-3">
-        <div className="flex-1">
-          <CartControls
-            quantity={quantity}
-            isAvailable={product.isAvailable}
-            maxQuantity={maxQuantity}
-            onAdd={onAdd}
-            onIncrement={onIncrement}
-            onDecrement={onDecrement}
-          />
-        </div>
-        <FavoriteButton isFavorite={isFavorite} onClick={onToggleFavorite} />
-      </div>
+      {/* Cart */}
+      <CartControls
+        quantity={quantity}
+        isAvailable={product.isAvailable}
+        maxQuantity={maxQuantity}
+        onAdd={onAdd}
+        onIncrement={onIncrement}
+        onDecrement={onDecrement}
+      />
     </div>
   )
 }
