@@ -23,8 +23,12 @@ export function CategorySection({ category }: Props) {
   const canScroll = canScrollPrev || canScrollNext
 
   return (
-    <section ref={ref} className="mb-8 md:mb-10">
-      <div className="flex items-center justify-between mb-3 md:mb-4 px-4 md:px-6">
+    <section
+      ref={ref}
+      className="mb-4 md:mb-5 mx-2 md:mx-4 rounded-2xl border border-white/20 dark:border-white/8 shadow-sm backdrop-blur-sm overflow-hidden"
+      style={{ background: 'color-mix(in srgb, var(--card) 35%, transparent)' }}
+    >
+      <div className="flex items-center justify-between mb-3 md:mb-4 px-4 md:px-5 pt-4 md:pt-5">
         <Link to={`/category/${category.id}`} className="flex items-center gap-2.5 min-w-0 group">
           <span className="text-xl md:text-2xl leading-none shrink-0">{category.emoji}</span>
           <div className="flex flex-col min-w-0">
@@ -71,7 +75,7 @@ export function CategorySection({ category }: Props) {
         )}
       </div>
 
-      <div className="relative px-4 md:px-6">
+      <div className="relative px-3 md:px-4 pb-4 md:pb-5">
         <Carousel
           setApi={setApi}
           opts={{
