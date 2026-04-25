@@ -23,52 +23,52 @@
   --color-nav-text: var(--nav-text);
 }
 
-/* ── Light theme — Forest Sage ───────────────────────────────── */
+/* Light */
 :root {
-  --background: #f1f4f0;
-  --foreground: #2f3e46;
+  --background: #f8f5ee;
+  --foreground: #264653;
   --card: #ffffff;
-  --card-foreground: #2f3e46;
-  --primary: #52796f;
+  --card-foreground: #264653;
+  --primary: #2a9d8f;
   --primary-foreground: #ffffff;
-  --secondary: #e6efe4;
-  --secondary-foreground: #2f3e46;
-  --muted: #e6efe4;
-  --muted-foreground: #52796f;
-  --accent: #84a98c;
-  --accent-foreground: #2f3e46;
-  --destructive: #c0392b;
+  --secondary: #fbf1dc;
+  --secondary-foreground: #264653;
+  --muted: #eff3f1;
+  --muted-foreground: #4d7a85;
+  --accent: #f4a261;
+  --accent-foreground: #ffffff;
+  --destructive: #e76f51;
   --destructive-foreground: #ffffff;
-  --border: #d0dccb;
-  --input: #e6efe4;
-  --ring: #52796f;
-  --spotlight: rgba(132, 169, 140, 0.22);
-  --nav-bg: #354f52;
-  --nav-text: #ffffff;
+  --border: #bdd4d8;
+  --input: #ebf3f4;
+  --ring: #2a9d8f;
+  --spotlight: rgba(42, 157, 143, 0.16);
+  --nav-bg: #264653;
+  --nav-text: #e8eef0;
 }
 
-/* ── Dark theme — Forest Sage ────────────────────────────────── */
+/* Dark */
 .dark {
-  --background: #1a2527;
-  --foreground: #cad2c5;
-  --card: #2f3e46;
-  --card-foreground: #cad2c5;
-  --primary: #84a98c;
-  --primary-foreground: #1a2527;
-  --secondary: #263038;
-  --secondary-foreground: #cad2c5;
-  --muted: #263038;
-  --muted-foreground: #84a98c;
-  --accent: #52796f;
-  --accent-foreground: #cad2c5;
-  --destructive: #e55a4e;
+  --background: #111e24;
+  --foreground: #e8eef0;
+  --card: #1a2e38;
+  --card-foreground: #e8eef0;
+  --primary: #2a9d8f;
+  --primary-foreground: #111e24;
+  --secondary: #1e3540;
+  --secondary-foreground: #e8eef0;
+  --muted: #1e3540;
+  --muted-foreground: #4fbfb3;
+  --accent: #e9c46a;
+  --accent-foreground: #111e24;
+  --destructive: #e76f51;
   --destructive-foreground: #ffffff;
-  --border: #3d5558;
-  --input: rgba(61, 85, 88, 0.5);
-  --ring: #84a98c;
-  --spotlight: rgba(82, 121, 111, 0.3);
-  --nav-bg: #111b1d;
-  --nav-text: #cad2c5;
+  --border: #2a4855;
+  --input: rgba(42, 72, 85, 0.5);
+  --ring: #2a9d8f;
+  --spotlight: rgba(42, 157, 143, 0.28);
+  --nav-bg: #090f12;
+  --nav-text: #e8eef0;
 }
 
 /* ── Base ────────────────────────────────────────────────────── */
