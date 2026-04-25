@@ -7,7 +7,7 @@ import { ShimmerButton } from '@/components/aceternity/shimmer-button'
 import { useProductActions } from '@/hooks/use-product-actions'
 import { cn } from '@/lib/utils'
 import type { Product } from '@/types/product'
-import * as React from "react";
+import * as React from 'react'
 
 interface Props {
   product: Product
@@ -29,8 +29,8 @@ export function ProductCard({ product, className }: Props) {
   return (
     <motion.article
       className={cn(
-          'relative flex flex-col bg-card rounded-2xl border border-border overflow-hidden select-none w-56 shrink-0',
-          className,
+        'relative flex flex-col bg-card rounded-2xl border border-border overflow-hidden select-none w-56 shrink-0',
+        className,
       )}
       onMouseMove={handleMouseMove}
       onHoverStart={() => setIsHovered(true)}

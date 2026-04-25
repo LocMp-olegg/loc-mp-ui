@@ -84,7 +84,10 @@ export function CategorySection({ category }: Props) {
           <CarouselContent>
             {loading
               ? Array.from({ length: SKELETON_COUNT }).map((_, i) => (
-                  <CarouselItem key={i} className="basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/5">
+                  <CarouselItem
+                    key={i}
+                    className="basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/5"
+                  >
                     <div className="rounded-2xl bg-muted animate-pulse" style={{ height: 340 }} />
                   </CarouselItem>
                 ))
