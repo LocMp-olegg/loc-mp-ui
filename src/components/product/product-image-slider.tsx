@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
+import * as React from "react";
 
 interface Props {
   images: string[]
@@ -47,8 +48,6 @@ export function ProductImageSlider({ images, alt }: Props) {
     [images.length],
   )
 
-  // Non-passive touchmove so we can preventDefault on horizontal swipes,
-  // stopping the parent horizontal scroll from firing simultaneously.
   useEffect(() => {
     const el = containerRef.current
     if (!el || images.length <= 1) return
@@ -86,6 +85,7 @@ export function ProductImageSlider({ images, alt }: Props) {
       onMouseLeave={handleMouseLeave}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
+      data-image-slider
     >
       {images.map((src, i) => (
         <img

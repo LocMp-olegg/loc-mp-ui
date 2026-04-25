@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { fetchCategoryProducts } from '@/lib/catalog'
 import type { Product } from '@/types/product'
+import * as React from "react";
 
 interface State {
   products: Product[]

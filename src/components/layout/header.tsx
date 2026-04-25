@@ -11,7 +11,7 @@ export function Header() {
     <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-zinc-100">
       <div className="max-w-7xl mx-auto px-4 md:px-6 h-14 flex items-center gap-3">
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-2 flex-shrink-0 mr-1">
+        <Link to="/" className="flex items-center gap-2 shrink-0 mr-1">
           <div className="w-8 h-8 bg-violet-600 rounded-xl flex items-center justify-center shadow-sm">
             <span className="text-white text-sm font-bold leading-none">Р</span>
           </div>
@@ -21,7 +21,7 @@ export function Header() {
         </Link>
 
         {/* Location pill */}
-        <button className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-zinc-50 border border-zinc-200 text-sm text-zinc-600 hover:border-violet-300 hover:text-violet-600 transition-colors flex-shrink-0 cursor-pointer">
+        <button className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-zinc-50 border border-zinc-200 text-sm text-zinc-600 hover:border-violet-300 hover:text-violet-600 transition-colors shrink-0 cursor-pointer">
           <MapPin className="w-3.5 h-3.5 text-violet-500" />
           <span>Хамовники</span>
         </button>
@@ -47,7 +47,7 @@ export function Header() {
           >
             <Heart className="w-5 h-5 text-zinc-600" />
             {totalFavorites > 0 && (
-              <span className="absolute top-1 right-1 min-w-[14px] h-3.5 bg-rose-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
+              <span className="absolute top-1 right-1 min-w-3.5 h-3.5 bg-rose-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
                 {totalFavorites > 9 ? '9+' : totalFavorites}
               </span>
             )}
@@ -60,7 +60,7 @@ export function Header() {
           >
             <ShoppingCart className="w-5 h-5 text-zinc-600" />
             {totalItems > 0 && (
-              <span className="absolute top-1 right-1 min-w-[14px] h-3.5 bg-violet-600 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
+              <span className="absolute top-1 right-1 min-w-3.5 h-3.5 bg-violet-600 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
                 {totalItems > 9 ? '9+' : totalItems}
               </span>
             )}

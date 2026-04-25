@@ -7,6 +7,7 @@ import { ShimmerButton } from '@/components/aceternity/shimmer-button'
 import { useProductActions } from '@/hooks/use-product-actions'
 import { cn } from '@/lib/utils'
 import type { Product } from '@/types/product'
+import * as React from "react";
 
 interface Props {
   product: Product
@@ -37,7 +38,7 @@ export function ProductCard({ product, className }: Props) {
       whileHover={{ scale: 1.02 }}
       transition={{ duration: 0.2, ease: 'easeOut' }}
       style={{
-        boxShadow: isHovered ? '0 12px 40px rgba(0,0,0,0.10)' : '0 1px 4px rgba(0,0,0,0.06)',
+        boxShadow: isHovered ? '0 12px 20px rgba(0,0,0,0.10)' : '0 1px 4px rgba(0,0,0,0.06)',
       }}
     >
       {/* Aceternity spotlight */}

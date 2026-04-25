@@ -102,7 +102,7 @@ export function FloatingNav() {
           >
             <Heart className="w-5 h-5 text-nav-text/70" />
             {totalFavorites > 0 && (
-              <span className="absolute top-1 right-1 min-w-[14px] h-3.5 bg-destructive text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
+              <span className="absolute top-1 right-1 min-w-3.5 h-3.5 bg-destructive text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
                 {totalFavorites > 9 ? '9+' : totalFavorites}
               </span>
             )}
@@ -115,7 +115,7 @@ export function FloatingNav() {
           >
             <ShoppingCart className="w-5 h-5 text-nav-text/70" />
             {totalItems > 0 && (
-              <span className="absolute top-1 right-1 min-w-[14px] h-3.5 bg-accent text-nav-bg text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
+              <span className="absolute top-1 right-1 min-w-3.5 h-3.5 bg-accent text-nav-bg text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
                 {totalItems > 9 ? '9+' : totalItems}
               </span>
             )}

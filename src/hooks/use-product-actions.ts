@@ -1,6 +1,7 @@
 import { useCart } from '@/contexts/cart-context'
 import { useFavorites } from '@/contexts/favorites-context'
 import type { Product } from '@/types/product'
+import * as React from "react";
 
 interface ProductActions {
   quantity: number
