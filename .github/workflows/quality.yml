@@ -19,6 +19,9 @@ jobs:
 
       - run: npm ci
 
+      - name: Generate API
+        run: npm run generate:api
+
       - name: Type check
         run: npx tsc -b
 
