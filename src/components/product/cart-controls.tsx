@@ -6,12 +6,14 @@ import { ShimmerButton } from '@/components/aceternity/shimmer-button'
 interface Props {
   quantity: number
   isAvailable: boolean
+  maxQuantity?: number
   onAdd: (e: MouseEvent) => void
   onIncrement: (e: MouseEvent) => void
   onDecrement: (e: MouseEvent) => void
 }
 
-export function CartControls({ quantity, isAvailable, onAdd, onIncrement, onDecrement }: Props) {
+export function CartControls({ quantity, isAvailable, maxQuantity, onAdd, onIncrement, onDecrement }: Props) {
+  const atMax = maxQuantity !== undefined && quantity >= maxQuantity
   return (
     <AnimatePresence mode="wait" initial={false}>
       {quantity > 0 ? (
@@ -36,7 +38,9 @@ export function CartControls({ quantity, isAvailable, onAdd, onIncrement, onDecr
 
           <button
             onClick={onIncrement}
-            className="h-full aspect-square rounded-lg bg-primary text-primary-foreground flex items-center justify-center shadow-sm hover:opacity-90 active:scale-95 transition-all cursor-pointer shrink-0"
+            aria-label="Увеличить количество"
+            disabled={atMax}
+            className="h-full aspect-square rounded-lg bg-primary text-primary-foreground flex items-center justify-center shadow-sm hover:opacity-90 active:scale-95 transition-all cursor-pointer shrink-0 disabled:opacity-40 disabled:cursor-not-allowed"
           >
             <Plus className="w-4 h-4" />
           </button>
@@ -52,7 +56,7 @@ export function CartControls({ quantity, isAvailable, onAdd, onIncrement, onDecr
         >
           <ShimmerButton onClick={onAdd} disabled={!isAvailable} className="w-full h-11 px-3 group">
             <div className="flex items-center justify-center w-full gap-2 overflow-hidden">
-              <ShoppingCart className="w-4 h-4 shrink-0 transition-transform group-hover:-translate-y-0.5" />
+              <ShoppingCart className="w-4 h-4 shrink-0 transition-transform" />
               <span className="text-sm font-semibold whitespace-nowrap truncate">
                 {isAvailable ? 'В корзину' : 'Нет в наличии'}
               </span>

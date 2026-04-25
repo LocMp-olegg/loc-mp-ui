@@ -1,7 +1,8 @@
 import noImageUrl from '@/assets/no-image-available.jpg'
 import { CategoriesService, ProductsService } from '@/api/catalog'
-import type { ProductSummaryDto, CategoryTreeDto } from '@/api/catalog'
+import type { ProductDto, ProductSummaryDto, CategoryTreeDto } from '@/api/catalog'
 import type { Product } from '@/types/product'
+import type { ProductDetail } from '@/types/product-detail'
 
 const EMOJI_MAP: [string, string][] = [
   ['выпечк', '🥐'],
@@ -134,6 +135,45 @@ export async function fetchCatalogStructure(): Promise<CatalogStructure> {
 export async function fetchCategoryProducts(categoryId: string, pageSize = 10): Promise<Product[]> {
   const result = await ProductsService.getApiCatalogProductsSearch({ categoryId, pageSize })
   return (result.items ?? []).map(mapProduct)
+}
+
+export function mapProductDetail(dto: ProductDto): ProductDetail {
+  const photos = (dto.photos ?? [])
+    .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+    .map((p) => p.storageUrl ?? '')
+    .filter(Boolean)
+  const images = photos.length > 0
+    ? photos
+    : dto.mainPhotoUrl ? [dto.mainPhotoUrl] : [noImageUrl]
+
+  const stockQuantity = dto.stockQuantity ?? 0
+  const isMadeToOrder = dto.isMadeToOrder ?? false
+
+  return {
+    id: dto.id ?? '',
+    name: dto.name ?? '',
+    description: dto.description ?? null,
+    price: dto.price ?? 0,
+    unit: dto.unit ?? 'шт',
+    shopId: dto.shopId ?? '',
+    shopName: dto.shopName ?? '',
+    sellerName: dto.sellerName ?? null,
+    categoryId: dto.categoryId ?? '',
+    images,
+    rating: dto.averageRating ?? 0,
+    reviewCount: dto.reviewCount ?? 0,
+    isAvailable: (dto.isActive ?? false) && (stockQuantity > 0 || isMadeToOrder),
+    stockQuantity,
+    isMadeToOrder,
+    leadTimeDays: dto.leadTimeDays ?? null,
+    tags: (dto.tags ?? []).filter(Boolean) as string[],
+    location: '',
+  }
+}
+
+export async function fetchProductDetail(id: string): Promise<ProductDetail> {
+  const dto = await ProductsService.getApiCatalogProducts({ id })
+  return mapProductDetail(dto)
 }
 
 /** Category page: full product list + category info. */
