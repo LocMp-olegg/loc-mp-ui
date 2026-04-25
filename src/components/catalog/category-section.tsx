@@ -122,7 +122,7 @@ export function CategorySection({ category }: Props) {
         </Carousel>
 
         {!loading && canScroll && (
-          <div className="mt-1 mx-1 h-0.5 rounded-full bg-border overflow-hidden">
+          <div className="mt-1 mx-1 h-1 rounded-full bg-border overflow-hidden">
             <div
               className="h-full rounded-full bg-primary/50"
               style={{ width: `${scrollProgress * 100}%`, transition: 'width 0ms' }}
