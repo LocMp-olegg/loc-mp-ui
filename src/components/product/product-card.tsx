@@ -9,7 +9,7 @@ import { RatingBadge } from './rating-badge'
 import { useProductActions } from '@/hooks/use-product-actions'
 import { cn } from '@/lib/utils'
 import type { Product } from '@/types/product'
-import * as React from "react";
+import * as React from 'react'
 
 interface Props {
   product: Product
@@ -70,7 +70,7 @@ export function ProductCard({ product, className }: Props) {
       <div className="px-4 pt-3 pb-2 flex-1">
         <div className="flex items-center justify-between gap-2 mb-2">
           <div className="flex flex-col flex-1 min-w-0">
-            <p className="text-sm font-bold text-foreground leading-tight line-clamp-2">
+            <p className="text-sm font-bold text-foreground leading-tight line-clamp-2 wrap-break-word min-h-10">
               {product.name}
             </p>
 

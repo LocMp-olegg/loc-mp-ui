@@ -21,20 +21,22 @@ export function CartControls({ quantity, isAvailable, onAdd, onIncrement, onDecr
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.95 }}
           transition={{ duration: 0.15 }}
-          className="flex items-center justify-between w-full rounded-xl bg-muted px-1 h-11 pointer-events-auto"
+          className="flex items-center justify-between w-full rounded-xl bg-muted p-1 h-11 pointer-events-auto shadow-inner"
         >
           <button
             onClick={onDecrement}
-            aria-label="Уменьшить количество"
-            className="w-9 h-9 rounded-lg hover:bg-muted-foreground/10 text-foreground flex items-center justify-center transition-colors cursor-pointer"
+            className="h-full aspect-square rounded-lg hover:bg-muted-foreground/10 text-foreground flex items-center justify-center transition-colors cursor-pointer shrink-0"
           >
             <Minus className="w-4 h-4" />
           </button>
-          <span className="text-sm font-bold text-foreground tabular-nums">{quantity}</span>
+
+          <span className="flex-1 text-center text-sm font-bold text-foreground tabular-nums select-none">
+            {quantity}
+          </span>
+
           <button
             onClick={onIncrement}
-            aria-label="Увеличить количество"
-            className="w-9 h-9 rounded-lg bg-primary text-primary-foreground flex items-center justify-center shadow-md hover:scale-105 transition-all cursor-pointer"
+            className="h-full aspect-square rounded-lg bg-primary text-primary-foreground flex items-center justify-center shadow-sm hover:opacity-90 active:scale-95 transition-all cursor-pointer shrink-0"
           >
             <Plus className="w-4 h-4" />
           </button>
@@ -46,16 +48,15 @@ export function CartControls({ quantity, isAvailable, onAdd, onIncrement, onDecr
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.95 }}
           transition={{ duration: 0.15 }}
-          className="pointer-events-auto"
+          className="pointer-events-auto w-full"
         >
-          <ShimmerButton
-            onClick={onAdd}
-            disabled={!isAvailable}
-            aria-label="Добавить в корзину"
-            className="w-full h-11 text-sm font-semibold"
-          >
-            <ShoppingCart className="w-4 h-4 mr-2" />
-            {isAvailable ? 'В корзину' : 'Нет в наличии'}
+          <ShimmerButton onClick={onAdd} disabled={!isAvailable} className="w-full h-11 px-3 group">
+            <div className="flex items-center justify-center w-full gap-2 overflow-hidden">
+              <ShoppingCart className="w-4 h-4 shrink-0 transition-transform group-hover:-translate-y-0.5" />
+              <span className="text-sm font-semibold whitespace-nowrap truncate">
+                {isAvailable ? 'В корзину' : 'Нет в наличии'}
+              </span>
+            </div>
           </ShimmerButton>
         </motion.div>
       )}
