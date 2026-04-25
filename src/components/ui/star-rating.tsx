@@ -39,9 +39,7 @@ export function StarRating({ rating, max = 5, size = 16, className }: Props) {
     <div className={`flex items-center gap-0.5 ${className ?? ''}`}>
       {Array.from({ length: max }).map((_, i) => {
         const fill = Math.min(1, Math.max(0, rating - i))
-        return (
-          <PartialStar key={i} fill={fill} size={size} clipId={`${id}s${i}`} />
-        )
+        return <PartialStar key={i} fill={fill} size={size} clipId={`${id}s${i}`} />
       })}
     </div>
   )

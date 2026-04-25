@@ -142,9 +142,7 @@ export function mapProductDetail(dto: ProductDto): ProductDetail {
     .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
     .map((p) => p.storageUrl ?? '')
     .filter(Boolean)
-  const images = photos.length > 0
-    ? photos
-    : dto.mainPhotoUrl ? [dto.mainPhotoUrl] : [noImageUrl]
+  const images = photos.length > 0 ? photos : dto.mainPhotoUrl ? [dto.mainPhotoUrl] : [noImageUrl]
 
   const stockQuantity = dto.stockQuantity ?? 0
   const isMadeToOrder = dto.isMadeToOrder ?? false

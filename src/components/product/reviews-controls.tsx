@@ -3,10 +3,46 @@ import { cn } from '@/lib/utils'
 import type { ReviewSortBy } from '@/api/reviews'
 
 const SORT_OPTIONS: { key: ReviewSortBy; label: string; icon: React.ReactNode }[] = [
-  { key: 'DateDesc',   label: 'Сначала новые',           icon: <><Clock className="w-3 h-3" /><ArrowDown className="w-3 h-3" /></> },
-  { key: 'DateAsc',    label: 'Сначала старые',           icon: <><Clock className="w-3 h-3" /><ArrowUp className="w-3 h-3" /></> },
-  { key: 'RatingDesc', label: 'Сначала высокий рейтинг', icon: <><Star className="w-3 h-3" /><ArrowDown className="w-3 h-3" /></> },
-  { key: 'RatingAsc',  label: 'Сначала низкий рейтинг',  icon: <><Star className="w-3 h-3" /><ArrowUp className="w-3 h-3" /></> },
+  {
+    key: 'DateDesc',
+    label: 'Сначала новые',
+    icon: (
+      <>
+        <Clock className="w-3 h-3" />
+        <ArrowDown className="w-3 h-3" />
+      </>
+    ),
+  },
+  {
+    key: 'DateAsc',
+    label: 'Сначала старые',
+    icon: (
+      <>
+        <Clock className="w-3 h-3" />
+        <ArrowUp className="w-3 h-3" />
+      </>
+    ),
+  },
+  {
+    key: 'RatingDesc',
+    label: 'Сначала высокий рейтинг',
+    icon: (
+      <>
+        <Star className="w-3 h-3" />
+        <ArrowDown className="w-3 h-3" />
+      </>
+    ),
+  },
+  {
+    key: 'RatingAsc',
+    label: 'Сначала низкий рейтинг',
+    icon: (
+      <>
+        <Star className="w-3 h-3" />
+        <ArrowUp className="w-3 h-3" />
+      </>
+    ),
+  },
 ]
 
 function Tooltip({ text, children }: { text: string; children: React.ReactNode }) {

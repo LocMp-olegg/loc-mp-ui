@@ -24,7 +24,10 @@ function RatingBar({ stars, count, total, active, onClick }: RatingBarProps) {
       <span className="w-3 text-right text-muted-foreground">{stars}</span>
       <Star className="w-3 h-3 fill-amber-400 text-amber-400 shrink-0" />
       <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
-        <div className="h-full rounded-full bg-amber-400 transition-all" style={{ width: `${pct}%` }} />
+        <div
+          className="h-full rounded-full bg-amber-400 transition-all"
+          style={{ width: `${pct}%` }}
+        />
       </div>
       <span className="w-5 text-muted-foreground">{count}</span>
     </button>

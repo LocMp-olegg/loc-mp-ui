@@ -35,7 +35,5 @@ export async function fetchProductReviews(
     sortBy,
     rating,
   })
-  return (result.items ?? [])
-    .filter((r) => r.isVisible !== false)
-    .map(mapReview)
+  return (result.items ?? []).filter((r) => r.isVisible !== false).map(mapReview)
 }

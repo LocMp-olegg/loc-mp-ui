@@ -45,9 +45,7 @@ export function ProductActions({ product }: Props) {
           <>
             <PackageCheck className="w-4 h-4 text-primary shrink-0" />
             <span className="text-foreground">
-              {product.isMadeToOrder
-                ? 'Под заказ'
-                : `В наличии: ${product.stockQuantity}`}
+              {product.isMadeToOrder ? 'Под заказ' : `В наличии: ${product.stockQuantity}`}
             </span>
           </>
         ) : (

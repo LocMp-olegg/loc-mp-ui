@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { MessageSquare } from 'lucide-react'
 import { StarRating } from '@/components/ui/star-rating'
 import type { ReviewItem } from '@/types/product-detail'
@@ -8,10 +9,25 @@ interface Props {
 
 function formatDate(iso: string): string {
   if (!iso) return ''
-  return new Date(iso).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })
+  return new Date(iso).toLocaleDateString('ru-RU', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  })
 }
 
+const MAX_COMMENT_LENGTH = 500
+
 export function ReviewCard({ review }: Props) {
+  const [isExpanded, setIsExpanded] = useState(false)
+
+  const isLongComment = review.comment && review.comment.length > MAX_COMMENT_LENGTH
+
+  const displayComment =
+    isLongComment && !isExpanded && review.comment
+      ? `${review.comment.slice(0, MAX_COMMENT_LENGTH).trim()}...`
+      : (review.comment ?? '')
+
   return (
     <div className="rounded-2xl border border-border bg-card/50 p-4 flex flex-col gap-3">
       {/* Header */}
@@ -27,7 +43,19 @@ export function ReviewCard({ review }: Props) {
 
       {/* Comment */}
       {review.comment && (
-        <p className="text-sm text-foreground leading-relaxed">{review.comment}</p>
+        <div className="flex flex-col items-start gap-1">
+          <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
+            {displayComment}
+          </p>
+          {isLongComment && (
+            <button
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="text-sm font-medium text-primary hover:underline transition-colors focus-visible:outline-none"
+            >
+              {isExpanded ? 'Свернуть' : 'Читать полностью'}
+            </button>
+          )}
+        </div>
       )}
 
       {/* Photos */}

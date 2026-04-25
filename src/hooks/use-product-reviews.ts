@@ -26,13 +26,22 @@ export function useProductReviews(productId: string | undefined): State {
     let cancelled = false
 
     fetchProductReviews(productId, sort, filterStar ?? undefined)
-      .then((result) => { if (!cancelled) setReviews(result) })
-      .catch(() => { if (!cancelled) setReviews([]) })
+      .then((result) => {
+        if (!cancelled) setReviews(result)
+      })
+      .catch(() => {
+        if (!cancelled) setReviews([])
+      })
 
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+    }
   }, [productId, sort, filterStar])
 
-  const reset = () => { setSort(DEFAULT_SORT); setFilterStar(null) }
+  const reset = () => {
+    setSort(DEFAULT_SORT)
+    setFilterStar(null)
+  }
 
   return { reviews, sort, filterStar, setSort, setFilterStar, reset }
 }

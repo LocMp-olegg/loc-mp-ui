@@ -26,7 +26,9 @@ export function ProductInfo({ product, categoryName }: Props) {
       )}
 
       {/* Name */}
-      <h1 className="text-2xl md:text-3xl font-bold text-foreground leading-tight">{product.name}</h1>
+      <h1 className="text-2xl md:text-3xl font-bold text-foreground leading-tight">
+        {product.name}
+      </h1>
 
       {/* Meta row */}
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm text-muted-foreground">

@@ -12,7 +12,14 @@ interface Props {
   onDecrement: (e: MouseEvent) => void
 }
 
-export function CartControls({ quantity, isAvailable, maxQuantity, onAdd, onIncrement, onDecrement }: Props) {
+export function CartControls({
+  quantity,
+  isAvailable,
+  maxQuantity,
+  onAdd,
+  onIncrement,
+  onDecrement,
+}: Props) {
   const atMax = maxQuantity !== undefined && quantity >= maxQuantity
   return (
     <AnimatePresence mode="wait" initial={false}>

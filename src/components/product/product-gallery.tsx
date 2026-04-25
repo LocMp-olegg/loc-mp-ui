@@ -16,7 +16,10 @@ export function ProductGallery({ images, alt }: Props) {
   const isHorizontal = useRef<boolean | null>(null)
   const mainRef = useRef<HTMLDivElement>(null)
 
-  const prev = useCallback(() => setCurrent((i) => (i - 1 + images.length) % images.length), [images.length])
+  const prev = useCallback(
+    () => setCurrent((i) => (i - 1 + images.length) % images.length),
+    [images.length],
+  )
   const next = useCallback(() => setCurrent((i) => (i + 1) % images.length), [images.length])
 
   const handleTouchStart = useCallback((e: TouchEvent) => {
@@ -32,12 +35,16 @@ export function ProductGallery({ images, alt }: Props) {
     if (isHorizontal.current) e.preventDefault()
   }, [])
 
-  const handleTouchEnd = useCallback((e: TouchEvent) => {
-    if (!isHorizontal.current) return
-    const delta = e.changedTouches[0].clientX - touchStartX.current
-    if (Math.abs(delta) < SWIPE_THRESHOLD) return
-    if (delta < 0) next(); else prev()
-  }, [next, prev])
+  const handleTouchEnd = useCallback(
+    (e: TouchEvent) => {
+      if (!isHorizontal.current) return
+      const delta = e.changedTouches[0].clientX - touchStartX.current
+      if (Math.abs(delta) < SWIPE_THRESHOLD) return
+      if (delta < 0) next()
+      else prev()
+    },
+    [next, prev],
+  )
 
   useEffect(() => {
     const el = mainRef.current
@@ -55,7 +62,10 @@ export function ProductGallery({ images, alt }: Props) {
   return (
     <div className="flex flex-col gap-3">
       {/* Main image */}
-      <div ref={mainRef} className="relative aspect-square w-full rounded-2xl overflow-hidden bg-muted">
+      <div
+        ref={mainRef}
+        className="relative aspect-square w-full rounded-2xl overflow-hidden bg-muted"
+      >
         <img
           src={images[current]}
           alt={`${alt} — фото ${current + 1}`}
@@ -105,7 +115,9 @@ export function ProductGallery({ images, alt }: Props) {
               aria-label={`Фото ${i + 1}`}
               className={cn(
                 'shrink-0 w-16 h-16 rounded-xl overflow-hidden border-2 transition-all cursor-pointer',
-                i === current ? 'border-primary' : 'border-transparent opacity-60 hover:opacity-100',
+                i === current
+                  ? 'border-primary'
+                  : 'border-transparent opacity-60 hover:opacity-100',
               )}
             >
               <img src={src} alt="" className="w-full h-full object-cover" draggable={false} />

@@ -15,7 +15,15 @@ interface Props {
   reset: () => void
 }
 
-export function ProductReviews({ reviews, aggregate, sort, filterStar, setSort, setFilterStar, reset }: Props) {
+export function ProductReviews({
+  reviews,
+  aggregate,
+  sort,
+  filterStar,
+  setSort,
+  setFilterStar,
+  reset,
+}: Props) {
   const reviewCount = aggregate?.reviewCount ?? 0
 
   if (reviewCount === 0) {
