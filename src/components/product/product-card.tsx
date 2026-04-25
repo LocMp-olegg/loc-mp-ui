@@ -28,8 +28,8 @@ export function ProductCard({ product, className }: Props) {
   return (
     <motion.article
       className={cn(
-        'relative flex flex-col bg-card rounded-2xl border border-border overflow-hidden select-none',
-        className ?? 'w-56 flex-shrink-0',
+          'relative flex flex-col bg-card rounded-2xl border border-border overflow-hidden select-none w-56 shrink-0',
+          className,
       )}
       onMouseMove={handleMouseMove}
       onHoverStart={() => setIsHovered(true)}
@@ -68,18 +68,18 @@ export function ProductCard({ product, className }: Props) {
         <ProductImageSlider images={product.images} alt={product.name} />
 
         <div className="px-3 pt-3 pb-2">
-          <p className="text-sm font-semibold text-foreground leading-snug line-clamp-2 mb-1.5 min-h-[2.5rem]">
+          <p className="text-sm font-semibold text-foreground leading-snug line-clamp-2 mb-1.5 min-h-10">
             {product.name}
           </p>
 
           <div className="flex items-center gap-1 mb-1.5">
-            <Star className="w-3 h-3 fill-amber-400 text-amber-400 flex-shrink-0" />
+            <Star className="w-3 h-3 fill-amber-400 text-amber-400 shrink-0" />
             <span className="text-xs font-medium text-foreground">{product.rating}</span>
             <span className="text-xs text-muted-foreground">({product.reviewCount})</span>
           </div>
 
           <div className="flex items-center gap-1">
-            <Store className="w-3 h-3 text-muted-foreground flex-shrink-0" />
+            <Store className="w-3 h-3 text-muted-foreground shrink-0" />
             <span className="text-xs text-muted-foreground truncate">{product.shopName}</span>
           </div>
         </div>
