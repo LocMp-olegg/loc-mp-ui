@@ -1,11 +1,12 @@
 import { Star } from 'lucide-react'
 import { ReviewCard } from './review-card'
 import { pluralize } from '@/lib/utils'
-import type { RatingAggregate, ReviewItem } from '@/types/product-detail'
+import type { RatingAggregateDto } from '@/api/reviews'
+import type { ReviewItem } from '@/types/product-detail'
 
 interface Props {
   reviews: ReviewItem[]
-  aggregate: RatingAggregate | null
+  aggregate: RatingAggregateDto | null
 }
 
 function RatingBar({ label, count, total }: { label: string; count: number; total: number }) {

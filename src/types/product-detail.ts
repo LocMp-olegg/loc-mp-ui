@@ -9,16 +9,6 @@ export interface ProductDetail extends Product {
   tags: string[]
 }
 
-export interface RatingAggregate {
-  averageRating: number
-  reviewCount: number
-  oneStar: number
-  twoStar: number
-  threeStar: number
-  fourStar: number
-  fiveStar: number
-}
-
 export interface ReviewItem {
   id: string
   reviewerName: string

@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react'
 import { fetchProductDetail } from '@/lib/catalog'
 import { fetchProductRating, fetchProductReviews } from '@/lib/reviews'
-import type { ProductDetail, RatingAggregate, ReviewItem } from '@/types/product-detail'
+import type { RatingAggregateDto } from '@/api/reviews'
+import type { ProductDetail, ReviewItem } from '@/types/product-detail'
 
 interface State {
   product: ProductDetail | null
   reviews: ReviewItem[]
-  rating: RatingAggregate | null
+  rating: RatingAggregateDto | null
   loading: boolean
   error: string | null
 }
