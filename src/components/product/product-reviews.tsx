@@ -1,5 +1,6 @@
 import { Star } from 'lucide-react'
 import { ReviewCard } from './review-card'
+import { StarRating } from '@/components/ui/star-rating'
 import { pluralize } from '@/lib/utils'
 import type { RatingAggregateDto } from '@/api/reviews'
 import type { ReviewItem } from '@/types/product-detail'
@@ -48,15 +49,8 @@ export function ProductReviews({ reviews, aggregate }: Props) {
       {/* Summary */}
       <div className="rounded-2xl border border-border bg-card/50 p-5 flex flex-col sm:flex-row gap-5">
         <div className="flex flex-col items-center justify-center gap-1 sm:min-w-28">
-          <span className="text-5xl font-bold text-foreground">{rating.toFixed(1)}</span>
-          <div className="flex items-center gap-0.5">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <Star
-                key={i}
-                className={`w-4 h-4 ${i < Math.round(rating) ? 'fill-amber-400 text-amber-400' : 'text-border'}`}
-              />
-            ))}
-          </div>
+          <span className="text-5xl font-bold text-foreground">{rating}</span>
+          <StarRating rating={rating} size={18} />
           <span className="text-xs text-muted-foreground">
             {reviewCount} {pluralize(reviewCount, 'отзыв', 'отзыва', 'отзывов')}
           </span>

@@ -1,4 +1,5 @@
-import { Star, MessageSquare } from 'lucide-react'
+import { MessageSquare } from 'lucide-react'
+import { StarRating } from '@/components/ui/star-rating'
 import type { ReviewItem } from '@/types/product-detail'
 
 interface Props {
@@ -19,13 +20,8 @@ export function ReviewCard({ review }: Props) {
           <p className="text-sm font-semibold text-foreground">{review.reviewerName}</p>
           <p className="text-xs text-muted-foreground mt-0.5">{formatDate(review.createdAt)}</p>
         </div>
-        <div className="flex items-center gap-0.5 shrink-0">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <Star
-              key={i}
-              className={`w-3.5 h-3.5 ${i < review.rating ? 'fill-amber-400 text-amber-400' : 'text-border'}`}
-            />
-          ))}
+        <div className="shrink-0">
+          <StarRating rating={review.rating} size={14} />
         </div>
       </div>
 
