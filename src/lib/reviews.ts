@@ -1,5 +1,5 @@
 import { ReviewsService } from '@/api/reviews'
-import type { RatingAggregateDto, ReviewSummaryDto } from '@/api/reviews'
+import type { RatingAggregateDto, ReviewSortBy, ReviewSummaryDto } from '@/api/reviews'
 import type { ReviewItem } from '@/types/product-detail'
 
 function mapReview(dto: ReviewSummaryDto): ReviewItem {
@@ -23,11 +23,17 @@ export function fetchProductRating(productId: string): Promise<RatingAggregateDt
   })
 }
 
-export async function fetchProductReviews(productId: string): Promise<ReviewItem[]> {
+export async function fetchProductReviews(
+  productId: string,
+  sortBy?: ReviewSortBy,
+  rating?: number,
+): Promise<ReviewItem[]> {
   const result = await ReviewsService.getApiReviewsReviews({
     subjectType: 'Product',
     subjectId: productId,
     pageSize: 50,
+    sortBy,
+    rating,
   })
   return (result.items ?? [])
     .filter((r) => r.isVisible !== false)

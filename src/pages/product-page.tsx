@@ -5,6 +5,7 @@ import { ProductInfo } from '@/components/product/product-info'
 import { ProductActions } from '@/components/product/product-actions'
 import { ProductReviews } from '@/components/product/product-reviews'
 import { useProductDetail } from '@/hooks/use-product-detail'
+import { useProductReviews } from '@/hooks/use-product-reviews'
 
 function ProductSkeleton() {
   return (
@@ -26,7 +27,8 @@ function ProductSkeleton() {
 
 export function ProductPage() {
   const { id } = useParams<{ id: string }>()
-  const { product, reviews, rating, loading, error } = useProductDetail(id)
+  const { product, rating, loading, error } = useProductDetail(id)
+  const reviewsState = useProductReviews(id)
 
   if (loading) return <ProductSkeleton />
 
@@ -69,7 +71,7 @@ export function ProductPage() {
       {/* Reviews */}
       <section>
         <h2 className="text-xl font-bold text-foreground mb-4">Отзывы</h2>
-        <ProductReviews reviews={reviews} aggregate={rating} />
+        <ProductReviews aggregate={rating} {...reviewsState} />
       </section>
     </div>
   )
