@@ -7,6 +7,7 @@ import * as React from 'react'
 interface State {
   products: Product[]
   loading: boolean
+  fetched: boolean
 }
 
 type Action = { type: 'loading' } | { type: 'loaded'; products: Product[] } | { type: 'error' }
@@ -16,18 +17,18 @@ function reducer(state: State, action: Action): State {
     case 'loading':
       return { ...state, loading: true }
     case 'loaded':
-      return { products: action.products, loading: false }
+      return { products: action.products, loading: false, fetched: true }
     case 'error':
-      return { products: [], loading: false }
+      return { products: [], loading: false, fetched: true }
   }
 }
 
 export function useLazyCategoryProducts(
   categoryId: string,
-): State & { ref: React.RefObject<HTMLElement | null> } {
+): State & { ref: React.RefObject<HTMLElement | null>; visible: boolean } {
   const ref = useRef<HTMLElement>(null)
   const [visible, setVisible] = useState(false)
-  const [state, dispatch] = useReducer(reducer, { products: [], loading: true })
+  const [state, dispatch] = useReducer(reducer, { products: [], loading: false, fetched: false })
   const { location } = useUserLocation()
 
   useEffect(() => {
@@ -69,5 +70,5 @@ export function useLazyCategoryProducts(
     }
   }, [visible, categoryId, location])
 
-  return { ...state, ref }
+  return { ...state, ref, visible }
 }

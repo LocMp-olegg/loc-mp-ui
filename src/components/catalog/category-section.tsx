@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, type RefObject } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { ProductCard } from '@/components/product/product-card'
@@ -10,19 +10,28 @@ import { cn, pluralize } from '@/lib/utils'
 
 interface Props {
   category: LeafCategory
+  onLoadComplete?: (categoryId: string, hasProducts: boolean) => void
+  filterKey?: string
 }
 
 const SKELETON_COUNT = 5
 
-export function CategorySection({ category }: Props) {
-  const { products, loading, ref } = useLazyCategoryProducts(category.id)
+export function CategorySection({ category, onLoadComplete, filterKey }: Props) {
+  const { products, loading, fetched, visible, ref } = useLazyCategoryProducts(category.id)
   const [api, setApi] = useState<CarouselApi>()
+
+  // Re-report when filterKey changes so parent tracking stays correct
+  useEffect(() => {
+    if (visible && !loading && fetched) onLoadComplete?.(category.id, products.length > 0)
+  }, [visible, loading, fetched, products.length, filterKey, category.id, onLoadComplete])
   const { scrollProgress, canScrollPrev, canScrollNext } = useCarouselProgress(api)
 
   const hasMore = !loading && products.length >= 10
   const canScroll = canScrollPrev || canScrollNext
 
-  if (!loading && products.length === 0) return null
+  if (visible && !loading && fetched && products.length === 0) return null
+
+  if (!visible) return <div ref={ref as RefObject<HTMLDivElement>} style={{ minHeight: 420 }} />
 
   return (
     <section
@@ -88,7 +97,7 @@ export function CategorySection({ category }: Props) {
           className="py-2"
         >
           <CarouselContent>
-            {loading
+            {loading && products.length === 0
               ? Array.from({ length: SKELETON_COUNT }).map((_, i) => (
                   <CarouselItem
                     key={i}
