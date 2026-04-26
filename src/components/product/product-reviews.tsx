@@ -1,3 +1,4 @@
+import { Loader2 } from 'lucide-react'
 import { ReviewCard } from './review-card'
 import { ReviewsSummary } from './reviews-summary'
 import { ReviewsControls } from './reviews-controls'
@@ -10,8 +11,11 @@ interface Props {
   aggregate: RatingAggregateDto | null
   sort: ReviewSortBy
   filterStar: number | null
+  hasNextPage: boolean
+  loading: boolean
   setSort: (s: ReviewSortBy) => void
   setFilterStar: (r: number | null) => void
+  loadMore: () => void
   reset: () => void
 }
 
@@ -20,8 +24,11 @@ export function ProductReviews({
   aggregate,
   sort,
   filterStar,
+  hasNextPage,
+  loading,
   setSort,
   setFilterStar,
+  loadMore,
   reset,
 }: Props) {
   const reviewCount = aggregate?.reviewCount ?? 0
@@ -61,6 +68,23 @@ export function ProductReviews({
           {reviews.map((review) => (
             <ReviewCard key={review.id} review={review} />
           ))}
+        </div>
+      )}
+
+      {hasNextPage && (
+        <button
+          onClick={loadMore}
+          disabled={loading}
+          className="self-center flex items-center gap-2 px-5 py-2 rounded-xl border border-border text-sm text-muted-foreground hover:text-foreground hover:border-primary/50 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+          Показать ещё
+        </button>
+      )}
+
+      {loading && reviews.length === 0 && (
+        <div className="flex justify-center py-4">
+          <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
         </div>
       )}
     </div>
