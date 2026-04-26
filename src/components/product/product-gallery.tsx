@@ -3,8 +3,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { PhotoLightbox } from '@/components/ui/photo-lightbox'
-
-const SWIPE_THRESHOLD = 40
+import { useTouchSwipe } from '@/hooks/use-touch-swipe'
 
 interface Props {
   images: string[]
@@ -14,9 +13,6 @@ interface Props {
 export function ProductGallery({ images, alt }: Props) {
   const [current, setCurrent] = useState(0)
   const [lightboxOpen, setLightboxOpen] = useState(false)
-  const touchStartX = useRef(0)
-  const touchStartY = useRef(0)
-  const isHorizontal = useRef<boolean | null>(null)
   const mainRef = useRef<HTMLDivElement>(null)
 
   const prev = useCallback(
@@ -25,49 +21,30 @@ export function ProductGallery({ images, alt }: Props) {
   )
   const next = useCallback(() => setCurrent((i) => (i + 1) % images.length), [images.length])
 
-  const handleTouchStart = useCallback((e: TouchEvent) => {
-    touchStartX.current = e.touches[0].clientX
-    touchStartY.current = e.touches[0].clientY
-    isHorizontal.current = null
-  }, [])
-
-  const handleTouchMove = useCallback((e: TouchEvent) => {
-    const dx = Math.abs(e.touches[0].clientX - touchStartX.current)
-    const dy = Math.abs(e.touches[0].clientY - touchStartY.current)
-    if (isHorizontal.current === null) isHorizontal.current = dx > dy
-    if (isHorizontal.current) e.preventDefault()
-  }, [])
-
-  const handleTouchEnd = useCallback(
-    (e: TouchEvent) => {
-      if (!isHorizontal.current) return
-      const delta = e.changedTouches[0].clientX - touchStartX.current
-      if (Math.abs(delta) < SWIPE_THRESHOLD) return
-      if (delta < 0) next()
-      else prev()
-    },
-    [next, prev],
-  )
+  const { onTouchStart, onTouchMove, onTouchEnd } = useTouchSwipe({
+    onSwipeLeft: next,
+    onSwipeRight: prev,
+  })
 
   useEffect(() => {
     const el = mainRef.current
     if (!el || images.length <= 1) return
-    el.addEventListener('touchstart', handleTouchStart, { passive: true })
-    el.addEventListener('touchmove', handleTouchMove, { passive: false })
-    el.addEventListener('touchend', handleTouchEnd, { passive: true })
+    el.addEventListener('touchstart', onTouchStart, { passive: true })
+    el.addEventListener('touchmove', onTouchMove, { passive: false })
+    el.addEventListener('touchend', onTouchEnd, { passive: true })
     return () => {
-      el.removeEventListener('touchstart', handleTouchStart)
-      el.removeEventListener('touchmove', handleTouchMove)
-      el.removeEventListener('touchend', handleTouchEnd)
+      el.removeEventListener('touchstart', onTouchStart)
+      el.removeEventListener('touchmove', onTouchMove)
+      el.removeEventListener('touchend', onTouchEnd)
     }
-  }, [images.length, handleTouchStart, handleTouchMove, handleTouchEnd])
+  }, [images.length, onTouchStart, onTouchMove, onTouchEnd])
 
   return (
     <div className="flex flex-col gap-3">
       {/* Main image */}
       <div
         ref={mainRef}
-        className="relative aspect-square w-full rounded-2xl overflow-hidden bg-muted cursor-pointer"
+        className="relative aspect-square w-full max-h-[420px] rounded-2xl overflow-hidden bg-muted cursor-pointer"
         onClick={() => setLightboxOpen(true)}
       >
         <img

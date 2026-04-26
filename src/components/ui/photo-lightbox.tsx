@@ -2,8 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, ChevronLeft, ChevronRight } from 'lucide-react'
-
-const SWIPE_THRESHOLD = 50
+import { useTouchSwipe } from '@/hooks/use-touch-swipe'
 
 interface Props {
   photos: string[]
@@ -13,13 +12,18 @@ interface Props {
 
 export function PhotoLightbox({ photos, initialIndex = 0, onClose }: Props) {
   const [current, setCurrent] = useState(initialIndex)
-  const touchStartX = useRef(0)
+  const containerRef = useRef<HTMLDivElement>(null)
 
   const prev = useCallback(
     () => setCurrent((i) => (i - 1 + photos.length) % photos.length),
     [photos.length],
   )
   const next = useCallback(() => setCurrent((i) => (i + 1) % photos.length), [photos.length])
+
+  const { onTouchStart, onTouchMove, onTouchEnd } = useTouchSwipe({
+    onSwipeLeft: next,
+    onSwipeRight: prev,
+  })
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -32,6 +36,19 @@ export function PhotoLightbox({ photos, initialIndex = 0, onClose }: Props) {
   }, [onClose, prev, next])
 
   useEffect(() => {
+    const el = containerRef.current
+    if (!el || photos.length <= 1) return
+    el.addEventListener('touchstart', onTouchStart, { passive: true })
+    el.addEventListener('touchmove', onTouchMove, { passive: false })
+    el.addEventListener('touchend', onTouchEnd, { passive: true })
+    return () => {
+      el.removeEventListener('touchstart', onTouchStart)
+      el.removeEventListener('touchmove', onTouchMove)
+      el.removeEventListener('touchend', onTouchEnd)
+    }
+  }, [photos.length, onTouchStart, onTouchMove, onTouchEnd])
+
+  useEffect(() => {
     const original = document.body.style.overflow
     document.body.style.overflow = 'hidden'
     return () => {
@@ -41,22 +58,13 @@ export function PhotoLightbox({ photos, initialIndex = 0, onClose }: Props) {
 
   return createPortal(
     <motion.div
+      ref={containerRef}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.2 }}
       className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-sm flex items-center justify-center"
       onClick={onClose}
-      onTouchStart={(e) => {
-        touchStartX.current = e.touches[0].clientX
-      }}
-      onTouchEnd={(e) => {
-        const delta = e.changedTouches[0].clientX - touchStartX.current
-        if (Math.abs(delta) >= SWIPE_THRESHOLD) {
-          if (delta < 0) next()
-          else prev()
-        }
-      }}
     >
       {/* Close */}
       <button
