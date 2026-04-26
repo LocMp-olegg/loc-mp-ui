@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, useReducer, type RefObject } from 'react'
+import { useState, useEffect, useRef, useCallback, useReducer } from 'react'
 import { createPortal } from 'react-dom'
 import { motion } from 'framer-motion'
 import { MapContainer, TileLayer, Marker, Circle, useMapEvents, useMap } from 'react-leaflet'
@@ -28,58 +28,6 @@ function MapClickHandler({ onMapClick }: { onMapClick: (lat: number, lng: number
   return null
 }
 
-function SuggestionsPortal({
-  suggestions,
-  anchorRef,
-  onSelect,
-}: {
-  suggestions: GeoSuggestion[]
-  anchorRef: RefObject<HTMLDivElement | null>
-  onSelect: (s: GeoSuggestion) => void
-}) {
-  const [rect, setRect] = useState<DOMRect | null>(null)
-
-  useEffect(() => {
-    const el = anchorRef.current
-    if (!el) return
-    const update = () => setRect(el.getBoundingClientRect())
-    update()
-    window.addEventListener('scroll', update, true)
-    window.addEventListener('resize', update)
-    return () => {
-      window.removeEventListener('scroll', update, true)
-      window.removeEventListener('resize', update)
-    }
-  }, [anchorRef])
-
-  if (!rect) return null
-
-  return createPortal(
-    <div
-      style={{
-        position: 'fixed',
-        top: rect.bottom + 4,
-        left: rect.left,
-        width: rect.width,
-        zIndex: 9999,
-      }}
-      data-suggestions-portal
-      className="bg-card border border-border rounded-xl shadow-lg overflow-hidden"
-    >
-      {suggestions.map((s, i) => (
-        <button
-          key={i}
-          onClick={() => onSelect(s)}
-          className="w-full text-left px-3 py-2.5 text-sm text-foreground hover:bg-muted transition-colors flex items-center gap-2 cursor-pointer"
-        >
-          <MapPin className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-          {s.label}
-        </button>
-      ))}
-    </div>,
-    document.body,
-  )
-}
 
 function MapRecenter({ lat, lng }: { lat: number; lng: number }) {
   const map = useMap()
@@ -198,7 +146,7 @@ export function LocationPicker({ onClose }: Props) {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.2 }}
-      className="fixed inset-0 z-[200] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+      className="fixed inset-0 z-[200] bg-black/40 backdrop-blur-md flex items-center justify-center p-4"
       onClick={onClose}
     >
       <motion.div
@@ -206,20 +154,21 @@ export function LocationPicker({ onClose }: Props) {
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.96, opacity: 0 }}
         transition={{ duration: 0.2 }}
-        className="w-full max-w-2xl bg-card rounded-2xl border border-border shadow-2xl overflow-hidden"
+        className="w-full max-w-2xl rounded-2xl border border-white/10 shadow-2xl overflow-hidden backdrop-blur-xl"
+        style={{ background: 'color-mix(in srgb, var(--nav-bg) 75%, transparent)' }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-border">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-white/8">
           <div className="flex items-center gap-2">
-            <MapPin className="w-4 h-4 text-primary" />
-            <h2 className="font-semibold text-foreground">Выберите район</h2>
+            <MapPin className="w-4 h-4 text-accent" />
+            <h2 className="font-semibold text-nav-text">Выберите район</h2>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-lg hover:bg-muted flex items-center justify-center cursor-pointer transition-colors"
+            className="w-8 h-8 rounded-lg hover:bg-white/10 flex items-center justify-center cursor-pointer transition-colors"
           >
-            <X className="w-4 h-4 text-muted-foreground" />
+            <X className="w-4 h-4 text-nav-text/60" />
           </button>
         </div>
 
@@ -235,21 +184,30 @@ export function LocationPicker({ onClose }: Props) {
                 suggestions.length > 0 && dispatchSug({ type: 'set', items: suggestions })
               }
               placeholder="Адрес или район..."
-              className="w-full pl-9 pr-4 py-2 rounded-xl border border-border bg-muted/40 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 transition-colors"
+              className="w-full pl-9 pr-4 py-2 rounded-xl border border-white/10 bg-white/5 text-sm text-nav-text placeholder:text-nav-text/40 focus:outline-none focus:border-white/20 transition-colors"
             />
             {showSuggestions && (
-              <SuggestionsPortal
-                suggestions={suggestions}
-                anchorRef={searchRef}
-                onSelect={handleSuggestionSelect}
-              />
+              <div className="absolute top-full left-0 right-0 mt-1 z-50 rounded-xl overflow-hidden border border-white/10 shadow-xl backdrop-blur-xl"
+                style={{ background: 'color-mix(in srgb, var(--nav-bg) 85%, transparent)' }}
+              >
+                {suggestions.map((s, i) => (
+                  <button
+                    key={i}
+                    onClick={() => handleSuggestionSelect(s)}
+                    className="w-full text-left px-3 py-2.5 text-sm text-nav-text/80 hover:bg-white/5 transition-colors flex items-center gap-2 cursor-pointer"
+                  >
+                    <MapPin className="w-3.5 h-3.5 text-nav-text/40 shrink-0" />
+                    {s.label}
+                  </button>
+                ))}
+              </div>
             )}
           </div>
         </div>
 
         {/* Map */}
         <div
-          className="mx-5 rounded-xl overflow-hidden border border-border"
+          className="mx-5 rounded-xl overflow-hidden border border-white/10 isolate"
           style={{ height: 300 }}
         >
           <MapContainer
@@ -282,8 +240,8 @@ export function LocationPicker({ onClose }: Props) {
         <div className="px-5 py-4 flex flex-col gap-4">
           <div>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-foreground">Радиус поиска</span>
-              <span className="text-sm font-medium text-primary">{formatRadius(radius)}</span>
+              <span className="text-sm text-nav-text/80">Радиус поиска</span>
+              <span className="text-sm font-medium text-accent">{formatRadius(radius)}</span>
             </div>
             <div className="flex gap-1.5 flex-wrap">
               {RADIUS_OPTIONS.map((r) => (
@@ -294,7 +252,7 @@ export function LocationPicker({ onClose }: Props) {
                     'px-2.5 py-1 rounded-lg text-xs border transition-colors cursor-pointer',
                     radius === r
                       ? 'bg-primary text-primary-foreground border-primary'
-                      : 'border-border text-muted-foreground hover:border-primary/50 hover:text-foreground',
+                      : 'border-white/10 text-nav-text/60 hover:border-white/20 hover:text-nav-text',
                   )}
                 >
                   {formatRadius(r)}
@@ -306,17 +264,14 @@ export function LocationPicker({ onClose }: Props) {
           <div className="flex gap-2">
             <button
               onClick={handleGeolocate}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-border text-sm text-muted-foreground hover:text-foreground hover:border-primary/50 transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-white/10 text-sm text-nav-text/60 hover:text-nav-text hover:border-white/20 transition-colors cursor-pointer"
             >
               <Locate className="w-4 h-4" />
               Моё место
             </button>
             <button
-              onClick={() => {
-                clearLocation()
-                onClose()
-              }}
-              className="px-3 py-2 rounded-xl border border-border text-sm text-muted-foreground hover:text-foreground hover:border-primary/50 transition-colors cursor-pointer"
+              onClick={() => { clearLocation(); onClose() }}
+              className="px-3 py-2 rounded-xl border border-white/10 text-sm text-nav-text/60 hover:text-nav-text hover:border-white/20 transition-colors cursor-pointer"
             >
               Весь каталог
             </button>
