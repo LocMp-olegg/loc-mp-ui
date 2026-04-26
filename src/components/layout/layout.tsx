@@ -7,9 +7,9 @@ export function Layout() {
     <div className="min-h-screen">
       <LandscapeBackground />
       <FloatingNav />
-      <main className="pt-14">
+      <main>
         <div
-          className="min-h-[calc(100vh-3.5rem)]"
+          className="min-h-screen pt-14"
           style={{ background: 'color-mix(in srgb, var(--background) 75%, transparent)' }}
         >
           <Outlet />
