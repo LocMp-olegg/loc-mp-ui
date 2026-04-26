@@ -231,7 +231,9 @@ export function LocationPicker({ onClose }: Props) {
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              onFocus={() => suggestions.length > 0 && dispatchSug({ type: 'set', items: suggestions })}
+              onFocus={() =>
+                suggestions.length > 0 && dispatchSug({ type: 'set', items: suggestions })
+              }
               placeholder="Адрес или район..."
               className="w-full pl-9 pr-4 py-2 rounded-xl border border-border bg-muted/40 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 transition-colors"
             />
@@ -246,7 +248,10 @@ export function LocationPicker({ onClose }: Props) {
         </div>
 
         {/* Map */}
-        <div className="mx-5 rounded-xl overflow-hidden border border-border" style={{ height: 300 }}>
+        <div
+          className="mx-5 rounded-xl overflow-hidden border border-border"
+          style={{ height: 300 }}
+        >
           <MapContainer
             center={[lat, lng]}
             zoom={13}
@@ -307,7 +312,10 @@ export function LocationPicker({ onClose }: Props) {
               Моё место
             </button>
             <button
-              onClick={() => { clearLocation(); onClose() }}
+              onClick={() => {
+                clearLocation()
+                onClose()
+              }}
               className="px-3 py-2 rounded-xl border border-border text-sm text-muted-foreground hover:text-foreground hover:border-primary/50 transition-colors cursor-pointer"
             >
               Весь каталог

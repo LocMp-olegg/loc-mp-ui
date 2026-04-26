@@ -7,6 +7,20 @@ export interface GeoSuggestion {
   lng: number
 }
 
+interface DaDataAddressData {
+  geo_lat?: string | null
+  geo_lon?: string | null
+  city_district?: string | null
+  city_area?: string | null
+  settlement?: string | null
+  city?: string | null
+}
+
+interface DaDataSuggestion {
+  value: string
+  data: DaDataAddressData
+}
+
 export async function suggestAddress(query: string): Promise<GeoSuggestion[]> {
   if (!query.trim()) return []
   try {
@@ -19,13 +33,13 @@ export async function suggestAddress(query: string): Promise<GeoSuggestion[]> {
       },
     )
     if (!res.ok) return []
-    const data = await res.json()
+    const data = (await res.json()) as { suggestions?: DaDataSuggestion[] }
     return (data.suggestions ?? [])
-      .filter((s: Record<string, any>) => s.data?.geo_lat && s.data?.geo_lon)
-      .map((s: Record<string, any>) => ({
-        label: s.value as string,
-        lat: parseFloat(s.data.geo_lat),
-        lng: parseFloat(s.data.geo_lon),
+      .filter((s) => s.data?.geo_lat && s.data?.geo_lon)
+      .map((s) => ({
+        label: s.value,
+        lat: parseFloat(s.data.geo_lat!),
+        lng: parseFloat(s.data.geo_lon!),
       }))
   } catch {
     return []
@@ -47,7 +61,7 @@ export async function reverseGeocode(lat: number, lng: number): Promise<string> 
       },
     )
     if (!res.ok) return `${lat.toFixed(4)}, ${lng.toFixed(4)}`
-    const data = await res.json()
+    const data = (await res.json()) as { suggestions?: DaDataSuggestion[] }
     const d = data.suggestions?.[0]?.data
     if (!d) return `${lat.toFixed(4)}, ${lng.toFixed(4)}`
     return (
