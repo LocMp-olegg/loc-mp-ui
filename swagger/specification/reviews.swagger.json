@@ -62,6 +62,21 @@
               "format": "int32",
               "default": 20
             }
+          },
+          {
+            "name": "rating",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "sortBy",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/ReviewSortBy"
+            }
           }
         ],
         "responses": {
@@ -1028,6 +1043,15 @@
           }
         },
         "additionalProperties": false
+      },
+      "ReviewSortBy": {
+        "enum": [
+          "DateDesc",
+          "DateAsc",
+          "RatingDesc",
+          "RatingAsc"
+        ],
+        "type": "string"
       },
       "ReviewSubjectType": {
         "enum": [

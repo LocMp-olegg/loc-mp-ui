@@ -5,14 +5,18 @@ import { cn } from '@/lib/utils'
 interface Props {
   isFavorite: boolean
   onClick: (e: MouseEvent) => void
+  className?: string
 }
 
-export function FavoriteButton({ isFavorite, onClick }: Props) {
+export function FavoriteButton({ isFavorite, onClick, className }: Props) {
   return (
     <button
       onClick={onClick}
       aria-label={isFavorite ? 'Убрать из избранного' : 'В избранное'}
-      className="relative z-20 shrink-0 w-9 h-9 flex items-center justify-center cursor-pointer"
+      className={cn(
+        'relative z-20 shrink-0 w-9 h-9 flex items-center justify-center cursor-pointer',
+        className,
+      )}
     >
       <Heart
         className={cn(
