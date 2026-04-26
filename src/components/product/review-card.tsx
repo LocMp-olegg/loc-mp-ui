@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { MessageSquare } from 'lucide-react'
+import { motion } from 'framer-motion'
 import { StarRating } from '@/components/ui/star-rating'
 import type { ReviewItem } from '@/types/product-detail'
 
@@ -16,17 +17,14 @@ function formatDate(iso: string): string {
   })
 }
 
-const MAX_COMMENT_LENGTH = 500
+const COLLAPSED_HEIGHT = Math.round(14 * 1.625 * 4)
+
+const LONG_COMMENT_CHARS = 300
 
 export function ReviewCard({ review }: Props) {
   const [isExpanded, setIsExpanded] = useState(false)
 
-  const isLongComment = review.comment && review.comment.length > MAX_COMMENT_LENGTH
-
-  const displayComment =
-    isLongComment && !isExpanded && review.comment
-      ? `${review.comment.slice(0, MAX_COMMENT_LENGTH).trim()}...`
-      : (review.comment ?? '')
+  const isLongComment = !!review.comment && review.comment.length > LONG_COMMENT_CHARS
 
   return (
     <div className="rounded-2xl border border-border bg-card/50 p-4 flex flex-col gap-3">
@@ -43,14 +41,22 @@ export function ReviewCard({ review }: Props) {
 
       {/* Comment */}
       {review.comment && (
-        <div className="flex flex-col items-start gap-1">
-          <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
-            {displayComment}
-          </p>
+        <div className="flex flex-col items-start gap-1.5">
+          <motion.div
+            initial={false}
+            animate={{ height: isExpanded || !isLongComment ? 'auto' : COLLAPSED_HEIGHT }}
+            transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+            className="overflow-hidden w-full"
+          >
+            <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap break-words">
+              {review.comment}
+            </p>
+          </motion.div>
+
           {isLongComment && (
             <button
               onClick={() => setIsExpanded(!isExpanded)}
-              className="text-sm font-medium text-primary hover:underline transition-colors focus-visible:outline-none"
+              className="text-sm font-medium text-primary hover:underline transition-colors focus-visible:outline-none cursor-pointer"
             >
               {isExpanded ? 'Свернуть' : 'Читать полностью'}
             </button>
