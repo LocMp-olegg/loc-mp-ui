@@ -80,14 +80,20 @@ export function ProductGallery({ images, alt }: Props) {
         {images.length > 1 && (
           <>
             <button
-              onClick={(e) => { e.stopPropagation(); prev() }}
+              onClick={(e) => {
+                e.stopPropagation()
+                prev()
+              }}
               aria-label="Предыдущее фото"
               className="absolute left-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/40 backdrop-blur-sm text-white flex items-center justify-center hover:bg-black/60 transition-colors cursor-pointer"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
             <button
-              onClick={(e) => { e.stopPropagation(); next() }}
+              onClick={(e) => {
+                e.stopPropagation()
+                next()
+              }}
               aria-label="Следующее фото"
               className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/40 backdrop-blur-sm text-white flex items-center justify-center hover:bg-black/60 transition-colors cursor-pointer"
             >

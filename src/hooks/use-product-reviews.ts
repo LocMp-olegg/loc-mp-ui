@@ -75,10 +75,30 @@ export function useProductReviews(productId: string | undefined): State {
     }
   }, [productId, sort, filterStar, page])
 
-  const setSort = (s: ReviewSortKey) => { _setSort(s); setPage(1) }
-  const setFilterStar = (r: number | null) => { _setFilterStar(r); setPage(1) }
+  const setSort = (s: ReviewSortKey) => {
+    _setSort(s)
+    setPage(1)
+  }
+  const setFilterStar = (r: number | null) => {
+    _setFilterStar(r)
+    setPage(1)
+  }
   const loadMore = () => setPage((p) => p + 1)
-  const reset = () => { _setSort(DEFAULT_SORT); _setFilterStar(null); setPage(1) }
+  const reset = () => {
+    _setSort(DEFAULT_SORT)
+    _setFilterStar(null)
+    setPage(1)
+  }
 
-  return { reviews, hasNextPage, loading, sort, filterStar, setSort, setFilterStar, loadMore, reset }
+  return {
+    reviews,
+    hasNextPage,
+    loading,
+    sort,
+    filterStar,
+    setSort,
+    setFilterStar,
+    loadMore,
+    reset,
+  }
 }

@@ -19,10 +19,7 @@ export function PhotoLightbox({ photos, initialIndex = 0, onClose }: Props) {
     () => setCurrent((i) => (i - 1 + photos.length) % photos.length),
     [photos.length],
   )
-  const next = useCallback(
-    () => setCurrent((i) => (i + 1) % photos.length),
-    [photos.length],
-  )
+  const next = useCallback(() => setCurrent((i) => (i + 1) % photos.length), [photos.length])
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -55,12 +52,18 @@ export function PhotoLightbox({ photos, initialIndex = 0, onClose }: Props) {
       }}
       onTouchEnd={(e) => {
         const delta = e.changedTouches[0].clientX - touchStartX.current
-        if (Math.abs(delta) >= SWIPE_THRESHOLD) delta < 0 ? next() : prev()
+        if (Math.abs(delta) >= SWIPE_THRESHOLD) {
+          if (delta < 0) next()
+          else prev()
+        }
       }}
     >
       {/* Close */}
       <button
-        onClick={(e) => { e.stopPropagation(); onClose() }}
+        onClick={(e) => {
+          e.stopPropagation()
+          onClose()
+        }}
         aria-label="Закрыть"
         className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors cursor-pointer"
       >
@@ -94,14 +97,20 @@ export function PhotoLightbox({ photos, initialIndex = 0, onClose }: Props) {
       {photos.length > 1 && (
         <>
           <button
-            onClick={(e) => { e.stopPropagation(); prev() }}
+            onClick={(e) => {
+              e.stopPropagation()
+              prev()
+            }}
             aria-label="Предыдущее фото"
             className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors cursor-pointer"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
           <button
-            onClick={(e) => { e.stopPropagation(); next() }}
+            onClick={(e) => {
+              e.stopPropagation()
+              next()
+            }}
             aria-label="Следующее фото"
             className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors cursor-pointer"
           >
