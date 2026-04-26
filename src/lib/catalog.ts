@@ -131,8 +131,28 @@ export async function fetchCatalogStructure(): Promise<CatalogStructure> {
   }
 }
 
-/** Lazy: fetches products for a single category on demand. */
-export async function fetchCategoryProducts(categoryId: string, pageSize = 10): Promise<Product[]> {
+export interface GeoFilter {
+  lat: number
+  lng: number
+  radiusKm: number
+}
+
+/** Lazy: fetches products for a single category on demand. Uses /nearby when geo is provided. */
+export async function fetchCategoryProducts(
+  categoryId: string,
+  geo?: GeoFilter,
+  pageSize = 10,
+): Promise<Product[]> {
+  if (geo) {
+    const result = await ProductsService.getApiCatalogProductsNearby({
+      categoryId,
+      lat: geo.lat,
+      lon: geo.lng,
+      radiusKm: geo.radiusKm,
+      pageSize,
+    })
+    return (result.items ?? []).map(mapProduct)
+  }
   const result = await ProductsService.getApiCatalogProductsSearch({ categoryId, pageSize })
   return (result.items ?? []).map(mapProduct)
 }
