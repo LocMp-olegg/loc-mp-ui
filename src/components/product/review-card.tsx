@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { MessageSquare } from 'lucide-react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { StarRating } from '@/components/ui/star-rating'
+import { PhotoLightbox } from '@/components/ui/photo-lightbox'
 import type { ReviewItem } from '@/types/product-detail'
 
 interface Props {
@@ -23,6 +24,7 @@ const LONG_COMMENT_CHARS = 300
 
 export function ReviewCard({ review }: Props) {
   const [isExpanded, setIsExpanded] = useState(false)
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
 
   const isLongComment = !!review.comment && review.comment.length > LONG_COMMENT_CHARS
 
@@ -67,16 +69,27 @@ export function ReviewCard({ review }: Props) {
       {/* Photos */}
       {review.photos.length > 0 && (
         <div className="flex gap-2 flex-wrap">
-          {review.photos.map((src) => (
-            <img
+          {review.photos.map((src, i) => (
+            <button
               key={src}
-              src={src}
-              alt=""
-              className="w-16 h-16 rounded-xl object-cover border border-border"
-            />
+              onClick={() => setLightboxIndex(i)}
+              className="shrink-0 cursor-pointer rounded-xl overflow-hidden border border-border hover:opacity-80 transition-opacity"
+            >
+              <img src={src} alt="" className="w-16 h-16 object-cover" draggable={false} />
+            </button>
           ))}
         </div>
       )}
+
+      <AnimatePresence>
+        {lightboxIndex !== null && (
+          <PhotoLightbox
+            photos={review.photos}
+            initialIndex={lightboxIndex}
+            onClose={() => setLightboxIndex(null)}
+          />
+        )}
+      </AnimatePresence>
 
       {/* Seller response */}
       {review.response && (

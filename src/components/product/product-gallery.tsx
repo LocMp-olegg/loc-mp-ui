@@ -1,6 +1,8 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
+import { PhotoLightbox } from '@/components/ui/photo-lightbox'
 
 const SWIPE_THRESHOLD = 40
 
@@ -11,6 +13,7 @@ interface Props {
 
 export function ProductGallery({ images, alt }: Props) {
   const [current, setCurrent] = useState(0)
+  const [lightboxOpen, setLightboxOpen] = useState(false)
   const touchStartX = useRef(0)
   const touchStartY = useRef(0)
   const isHorizontal = useRef<boolean | null>(null)
@@ -64,7 +67,8 @@ export function ProductGallery({ images, alt }: Props) {
       {/* Main image */}
       <div
         ref={mainRef}
-        className="relative aspect-square w-full rounded-2xl overflow-hidden bg-muted"
+        className="relative aspect-square w-full rounded-2xl overflow-hidden bg-muted cursor-pointer"
+        onClick={() => setLightboxOpen(true)}
       >
         <img
           src={images[current]}
@@ -76,14 +80,14 @@ export function ProductGallery({ images, alt }: Props) {
         {images.length > 1 && (
           <>
             <button
-              onClick={prev}
+              onClick={(e) => { e.stopPropagation(); prev() }}
               aria-label="Предыдущее фото"
               className="absolute left-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/40 backdrop-blur-sm text-white flex items-center justify-center hover:bg-black/60 transition-colors cursor-pointer"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
             <button
-              onClick={next}
+              onClick={(e) => { e.stopPropagation(); next() }}
               aria-label="Следующее фото"
               className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/40 backdrop-blur-sm text-white flex items-center justify-center hover:bg-black/60 transition-colors cursor-pointer"
             >
@@ -125,6 +129,16 @@ export function ProductGallery({ images, alt }: Props) {
           ))}
         </div>
       )}
+
+      <AnimatePresence>
+        {lightboxOpen && (
+          <PhotoLightbox
+            photos={images}
+            initialIndex={current}
+            onClose={() => setLightboxOpen(false)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   )
 }
