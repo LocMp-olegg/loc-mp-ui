@@ -22,6 +22,8 @@ export function CategorySection({ category }: Props) {
   const hasMore = !loading && products.length >= 10
   const canScroll = canScrollPrev || canScrollNext
 
+  if (!loading && products.length === 0) return null
+
   return (
     <section
       ref={ref}
