@@ -157,6 +157,27 @@ export async function fetchCategoryProducts(
   return (result.items ?? []).map(mapProduct)
 }
 
+export async function fetchSearchSuggestions(query: string): Promise<Product[]> {
+  const result = await ProductsService.getApiCatalogProductsSearch({ search: query, pageSize: 5 })
+  return (result.items ?? []).map(mapProduct)
+}
+
+export async function fetchSearchResults(
+  query: string,
+  page = 1,
+): Promise<{ products: Product[]; totalCount: number; totalPages: number }> {
+  const result = await ProductsService.getApiCatalogProductsSearch({
+    search: query,
+    pageSize: 20,
+    page,
+  })
+  return {
+    products: (result.items ?? []).map(mapProduct),
+    totalCount: result.totalCount ?? 0,
+    totalPages: result.totalPages ?? 0,
+  }
+}
+
 export function mapProductDetail(dto: ProductDto): ProductDetail {
   const photos = (dto.photos ?? [])
     .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))

@@ -6,6 +6,7 @@ import { FavoritesPage } from '@/pages/favorites-page'
 import { ProductPage } from '@/pages/product-page'
 import { CategoryPage } from '@/pages/category-page'
 import { LoginPage } from '@/pages/login-page'
+import { SearchPage } from '@/pages/search-page'
 
 export const router = createBrowserRouter([
   {
@@ -15,6 +16,7 @@ export const router = createBrowserRouter([
       { index: true, element: <HomePage /> },
       { path: 'product/:id', element: <ProductPage /> },
       { path: 'category/:id', element: <CategoryPage /> },
+      { path: 'search', element: <SearchPage /> },
       { path: 'cart', element: <CartPage /> },
       { path: 'favorites', element: <FavoritesPage /> },
       { path: 'login', element: <LoginPage /> },

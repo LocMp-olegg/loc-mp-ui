@@ -7,6 +7,7 @@ import { useFavorites } from '@/contexts/favorites-context'
 import { useUserLocation } from '@/contexts/location-context'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { LocationPicker } from '@/components/location/location-picker'
+import { SearchBar } from '@/components/nav/search-bar'
 import { useTheme } from '@/contexts/theme-context'
 import { Sun, Moon, Monitor } from 'lucide-react'
 
@@ -59,7 +60,7 @@ export function FloatingNav() {
               ? '1px solid rgba(255,255,255,0.1)'
               : '1px solid rgba(255,255,255,0.08)',
           }}
-          className="mx-auto h-14 flex items-center gap-2 md:gap-3 bg-nav-bg/60 backdrop-blur-xl"
+          className="mx-auto h-14 relative flex items-center gap-2 md:gap-3 bg-nav-bg/60 backdrop-blur-xl"
         >
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 shrink-0">
@@ -82,8 +83,8 @@ export function FloatingNav() {
             </AnimatePresence>
           </Link>
 
-          {/* Location — desktop */}
-          <div className="hidden md:block relative group/loc">
+          {/* Location — desktop only */}
+          <div className="hidden md:block relative group/loc shrink-0">
             <motion.button
               onClick={() => setPickerOpen(true)}
               animate={{
@@ -131,9 +132,15 @@ export function FloatingNav() {
             )}
           </div>
 
-          <div className="flex-1" />
+          {/* Search — absolutely centred relative to the full nav width */}
+          <div className="hidden md:block absolute left-1/2 -translate-x-1/2 w-[min(480px,38%)]">
+            <SearchBar />
+          </div>
 
-          {/* Desktop actions */}
+          {/* Flex spacer to push actions to the right */}
+          <div className="hidden md:block flex-1" />
+
+          {/* Desktop action icons */}
           <div className="hidden md:flex items-center gap-0.5 shrink-0">
             <Link to="/favorites" aria-label="Избранное" className={`relative ${iconBtn}`}>
               <Heart className="w-5 h-5 text-nav-text/70" />
@@ -157,7 +164,8 @@ export function FloatingNav() {
             <ThemeToggle className="hover:bg-white/10" iconClassName="text-nav-text/70" />
           </div>
 
-          {/* Mobile burger */}
+          {/* Mobile: spacer + burger only */}
+          <div className="flex-1 md:hidden" />
           <button
             onClick={() => setMenuOpen((o) => !o)}
             aria-label="Меню"
@@ -204,83 +212,89 @@ export function FloatingNav() {
               }}
               exit={{ opacity: 0, y: -8 }}
               transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-              className="md:hidden rounded-2xl border border-white/10 bg-nav-bg/60 backdrop-blur-xl overflow-hidden shadow-2xl"
+              className="md:hidden rounded-2xl border border-white/10 bg-nav-bg/60 backdrop-blur-xl shadow-2xl"
             >
-              {/* Location row */}
-              <button
-                onClick={() => {
-                  setPickerOpen(true)
-                  setMenuOpen(false)
-                }}
-                className="w-full flex items-center gap-3 px-4 py-3.5 text-sm text-nav-text/80 hover:bg-white/5 transition-colors cursor-pointer border-b border-white/8"
-              >
-                <MapPin
-                  className={`w-5 h-5 shrink-0 ${location ? 'text-accent' : 'text-nav-text/50'}`}
-                />
-                <span className="flex-1 text-left">
-                  {location ? location.label : 'Выбрать район'}
-                </span>
-                {location && (
-                  <span className="text-xs text-nav-text/40">
-                    {location.radius < 1
-                      ? `${Math.round(location.radius * 1000)} м`
-                      : `${location.radius} км`}
-                  </span>
-                )}
-              </button>
+              <div className="px-4 py-3 border-b border-white/8">
+                <SearchBar onNavigate={() => setMenuOpen(false)} />
+              </div>
 
-              <div className="flex flex-col py-1">
-                <Link
-                  to="/favorites"
-                  onClick={() => setMenuOpen(false)}
-                  className="flex items-center gap-3 px-4 py-3 text-nav-text/80 hover:bg-white/5 transition-colors"
-                >
-                  <div className="relative w-5 h-5 shrink-0">
-                    <Heart className="w-5 h-5 text-nav-text/70" />
-                    {totalFavorites > 0 && (
-                      <span className="absolute -top-1 -right-1 min-w-3.5 h-3.5 bg-destructive text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
-                        {totalFavorites > 9 ? '9+' : totalFavorites}
-                      </span>
-                    )}
-                  </div>
-                  <span className="text-sm">Избранное</span>
-                </Link>
-
-                <Link
-                  to="/cart"
-                  onClick={() => setMenuOpen(false)}
-                  className="flex items-center gap-3 px-4 py-3 text-nav-text/80 hover:bg-white/5 transition-colors"
-                >
-                  <div className="relative w-5 h-5 shrink-0">
-                    <ShoppingCart className="w-5 h-5 text-nav-text/70" />
-                    {totalItems > 0 && (
-                      <span className="absolute -top-1 -right-1 min-w-3.5 h-3.5 bg-accent text-nav-bg text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
-                        {totalItems > 9 ? '9+' : totalItems}
-                      </span>
-                    )}
-                  </div>
-                  <span className="text-sm">Корзина</span>
-                </Link>
-
-                <Link
-                  to="/login"
-                  onClick={() => setMenuOpen(false)}
-                  className="flex items-center gap-3 px-4 py-3 text-nav-text/80 hover:bg-white/5 transition-colors"
-                >
-                  <User className="w-5 h-5 text-nav-text/70 shrink-0" />
-                  <span className="text-sm">Профиль</span>
-                </Link>
-
+              <div className="overflow-hidden rounded-b-2xl">
+                {/* Location row */}
                 <button
                   onClick={() => {
-                    const themes = ['light', 'dark', 'system'] as const
-                    setTheme(themes[(themes.indexOf(theme) + 1) % themes.length])
+                    setPickerOpen(true)
+                    setMenuOpen(false)
                   }}
-                  className="flex items-center gap-3 px-4 py-3 text-nav-text/80 hover:bg-white/5 transition-colors cursor-pointer w-full"
+                  className="w-full flex items-center gap-3 px-4 py-3.5 text-sm text-nav-text/80 hover:bg-white/5 transition-colors cursor-pointer border-b border-white/8"
                 >
-                  <ThemeIcon className="w-5 h-5 text-nav-text/70 shrink-0" />
-                  <span className="text-sm">Тема: {THEME_LABELS[theme]}</span>
+                  <MapPin
+                    className={`w-5 h-5 shrink-0 ${location ? 'text-accent' : 'text-nav-text/50'}`}
+                  />
+                  <span className="flex-1 text-left">
+                    {location ? location.label : 'Выбрать район'}
+                  </span>
+                  {location && (
+                    <span className="text-xs text-nav-text/40">
+                      {location.radius < 1
+                        ? `${Math.round(location.radius * 1000)} м`
+                        : `${location.radius} км`}
+                    </span>
+                  )}
                 </button>
+
+                <div className="flex flex-col py-1">
+                  <Link
+                    to="/favorites"
+                    onClick={() => setMenuOpen(false)}
+                    className="flex items-center gap-3 px-4 py-3 text-nav-text/80 hover:bg-white/5 transition-colors"
+                  >
+                    <div className="relative w-5 h-5 shrink-0">
+                      <Heart className="w-5 h-5 text-nav-text/70" />
+                      {totalFavorites > 0 && (
+                        <span className="absolute -top-1 -right-1 min-w-3.5 h-3.5 bg-destructive text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
+                          {totalFavorites > 9 ? '9+' : totalFavorites}
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-sm">Избранное</span>
+                  </Link>
+
+                  <Link
+                    to="/cart"
+                    onClick={() => setMenuOpen(false)}
+                    className="flex items-center gap-3 px-4 py-3 text-nav-text/80 hover:bg-white/5 transition-colors"
+                  >
+                    <div className="relative w-5 h-5 shrink-0">
+                      <ShoppingCart className="w-5 h-5 text-nav-text/70" />
+                      {totalItems > 0 && (
+                        <span className="absolute -top-1 -right-1 min-w-3.5 h-3.5 bg-accent text-nav-bg text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
+                          {totalItems > 9 ? '9+' : totalItems}
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-sm">Корзина</span>
+                  </Link>
+
+                  <Link
+                    to="/login"
+                    onClick={() => setMenuOpen(false)}
+                    className="flex items-center gap-3 px-4 py-3 text-nav-text/80 hover:bg-white/5 transition-colors"
+                  >
+                    <User className="w-5 h-5 text-nav-text/70 shrink-0" />
+                    <span className="text-sm">Профиль</span>
+                  </Link>
+
+                  <button
+                    onClick={() => {
+                      const themes = ['light', 'dark', 'system'] as const
+                      setTheme(themes[(themes.indexOf(theme) + 1) % themes.length])
+                    }}
+                    className="flex items-center gap-3 px-4 py-3 text-nav-text/80 hover:bg-white/5 transition-colors cursor-pointer w-full"
+                  >
+                    <ThemeIcon className="w-5 h-5 text-nav-text/70 shrink-0" />
+                    <span className="text-sm">Тема: {THEME_LABELS[theme]}</span>
+                  </button>
+                </div>
               </div>
             </motion.div>
           )}
