@@ -28,7 +28,6 @@ function MapClickHandler({ onMapClick }: { onMapClick: (lat: number, lng: number
   return null
 }
 
-
 function MapRecenter({ lat, lng }: { lat: number; lng: number }) {
   const map = useMap()
   useEffect(() => {
@@ -187,7 +186,8 @@ export function LocationPicker({ onClose }: Props) {
               className="w-full pl-9 pr-4 py-2 rounded-xl border border-white/10 bg-white/5 text-sm text-nav-text placeholder:text-nav-text/40 focus:outline-none focus:border-white/20 transition-colors"
             />
             {showSuggestions && (
-              <div className="absolute top-full left-0 right-0 mt-1 z-50 rounded-xl overflow-hidden border border-white/10 shadow-xl backdrop-blur-xl"
+              <div
+                className="absolute top-full left-0 right-0 mt-1 z-50 rounded-xl overflow-hidden border border-white/10 shadow-xl backdrop-blur-xl"
                 style={{ background: 'color-mix(in srgb, var(--nav-bg) 85%, transparent)' }}
               >
                 {suggestions.map((s, i) => (
@@ -270,7 +270,10 @@ export function LocationPicker({ onClose }: Props) {
               Моё место
             </button>
             <button
-              onClick={() => { clearLocation(); onClose() }}
+              onClick={() => {
+                clearLocation()
+                onClose()
+              }}
               className="px-3 py-2 rounded-xl border border-white/10 text-sm text-nav-text/60 hover:text-nav-text hover:border-white/20 transition-colors cursor-pointer"
             >
               Весь каталог
