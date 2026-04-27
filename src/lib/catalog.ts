@@ -5,6 +5,7 @@ import type {
   ProductSummaryDto,
   CategoryTreeDto,
   ShopDto,
+  SellerDto,
   ProductSortBy,
 } from '@/api/catalog'
 import type { Product } from '@/types/product'
@@ -301,6 +302,16 @@ export async function fetchShopProducts(
     products: (result.items ?? []).map(mapProduct),
     hasNextPage: result.hasNextPage ?? false,
   }
+}
+
+export async function fetchSellerWithShops(
+  sellerId: string,
+): Promise<{ seller: SellerDto; shops: ShopDto[] }> {
+  const [seller, shops] = await Promise.all([
+    SellersService.getApiCatalogSellers({ id: sellerId }),
+    ShopsService.getApiCatalogShopsBySeller({ sellerId }),
+  ])
+  return { seller, shops }
 }
 
 export async function fetchProductDetail(id: string): Promise<ProductDetail> {

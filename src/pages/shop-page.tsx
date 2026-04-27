@@ -3,7 +3,6 @@ import { useParams, Link } from 'react-router-dom'
 import { AnimatePresence } from 'framer-motion'
 import {
   ArrowLeft,
-  Star,
   Clock,
   MapPin,
   Truck,
@@ -17,7 +16,6 @@ import {
 import { useShopDetail } from '@/hooks/use-shop-detail'
 import { useShopFilteredProducts } from '@/hooks/use-shop-filtered-products'
 import { ProductCard } from '@/components/product/product-card'
-import { ShopReviewsModal } from '@/components/shop/reviews-modal'
 import { ShopGalleryModal } from '@/components/shop/gallery-modal'
 import { ShopProductSection } from '@/components/shop/shop-product-section'
 import { ShopProductFilters } from '@/components/shop/shop-product-filters'
@@ -52,17 +50,8 @@ function ShopSkeleton() {
 }
 
 function ShopContent({ id }: { id: string }) {
-  const {
-    shop,
-    products,
-    categoryGroups,
-    rootCategoriesInShop,
-    leafToRoot,
-    rating,
-    loading,
-    error,
-  } = useShopDetail(id)
-  const [reviewsOpen, setReviewsOpen] = useState(false)
+  const { shop, products, categoryGroups, rootCategoriesInShop, leafToRoot, loading, error } =
+    useShopDetail(id)
   const [avatarLightbox, setAvatarLightbox] = useState(false)
   const [galleryOpen, setGalleryOpen] = useState(false)
   const [photoLightboxIndex, setPhotoLightboxIndex] = useState<number | null>(null)
@@ -90,8 +79,6 @@ function ShopContent({ id }: { id: string }) {
     )
   }
 
-  const reviewCount = rating?.reviewCount ?? 0
-  const avgRating = rating?.averageRating ?? 0
   const avatarSrc = shop.avatarUrl ?? noImageUrl
 
   return (
@@ -143,20 +130,6 @@ function ShopContent({ id }: { id: string }) {
               <User className="w-3.5 h-3.5 shrink-0" />
               {shop.sellerDisplayName}
             </Link>
-          )}
-
-          {/* Rating — clickable */}
-          {reviewCount > 0 && (
-            <button
-              onClick={() => setReviewsOpen(true)}
-              className="flex items-center gap-1.5 mb-3 cursor-pointer group"
-            >
-              <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
-              <span className="font-semibold text-foreground">{avgRating.toFixed(1)}</span>
-              <span className="text-sm text-muted-foreground group-hover:text-primary transition-colors">
-                · {reviewCount} {pluralize(reviewCount, 'отзыв', 'отзыва', 'отзывов')}
-              </span>
-            </button>
           )}
 
           {/* Meta chips */}
@@ -383,14 +356,6 @@ function ShopContent({ id }: { id: string }) {
             photos={shop.photos}
             shopName={shop.name}
             onClose={() => setGalleryOpen(false)}
-          />
-        )}
-        {reviewsOpen && (
-          <ShopReviewsModal
-            sellerId={shop.sellerId}
-            shopName={shop.name}
-            aggregate={rating}
-            onClose={() => setReviewsOpen(false)}
           />
         )}
       </AnimatePresence>

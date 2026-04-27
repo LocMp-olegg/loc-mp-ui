@@ -12,15 +12,13 @@ import type { RatingAggregateDto } from '@/api/reviews'
 
 interface Props {
   sellerId: string
-
   shopName: string
-
   aggregate: RatingAggregateDto | null
-
   onClose: () => void
+  title?: string
 }
 
-export function ShopReviewsModal({ sellerId, shopName, aggregate, onClose }: Props) {
+export function ShopReviewsModal({ sellerId, shopName, aggregate, onClose, title }: Props) {
   const reviewsState = useShopReviews(sellerId)
 
   return createPortal(
@@ -45,7 +43,9 @@ export function ShopReviewsModal({ sellerId, shopName, aggregate, onClose }: Pro
           <div className="flex items-center gap-2">
             <MessageSquare className="w-4 h-4 text-primary" />
             <div>
-              <h2 className="font-semibold text-foreground leading-tight">Отзывы о магазине</h2>
+              <h2 className="font-semibold text-foreground leading-tight">
+                {title ?? 'Отзывы о магазине'}
+              </h2>
 
               <p className="text-xs text-muted-foreground mt-0.5">{shopName}</p>
             </div>
