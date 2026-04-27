@@ -101,6 +101,7 @@ export function ProductCard({ product, className }: Props) {
         <CartControls
           quantity={quantity}
           isAvailable={product.isAvailable}
+          maxQuantity={product.isMadeToOrder ? undefined : product.stockQuantity}
           onAdd={onAdd}
           onIncrement={onIncrement}
           onDecrement={onDecrement}
