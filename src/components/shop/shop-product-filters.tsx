@@ -15,7 +15,7 @@ import {
 import { cn } from '@/lib/utils'
 import type { ShopProductFilter } from '@/lib/catalog'
 import type { ProductSortBy } from '@/api/catalog'
-import * as React from "react";
+import * as React from 'react'
 
 interface Category {
   id: string
