@@ -18,6 +18,33 @@ function mapReview(dto: ReviewSummaryDto): ReviewItem {
   }
 }
 
+export function fetchSellerRating(sellerId: string): Promise<RatingAggregateDto> {
+  return ReviewsService.getApiReviewsReviewsRating({
+    subjectType: 'Seller',
+    subjectId: sellerId,
+  })
+}
+
+export async function fetchSellerReviews(
+  sellerId: string,
+  sortBy?: ReviewSortBy,
+  rating?: number,
+  page = 1,
+): Promise<{ items: ReviewItem[]; hasNextPage: boolean }> {
+  const result = await ReviewsService.getApiReviewsReviews({
+    subjectType: 'Seller',
+    subjectId: sellerId,
+    page,
+    pageSize: REVIEWS_PAGE_SIZE,
+    sortBy,
+    rating,
+  })
+  return {
+    items: (result.items ?? []).filter((r) => r.isVisible !== false).map(mapReview),
+    hasNextPage: result.hasNextPage ?? false,
+  }
+}
+
 export function fetchProductRating(productId: string): Promise<RatingAggregateDto> {
   return ReviewsService.getApiReviewsReviewsRating({
     subjectType: 'Product',

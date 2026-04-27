@@ -44,10 +44,13 @@ export function ProductInfo({ product, categoryName }: Props) {
           </div>
         )}
 
-        <div className="flex items-center gap-1.5">
+        <Link
+          to={`/shop/${product.shopId}`}
+          className="flex items-center gap-1.5 hover:text-primary transition-colors"
+        >
           <Store className="w-3.5 h-3.5 shrink-0" />
           <span>{product.shopName}</span>
-        </div>
+        </Link>
       </div>
 
       {/* Made to order + lead time */}

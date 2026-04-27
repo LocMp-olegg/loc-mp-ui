@@ -7,6 +7,7 @@ import { useFavorites } from '@/contexts/favorites-context'
 import { useUserLocation } from '@/contexts/location-context'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { LocationPicker } from '@/components/location/location-picker'
+import { SearchBar } from '@/components/nav/search-bar'
 import { useTheme } from '@/contexts/theme-context'
 import { Sun, Moon, Monitor } from 'lucide-react'
 
@@ -38,6 +39,12 @@ export function FloatingNav() {
   const iconBtn =
     'w-9 h-9 rounded-xl flex items-center justify-center hover:bg-white/10 transition-colors cursor-pointer'
 
+  const logoMark = (
+    <div className="w-8 h-8 bg-primary rounded-xl flex items-center justify-center shadow-sm shrink-0">
+      <span className="text-primary-foreground text-sm font-bold leading-none">Р</span>
+    </div>
+  )
+
   return (
     <>
       <div className="fixed inset-x-0 top-0 z-50">
@@ -59,82 +66,86 @@ export function FloatingNav() {
               ? '1px solid rgba(255,255,255,0.1)'
               : '1px solid rgba(255,255,255,0.08)',
           }}
-          className="mx-auto h-14 flex items-center gap-2 md:gap-3 bg-nav-bg/60 backdrop-blur-xl"
+          className="mx-auto h-14 relative flex items-center bg-nav-bg/60 backdrop-blur-xl"
         >
-          {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 shrink-0">
-            <div className="w-8 h-8 bg-primary rounded-xl flex items-center justify-center shadow-sm shrink-0">
-              <span className="text-primary-foreground text-sm font-bold leading-none">Р</span>
-            </div>
-            <AnimatePresence initial={false}>
-              {!scrolled && (
-                <motion.span
-                  key="logo-text"
-                  initial={{ opacity: 0, width: 0 }}
-                  animate={{ opacity: 1, width: 'auto' }}
-                  exit={{ opacity: 0, width: 0 }}
-                  transition={{ duration: 0.15 }}
-                  className="font-bold text-nav-text text-[17px] hidden sm:block tracking-tight overflow-hidden whitespace-nowrap"
-                >
-                  Районный
-                </motion.span>
-              )}
-            </AnimatePresence>
-          </Link>
+          {/* ── DESKTOP (md+): 3-column balanced layout ── */}
 
-          {/* Location — desktop */}
-          <div className="hidden md:block relative group/loc">
-            <motion.button
-              onClick={() => setPickerOpen(true)}
-              animate={{
-                paddingLeft: scrolled ? 8 : 12,
-                paddingRight: scrolled ? 8 : 12,
-                paddingTop: scrolled ? 8 : 6,
-                paddingBottom: scrolled ? 8 : 6,
-                borderRadius: scrolled ? 12 : 9999,
-                backgroundColor: scrolled ? 'rgba(255,255,255,0)' : 'rgba(255,255,255,0.1)',
-                boxShadow: scrolled ? 'none' : 'inset 0 0 0 1px rgba(255,255,255,0.15)',
-              }}
-              whileHover={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
-              whileTap={{ scale: 0.95 }}
-              transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-              className="flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap"
-            >
-              <MapPin
-                className={`w-5 h-5 shrink-0 ${location ? 'text-accent' : 'text-nav-text/70'}`}
-              />
+          {/* Left: Logo + Location */}
+          <div className="hidden md:flex flex-1 items-center gap-2 min-w-0">
+            <Link to="/" className="flex items-center gap-2 shrink-0">
+              {logoMark}
               <AnimatePresence initial={false}>
                 {!scrolled && (
                   <motion.span
-                    key="loc-label"
+                    key="logo-text"
                     initial={{ opacity: 0, width: 0 }}
                     animate={{ opacity: 1, width: 'auto' }}
                     exit={{ opacity: 0, width: 0 }}
                     transition={{ duration: 0.15 }}
-                    className="text-sm text-nav-text/80 overflow-hidden whitespace-nowrap"
+                    className="font-bold text-nav-text text-[17px] tracking-tight overflow-hidden whitespace-nowrap"
                   >
-                    {location ? 'Район выбран' : 'Выбрать район'}
+                    Районный
                   </motion.span>
                 )}
               </AnimatePresence>
-            </motion.button>
+            </Link>
 
-            {location && (
-              <div className="absolute top-full left-0 mt-2 z-50 px-3 py-2 rounded-xl bg-foreground text-background text-xs whitespace-nowrap pointer-events-none opacity-0 group-hover/loc:opacity-100 transition-opacity duration-150 shadow-lg">
-                <p className="font-medium">{location.label}</p>
-                <p className="text-background/60 mt-0.5">
-                  {location.radius < 1
-                    ? `${Math.round(location.radius * 1000)} м`
-                    : `${location.radius} км`}
-                </p>
-              </div>
-            )}
+            <div className="relative group/loc shrink-0">
+              <motion.button
+                onClick={() => setPickerOpen(true)}
+                animate={{
+                  paddingLeft: scrolled ? 8 : 12,
+                  paddingRight: scrolled ? 8 : 12,
+                  paddingTop: scrolled ? 8 : 6,
+                  paddingBottom: scrolled ? 8 : 6,
+                  borderRadius: scrolled ? 12 : 9999,
+                  backgroundColor: scrolled ? 'rgba(255,255,255,0)' : 'rgba(255,255,255,0.1)',
+                  boxShadow: scrolled ? 'none' : 'inset 0 0 0 1px rgba(255,255,255,0.15)',
+                }}
+                whileHover={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
+                whileTap={{ scale: 0.95 }}
+                transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                className="flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap"
+              >
+                <MapPin
+                  className={`w-5 h-5 shrink-0 ${location ? 'text-accent' : 'text-nav-text/70'}`}
+                />
+                <AnimatePresence initial={false}>
+                  {!scrolled && (
+                    <motion.span
+                      key="loc-label"
+                      initial={{ opacity: 0, width: 0 }}
+                      animate={{ opacity: 1, width: 'auto' }}
+                      exit={{ opacity: 0, width: 0 }}
+                      transition={{ duration: 0.15 }}
+                      className="text-sm text-nav-text/80 overflow-hidden whitespace-nowrap hidden lg:block"
+                    >
+                      {location ? 'Район выбран' : 'Выбрать район'}
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+              </motion.button>
+
+              {location && (
+                <div className="absolute top-full left-0 mt-2 z-50 px-3 py-2 rounded-xl bg-foreground text-background text-xs whitespace-nowrap pointer-events-none opacity-0 group-hover/loc:opacity-100 transition-opacity duration-150 shadow-lg">
+                  <p className="font-medium">{location.label}</p>
+                  <p className="text-background/60 mt-0.5">
+                    {location.radius < 1
+                      ? `${Math.round(location.radius * 1000)} м`
+                      : `${location.radius} км`}
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
 
-          <div className="flex-1" />
+          {/* Center: Search — perfectly centred because both siblings are flex-1 */}
+          <div className="hidden md:block shrink-0 w-[min(480px,40%)] px-3">
+            <SearchBar />
+          </div>
 
-          {/* Desktop actions */}
-          <div className="hidden md:flex items-center gap-0.5 shrink-0">
+          {/* Right: Action icons */}
+          <div className="hidden md:flex flex-1 items-center justify-end gap-0.5 min-w-0">
             <Link to="/favorites" aria-label="Избранное" className={`relative ${iconBtn}`}>
               <Heart className="w-5 h-5 text-nav-text/70" />
               {totalFavorites > 0 && (
@@ -157,7 +168,14 @@ export function FloatingNav() {
             <ThemeToggle className="hover:bg-white/10" iconClassName="text-nav-text/70" />
           </div>
 
-          {/* Mobile burger */}
+          {/* ── MOBILE (<md): Logo + spacer + burger ── */}
+          <Link to="/" className="md:hidden flex items-center gap-2 shrink-0">
+            {logoMark}
+            <span className="font-bold text-nav-text text-[17px] hidden sm:block tracking-tight whitespace-nowrap">
+              Районный
+            </span>
+          </Link>
+          <div className="flex-1 md:hidden" />
           <button
             onClick={() => setMenuOpen((o) => !o)}
             aria-label="Меню"
@@ -204,83 +222,88 @@ export function FloatingNav() {
               }}
               exit={{ opacity: 0, y: -8 }}
               transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-              className="md:hidden rounded-2xl border border-white/10 bg-nav-bg/60 backdrop-blur-xl overflow-hidden shadow-2xl"
+              className="md:hidden rounded-2xl border border-white/10 bg-nav-bg/60 backdrop-blur-xl shadow-2xl"
             >
-              {/* Location row */}
-              <button
-                onClick={() => {
-                  setPickerOpen(true)
-                  setMenuOpen(false)
-                }}
-                className="w-full flex items-center gap-3 px-4 py-3.5 text-sm text-nav-text/80 hover:bg-white/5 transition-colors cursor-pointer border-b border-white/8"
-              >
-                <MapPin
-                  className={`w-5 h-5 shrink-0 ${location ? 'text-accent' : 'text-nav-text/50'}`}
-                />
-                <span className="flex-1 text-left">
-                  {location ? location.label : 'Выбрать район'}
-                </span>
-                {location && (
-                  <span className="text-xs text-nav-text/40">
-                    {location.radius < 1
-                      ? `${Math.round(location.radius * 1000)} м`
-                      : `${location.radius} км`}
-                  </span>
-                )}
-              </button>
+              <div className="px-4 py-3 border-b border-white/8">
+                <SearchBar onNavigate={() => setMenuOpen(false)} />
+              </div>
 
-              <div className="flex flex-col py-1">
-                <Link
-                  to="/favorites"
-                  onClick={() => setMenuOpen(false)}
-                  className="flex items-center gap-3 px-4 py-3 text-nav-text/80 hover:bg-white/5 transition-colors"
-                >
-                  <div className="relative w-5 h-5 shrink-0">
-                    <Heart className="w-5 h-5 text-nav-text/70" />
-                    {totalFavorites > 0 && (
-                      <span className="absolute -top-1 -right-1 min-w-3.5 h-3.5 bg-destructive text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
-                        {totalFavorites > 9 ? '9+' : totalFavorites}
-                      </span>
-                    )}
-                  </div>
-                  <span className="text-sm">Избранное</span>
-                </Link>
-
-                <Link
-                  to="/cart"
-                  onClick={() => setMenuOpen(false)}
-                  className="flex items-center gap-3 px-4 py-3 text-nav-text/80 hover:bg-white/5 transition-colors"
-                >
-                  <div className="relative w-5 h-5 shrink-0">
-                    <ShoppingCart className="w-5 h-5 text-nav-text/70" />
-                    {totalItems > 0 && (
-                      <span className="absolute -top-1 -right-1 min-w-3.5 h-3.5 bg-accent text-nav-bg text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
-                        {totalItems > 9 ? '9+' : totalItems}
-                      </span>
-                    )}
-                  </div>
-                  <span className="text-sm">Корзина</span>
-                </Link>
-
-                <Link
-                  to="/login"
-                  onClick={() => setMenuOpen(false)}
-                  className="flex items-center gap-3 px-4 py-3 text-nav-text/80 hover:bg-white/5 transition-colors"
-                >
-                  <User className="w-5 h-5 text-nav-text/70 shrink-0" />
-                  <span className="text-sm">Профиль</span>
-                </Link>
-
+              <div className="overflow-hidden rounded-b-2xl">
                 <button
                   onClick={() => {
-                    const themes = ['light', 'dark', 'system'] as const
-                    setTheme(themes[(themes.indexOf(theme) + 1) % themes.length])
+                    setPickerOpen(true)
+                    setMenuOpen(false)
                   }}
-                  className="flex items-center gap-3 px-4 py-3 text-nav-text/80 hover:bg-white/5 transition-colors cursor-pointer w-full"
+                  className="w-full flex items-center gap-3 px-4 py-3.5 text-sm text-nav-text/80 hover:bg-white/5 transition-colors cursor-pointer border-b border-white/8"
                 >
-                  <ThemeIcon className="w-5 h-5 text-nav-text/70 shrink-0" />
-                  <span className="text-sm">Тема: {THEME_LABELS[theme]}</span>
+                  <MapPin
+                    className={`w-5 h-5 shrink-0 ${location ? 'text-accent' : 'text-nav-text/50'}`}
+                  />
+                  <span className="flex-1 text-left">
+                    {location ? location.label : 'Выбрать район'}
+                  </span>
+                  {location && (
+                    <span className="text-xs text-nav-text/40">
+                      {location.radius < 1
+                        ? `${Math.round(location.radius * 1000)} м`
+                        : `${location.radius} км`}
+                    </span>
+                  )}
                 </button>
+
+                <div className="flex flex-col py-1">
+                  <Link
+                    to="/favorites"
+                    onClick={() => setMenuOpen(false)}
+                    className="flex items-center gap-3 px-4 py-3 text-nav-text/80 hover:bg-white/5 transition-colors"
+                  >
+                    <div className="relative w-5 h-5 shrink-0">
+                      <Heart className="w-5 h-5 text-nav-text/70" />
+                      {totalFavorites > 0 && (
+                        <span className="absolute -top-1 -right-1 min-w-3.5 h-3.5 bg-destructive text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
+                          {totalFavorites > 9 ? '9+' : totalFavorites}
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-sm">Избранное</span>
+                  </Link>
+
+                  <Link
+                    to="/cart"
+                    onClick={() => setMenuOpen(false)}
+                    className="flex items-center gap-3 px-4 py-3 text-nav-text/80 hover:bg-white/5 transition-colors"
+                  >
+                    <div className="relative w-5 h-5 shrink-0">
+                      <ShoppingCart className="w-5 h-5 text-nav-text/70" />
+                      {totalItems > 0 && (
+                        <span className="absolute -top-1 -right-1 min-w-3.5 h-3.5 bg-accent text-nav-bg text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
+                          {totalItems > 9 ? '9+' : totalItems}
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-sm">Корзина</span>
+                  </Link>
+
+                  <Link
+                    to="/login"
+                    onClick={() => setMenuOpen(false)}
+                    className="flex items-center gap-3 px-4 py-3 text-nav-text/80 hover:bg-white/5 transition-colors"
+                  >
+                    <User className="w-5 h-5 text-nav-text/70 shrink-0" />
+                    <span className="text-sm">Профиль</span>
+                  </Link>
+
+                  <button
+                    onClick={() => {
+                      const themes = ['light', 'dark', 'system'] as const
+                      setTheme(themes[(themes.indexOf(theme) + 1) % themes.length])
+                    }}
+                    className="flex items-center gap-3 px-4 py-3 text-nav-text/80 hover:bg-white/5 transition-colors cursor-pointer w-full"
+                  >
+                    <ThemeIcon className="w-5 h-5 text-nav-text/70 shrink-0" />
+                    <span className="text-sm">Тема: {THEME_LABELS[theme]}</span>
+                  </button>
+                </div>
               </div>
             </motion.div>
           )}

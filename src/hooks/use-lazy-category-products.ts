@@ -1,6 +1,7 @@
 import { useReducer, useState, useEffect, useRef } from 'react'
 import { fetchCategoryProducts } from '@/lib/catalog'
 import { useUserLocation } from '@/contexts/location-context'
+import type { ProductFilter } from '@/lib/catalog'
 import type { Product } from '@/types/product'
 import * as React from 'react'
 
@@ -25,11 +26,13 @@ function reducer(state: State, action: Action): State {
 
 export function useLazyCategoryProducts(
   categoryId: string,
+  filter: ProductFilter = {},
 ): State & { ref: React.RefObject<HTMLElement | null>; visible: boolean } {
   const ref = useRef<HTMLElement>(null)
   const [visible, setVisible] = useState(false)
   const [state, dispatch] = useReducer(reducer, { products: [], loading: false, fetched: false })
   const { location } = useUserLocation()
+  const { sort, minPrice, maxPrice, isInStock } = filter
 
   useEffect(() => {
     const el = ref.current
@@ -57,7 +60,7 @@ export function useLazyCategoryProducts(
       ? { lat: location.lat, lng: location.lng, radiusKm: location.radius }
       : undefined
 
-    fetchCategoryProducts(categoryId, geo)
+    fetchCategoryProducts(categoryId, geo, { sort, minPrice, maxPrice, isInStock })
       .then((products) => {
         if (!cancelled) dispatch({ type: 'loaded', products })
       })
@@ -68,7 +71,7 @@ export function useLazyCategoryProducts(
     return () => {
       cancelled = true
     }
-  }, [visible, categoryId, location])
+  }, [visible, categoryId, location, sort, minPrice, maxPrice, isInStock])
 
   return { ...state, ref, visible }
 }

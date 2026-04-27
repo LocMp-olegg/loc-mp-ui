@@ -19,11 +19,13 @@ export function useCarouselProgress(api: CarouselApi | undefined): CarouselProgr
       setCanScrollPrev(api.canScrollPrev())
       setCanScrollNext(api.canScrollNext())
     }
+    update()
     api.on('scroll', update)
     api.on('reInit', update)
     api.on('select', update)
     return () => {
       api.off('scroll', update)
+      api.off('reInit', update)
       api.off('select', update)
     }
   }, [api])

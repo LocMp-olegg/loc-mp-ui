@@ -2629,9 +2629,11 @@
       "ProductSortBy": {
         "enum": [
           "Newest",
+          "Oldest",
           "PriceAsc",
           "PriceDesc",
-          "NameAsc"
+          "NameAsc",
+          "NameDesc"
         ],
         "type": "string"
       },
