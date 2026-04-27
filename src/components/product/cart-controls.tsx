@@ -46,8 +46,8 @@ export function CartControls({
           <button
             onClick={onIncrement}
             aria-label="Увеличить количество"
-            disabled={atMax}
-            className="h-full aspect-square rounded-lg bg-primary text-primary-foreground flex items-center justify-center shadow-sm hover:opacity-90 active:scale-95 transition-all cursor-pointer shrink-0 disabled:opacity-40 disabled:cursor-not-allowed"
+            disabled={atMax || !isAvailable}
+            className="h-full aspect-square rounded-lg bg-primary text-primary-foreground flex items-center justify-center shadow-sm hover:opacity-90 active:scale-95 transition-all cursor-pointer shrink-0 disabled:opacity-40 disabled:cursor-default"
           >
             <Plus className="w-4 h-4" />
           </button>

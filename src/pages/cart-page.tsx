@@ -62,7 +62,8 @@ export function CartPage() {
                   <button
                     onClick={() => updateQuantity(product.id, quantity + 1)}
                     aria-label="Увеличить"
-                    className="w-7 h-7 rounded-lg bg-primary text-primary-foreground flex items-center justify-center hover:opacity-90 transition-opacity cursor-pointer"
+                    disabled={!product.isMadeToOrder && quantity >= product.stockQuantity}
+                    className="w-7 h-7 rounded-lg bg-primary text-primary-foreground flex items-center justify-center hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-40 disabled:cursor-default"
                   >
                     <Plus className="w-3 h-3" />
                   </button>

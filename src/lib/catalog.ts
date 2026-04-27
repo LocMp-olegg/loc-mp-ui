@@ -94,6 +94,8 @@ export function mapProduct(dto: ProductSummaryDto): Product {
     reviewCount: dto.reviewCount ?? 0,
     isAvailable:
       (dto.isActive ?? false) && ((dto.stockQuantity ?? 0) > 0 || (dto.isMadeToOrder ?? false)),
+    stockQuantity: dto.stockQuantity ?? 0,
+    isMadeToOrder: dto.isMadeToOrder ?? false,
     location: '',
   }
 }

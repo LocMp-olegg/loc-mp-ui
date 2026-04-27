@@ -1,4 +1,4 @@
-import type { Category, Product } from '@/types/product'
+﻿import type { Category, Product } from '@/types/product'
 
 export const categories: Category[] = [
   {
@@ -22,6 +22,8 @@ export const categories: Category[] = [
         rating: 4.9,
         reviewCount: 48,
         isAvailable: true,
+        stockQuantity: 10,
+        isMadeToOrder: false,
         location: 'Хамовники',
       },
       {
@@ -39,6 +41,8 @@ export const categories: Category[] = [
         rating: 4.7,
         reviewCount: 23,
         isAvailable: true,
+        stockQuantity: 10,
+        isMadeToOrder: false,
         location: 'Хамовники',
       },
       {
@@ -57,6 +61,8 @@ export const categories: Category[] = [
         rating: 4.8,
         reviewCount: 67,
         isAvailable: true,
+        stockQuantity: 10,
+        isMadeToOrder: false,
         location: 'Хамовники',
       },
       {
@@ -74,6 +80,8 @@ export const categories: Category[] = [
         rating: 5.0,
         reviewCount: 15,
         isAvailable: true,
+        stockQuantity: 10,
+        isMadeToOrder: false,
         location: 'Хамовники',
       },
       {
@@ -92,6 +100,8 @@ export const categories: Category[] = [
         rating: 4.9,
         reviewCount: 31,
         isAvailable: false,
+        stockQuantity: 0,
+        isMadeToOrder: false,
         location: 'Хамовники',
       },
     ],
@@ -116,6 +126,8 @@ export const categories: Category[] = [
         rating: 4.6,
         reviewCount: 42,
         isAvailable: true,
+        stockQuantity: 10,
+        isMadeToOrder: false,
         location: 'Хамовники',
       },
       {
@@ -134,6 +146,8 @@ export const categories: Category[] = [
         rating: 4.4,
         reviewCount: 19,
         isAvailable: true,
+        stockQuantity: 10,
+        isMadeToOrder: false,
         location: 'Хамовники',
       },
       {
@@ -151,6 +165,8 @@ export const categories: Category[] = [
         rating: 4.8,
         reviewCount: 28,
         isAvailable: true,
+        stockQuantity: 10,
+        isMadeToOrder: false,
         location: 'Хамовники',
       },
       {
@@ -168,6 +184,8 @@ export const categories: Category[] = [
         rating: 4.5,
         reviewCount: 11,
         isAvailable: true,
+        stockQuantity: 10,
+        isMadeToOrder: false,
         location: 'Хамовники',
       },
       {
@@ -182,6 +200,8 @@ export const categories: Category[] = [
         rating: 4.7,
         reviewCount: 35,
         isAvailable: true,
+        stockQuantity: 10,
+        isMadeToOrder: false,
         location: 'Хамовники',
       },
     ],
@@ -207,6 +227,8 @@ export const categories: Category[] = [
         rating: 4.9,
         reviewCount: 54,
         isAvailable: true,
+        stockQuantity: 10,
+        isMadeToOrder: false,
         location: 'Хамовники',
       },
       {
@@ -225,6 +247,8 @@ export const categories: Category[] = [
         rating: 5.0,
         reviewCount: 22,
         isAvailable: true,
+        stockQuantity: 10,
+        isMadeToOrder: false,
         location: 'Хамовники',
       },
       {
@@ -242,6 +266,8 @@ export const categories: Category[] = [
         rating: 4.7,
         reviewCount: 18,
         isAvailable: true,
+        stockQuantity: 10,
+        isMadeToOrder: false,
         location: 'Хамовники',
       },
       {
@@ -260,6 +286,8 @@ export const categories: Category[] = [
         rating: 4.8,
         reviewCount: 9,
         isAvailable: true,
+        stockQuantity: 10,
+        isMadeToOrder: false,
         location: 'Хамовники',
       },
       {
@@ -277,6 +305,8 @@ export const categories: Category[] = [
         rating: 5.0,
         reviewCount: 3,
         isAvailable: true,
+        stockQuantity: 10,
+        isMadeToOrder: false,
         location: 'Хамовники',
       },
     ],
@@ -302,6 +332,8 @@ export const categories: Category[] = [
         rating: 4.6,
         reviewCount: 14,
         isAvailable: true,
+        stockQuantity: 10,
+        isMadeToOrder: false,
         location: 'Хамовники',
       },
       {
@@ -319,6 +351,8 @@ export const categories: Category[] = [
         rating: 4.9,
         reviewCount: 37,
         isAvailable: true,
+        stockQuantity: 10,
+        isMadeToOrder: false,
         location: 'Хамовники',
       },
       {
@@ -337,6 +371,8 @@ export const categories: Category[] = [
         rating: 4.5,
         reviewCount: 11,
         isAvailable: true,
+        stockQuantity: 10,
+        isMadeToOrder: false,
         location: 'Хамовники',
       },
       {
@@ -354,6 +390,8 @@ export const categories: Category[] = [
         rating: 4.7,
         reviewCount: 8,
         isAvailable: false,
+        stockQuantity: 0,
+        isMadeToOrder: false,
         location: 'Хамовники',
       },
       {
@@ -372,6 +410,8 @@ export const categories: Category[] = [
         rating: 4.8,
         reviewCount: 26,
         isAvailable: true,
+        stockQuantity: 10,
+        isMadeToOrder: false,
         location: 'Хамовники',
       },
     ],
@@ -397,6 +437,8 @@ export const categories: Category[] = [
         rating: 4.8,
         reviewCount: 32,
         isAvailable: true,
+        stockQuantity: 10,
+        isMadeToOrder: false,
         location: 'Хамовники',
       },
       {
@@ -414,6 +456,8 @@ export const categories: Category[] = [
         rating: 4.9,
         reviewCount: 45,
         isAvailable: true,
+        stockQuantity: 10,
+        isMadeToOrder: false,
         location: 'Хамовники',
       },
       {
@@ -431,6 +475,8 @@ export const categories: Category[] = [
         rating: 4.7,
         reviewCount: 21,
         isAvailable: true,
+        stockQuantity: 10,
+        isMadeToOrder: false,
         location: 'Хамовники',
       },
       {
@@ -449,6 +495,8 @@ export const categories: Category[] = [
         rating: 4.5,
         reviewCount: 16,
         isAvailable: true,
+        stockQuantity: 10,
+        isMadeToOrder: false,
         location: 'Хамовники',
       },
       {
@@ -466,6 +514,8 @@ export const categories: Category[] = [
         rating: 4.9,
         reviewCount: 28,
         isAvailable: true,
+        stockQuantity: 10,
+        isMadeToOrder: false,
         location: 'Хамовники',
       },
     ],

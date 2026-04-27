@@ -10,6 +10,8 @@ export interface Product {
   rating: number
   reviewCount: number
   isAvailable: boolean
+  stockQuantity: number
+  isMadeToOrder: boolean
   location: string
 }
 
