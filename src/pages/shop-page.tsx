@@ -11,12 +11,17 @@ import {
   Store,
   Loader2,
   User,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react'
 import { useShopDetail } from '@/hooks/use-shop-detail'
 import { ProductCard } from '@/components/product/product-card'
 import { ShopReviewsModal } from '@/components/shop/reviews-modal'
+import { ShopGalleryModal } from '@/components/shop/gallery-modal'
 import { PhotoLightbox } from '@/components/ui/photo-lightbox'
-import { pluralize } from '@/lib/utils'
+import { type CarouselApi, Carousel, CarouselContent, CarouselItem } from '@/components/ui/carousel'
+import { useCarouselProgress } from '@/hooks/use-carousel-progress'
+import { pluralize, cn } from '@/lib/utils'
 import noImageUrl from '@/assets/no-image-available.jpg'
 
 const BUSINESS_LABELS: Record<string, string> = {
@@ -47,7 +52,10 @@ function ShopContent({ id }: { id: string }) {
     useShopDetail(id)
   const [reviewsOpen, setReviewsOpen] = useState(false)
   const [avatarLightbox, setAvatarLightbox] = useState(false)
-  const [galleryIndex, setGalleryIndex] = useState<number | null>(null)
+  const [galleryOpen, setGalleryOpen] = useState(false)
+  const [photoLightboxIndex, setPhotoLightboxIndex] = useState<number | null>(null)
+  const [carouselApi, setCarouselApi] = useState<CarouselApi>()
+  const { canScrollPrev, canScrollNext } = useCarouselProgress(carouselApi)
 
   if (loading) return <ShopSkeleton />
 
@@ -160,20 +168,77 @@ function ShopContent({ id }: { id: string }) {
         </div>
       </div>
 
-      {/* Gallery */}
+      {/* Gallery island */}
       {shop.photos.length > 0 && (
-        <section className="mb-8">
-          <h2 className="text-lg font-semibold text-foreground mb-3">Фото магазина</h2>
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
-            {shop.photos.map((photo, i) => (
+        <section
+          className="mb-4 md:mb-5 rounded-2xl border border-white/20 dark:border-white/8 shadow-sm backdrop-blur-sm overflow-hidden"
+          style={{ background: 'color-mix(in srgb, var(--card) 35%, transparent)' }}
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between px-4 md:px-5 pt-4 md:pt-5 mb-3">
+            <button
+              onClick={() => setGalleryOpen(true)}
+              className="flex items-center gap-2 group min-w-0"
+            >
+              <h2 className="text-base md:text-lg font-bold text-foreground group-hover:text-primary transition-colors leading-tight">
+                Фото магазина
+              </h2>
+              <span className="text-sm text-muted-foreground shrink-0">({shop.photos.length})</span>
+            </button>
+            <div className="flex items-center gap-1 shrink-0 ml-3">
               <button
-                key={i}
-                onClick={() => setGalleryIndex(i)}
-                className="aspect-square rounded-xl overflow-hidden border border-border bg-muted hover:opacity-85 transition-opacity cursor-pointer"
+                onClick={() => carouselApi?.scrollPrev()}
+                disabled={!canScrollPrev}
+                aria-label="Назад"
+                className={cn(
+                  'w-7 h-7 rounded-full border flex items-center justify-center transition-colors cursor-pointer',
+                  canScrollPrev
+                    ? 'border-border bg-card hover:bg-muted text-foreground'
+                    : 'border-border/40 bg-transparent text-muted-foreground/30 cursor-default',
+                )}
               >
-                <img src={photo} alt="" className="w-full h-full object-cover" draggable={false} />
+                <ChevronLeft className="w-3.5 h-3.5" />
               </button>
-            ))}
+              <button
+                onClick={() => carouselApi?.scrollNext()}
+                disabled={!canScrollNext}
+                aria-label="Вперёд"
+                className={cn(
+                  'w-7 h-7 rounded-full border flex items-center justify-center transition-colors cursor-pointer',
+                  canScrollNext
+                    ? 'border-border bg-card hover:bg-muted text-foreground'
+                    : 'border-border/40 bg-transparent text-muted-foreground/30 cursor-default',
+                )}
+              >
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+
+          {/* Carousel */}
+          <div className="px-3 md:px-4 pb-4 md:pb-5">
+            <Carousel
+              setApi={setCarouselApi}
+              opts={{ align: 'start', dragFree: true }}
+            >
+              <CarouselContent>
+                {shop.photos.map((photo, i) => (
+                  <CarouselItem key={i} className="basis-1/3 sm:basis-1/4 md:basis-1/5">
+                    <button
+                      onClick={() => setPhotoLightboxIndex(i)}
+                      className="block w-full aspect-square rounded-xl overflow-hidden border border-white/20 dark:border-white/8 bg-muted hover:opacity-85 transition-opacity cursor-pointer"
+                    >
+                      <img
+                        src={photo}
+                        alt=""
+                        className="w-full h-full object-cover"
+                        draggable={false}
+                      />
+                    </button>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+            </Carousel>
           </div>
         </section>
       )}
@@ -227,7 +292,6 @@ function ShopContent({ id }: { id: string }) {
         </>
       )}
 
-      {/* Lightboxes */}
       <AnimatePresence>
         {avatarLightbox && (
           <PhotoLightbox
@@ -236,11 +300,18 @@ function ShopContent({ id }: { id: string }) {
             onClose={() => setAvatarLightbox(false)}
           />
         )}
-        {galleryIndex !== null && (
+        {photoLightboxIndex !== null && (
           <PhotoLightbox
             photos={shop.photos}
-            initialIndex={galleryIndex}
-            onClose={() => setGalleryIndex(null)}
+            initialIndex={photoLightboxIndex}
+            onClose={() => setPhotoLightboxIndex(null)}
+          />
+        )}
+        {galleryOpen && (
+          <ShopGalleryModal
+            photos={shop.photos}
+            shopName={shop.name}
+            onClose={() => setGalleryOpen(false)}
           />
         )}
         {reviewsOpen && (
