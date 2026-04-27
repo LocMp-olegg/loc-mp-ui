@@ -1,9 +1,7 @@
 import { useEffect, useReducer, useState } from 'react'
 import { fetchShopDetail, fetchShopProducts, fetchCatalogStructure } from '@/lib/catalog'
-import { fetchSellerRating } from '@/lib/reviews'
 import type { ShopDetail } from '@/types/shop'
 import type { Product } from '@/types/product'
-import type { RatingAggregateDto } from '@/api/reviews'
 
 export interface CategoryGroup {
   id: string
@@ -26,7 +24,6 @@ interface State {
   rootCategoriesInShop: RootCategoryInfo[]
   leafToRoot: Map<string, string>
   hasMoreProducts: boolean
-  rating: RatingAggregateDto | null
   loading: boolean
   loadingMore: boolean
   error: string | null
@@ -42,7 +39,6 @@ type Action =
       rootCategoriesInShop: RootCategoryInfo[]
       leafToRoot: Map<string, string>
       hasMoreProducts: boolean
-      rating: RatingAggregateDto | null
     }
   | { type: 'more_loading' }
   | { type: 'more_loaded'; products: Product[]; hasMoreProducts: boolean }
@@ -60,7 +56,6 @@ function reducer(state: State, action: Action): State {
         rootCategoriesInShop: action.rootCategoriesInShop,
         leafToRoot: action.leafToRoot,
         hasMoreProducts: action.hasMoreProducts,
-        rating: action.rating,
         loading: false,
         loadingMore: false,
         error: null,
@@ -104,7 +99,6 @@ export function useShopDetail(shopId: string) {
     rootCategoriesInShop: [],
     leafToRoot: new Map(),
     hasMoreProducts: false,
-    rating: null,
     loading: false,
     loadingMore: false,
     error: null,
@@ -120,8 +114,7 @@ export function useShopDetail(shopId: string) {
       fetchShopProducts(shopId, 1, 50),
       fetchCatalogStructure(),
     ])
-      .then(async ([shop, { products, hasNextPage }, catalog]) => {
-        const rating = await fetchSellerRating(shop.sellerId).catch(() => null)
+      .then(([shop, { products, hasNextPage }, catalog]) => {
         if (!cancelled) {
           const leafToRoot = new Map<string, string>()
           for (const cat of catalog.leafCategories) leafToRoot.set(cat.id, cat.rootCategoryId)
@@ -140,7 +133,6 @@ export function useShopDetail(shopId: string) {
             rootCategoriesInShop: catalog.rootCategories.filter((r) => rootIdsInShop.has(r.id)),
             leafToRoot,
             hasMoreProducts: hasNextPage,
-            rating,
           })
         }
       })

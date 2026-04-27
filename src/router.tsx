@@ -8,6 +8,7 @@ import { CategoryPage } from '@/pages/category-page'
 import { LoginPage } from '@/pages/login-page'
 import { SearchPage } from '@/pages/search-page'
 import { ShopPage } from '@/pages/shop-page'
+import { SellerPage } from '@/pages/seller-page'
 
 export const router = createBrowserRouter([
   {
@@ -19,6 +20,7 @@ export const router = createBrowserRouter([
       { path: 'category/:id', element: <CategoryPage /> },
       { path: 'search', element: <SearchPage /> },
       { path: 'shop/:id', element: <ShopPage /> },
+      { path: 'seller/:id', element: <SellerPage /> },
       { path: 'cart', element: <CartPage /> },
       { path: 'favorites', element: <FavoritesPage /> },
       { path: 'login', element: <LoginPage /> },
