@@ -131,15 +131,22 @@ export function SearchBar({ onNavigate, className }: Props) {
                 className="w-10 h-10 rounded-lg object-cover shrink-0 bg-muted"
               />
               <div className="flex-1 min-w-0">
-                <p className="text-sm text-nav-text truncate leading-tight">{product.name}</p>
-                <div className="flex items-center gap-2 mt-0.5">
+                {/* Верхняя строка: Название + Рейтинг */}
+                <div className="flex items-center gap-2">
+                  <p className="text-sm text-nav-text truncate leading-tight">{product.name}</p>
                   {product.rating > 0 && (
-                    <span className="flex items-center gap-0.5 text-xs text-amber-400">
+                    <span className="flex items-center gap-0.5 text-xs text-amber-400 shrink-0">
                       <Star className="w-2.5 h-2.5 fill-current" />
                       {product.rating.toFixed(1)}
                     </span>
                   )}
-                  <span className="text-xs text-nav-text/40 truncate">{product.shopName}</span>
+                </div>
+
+                {/* Нижняя строка: Только магазин */}
+                <div className="mt-0.5">
+                  <span className="text-xs text-nav-text/40 truncate block">
+                    {product.shopName}
+                  </span>
                 </div>
               </div>
               <span className="text-sm font-semibold text-nav-text shrink-0">

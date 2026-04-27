@@ -1,13 +1,13 @@
 import { useParams, Link } from 'react-router-dom'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Loader2 } from 'lucide-react'
 import { useCatalogCategory } from '@/hooks/use-catalog-category'
 import { ProductCard } from '@/components/product/product-card'
+import { pluralize } from '@/lib/utils'
 
-export function CategoryPage() {
-  const { id } = useParams<{ id: string }>()
-  const { data, loading, error } = useCatalogCategory(id)
+function CategoryContent({ id }: { id: string }) {
+  const { data, loading, error, hasNextPage, loadMore } = useCatalogCategory(id)
 
-  if (loading) {
+  if (!data && loading) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-16 flex justify-center">
         <div className="flex flex-col items-center gap-3">
@@ -41,13 +41,41 @@ export function CategoryPage() {
       <div className="flex items-center gap-2 mb-5">
         <span className="text-2xl">{data.emoji}</span>
         <h1 className="text-xl md:text-2xl font-bold text-foreground">{data.name}</h1>
-        <span className="text-sm text-muted-foreground">{data.products.length}</span>
+        <span className="text-sm text-muted-foreground">
+          {data.products.length} {pluralize(data.products.length, 'товар', 'товара', 'товаров')}
+        </span>
       </div>
+
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
         {data.products.map((product) => (
           <ProductCard key={product.id} product={product} className="w-full" />
         ))}
+        {loading &&
+          Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="rounded-2xl bg-muted animate-pulse" style={{ height: 340 }} />
+          ))}
       </div>
+
+      {hasNextPage && !loading && (
+        <div className="flex justify-center mt-8">
+          <button
+            onClick={loadMore}
+            className="flex items-center gap-2 px-6 py-2.5 rounded-xl border border-border text-sm text-muted-foreground hover:text-foreground hover:border-primary/50 transition-colors cursor-pointer"
+          >
+            Показать ещё
+          </button>
+        </div>
+      )}
+      {loading && data.products.length > 0 && (
+        <div className="flex justify-center mt-6">
+          <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+        </div>
+      )}
     </div>
   )
+}
+
+export function CategoryPage() {
+  const { id } = useParams<{ id: string }>()
+  return <CategoryContent key={id} id={id ?? ''} />
 }

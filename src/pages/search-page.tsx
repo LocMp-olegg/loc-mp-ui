@@ -1,9 +1,10 @@
-import { useEffect, useReducer } from 'react'
+import { useEffect, useReducer, useRef } from 'react'
 import { useSearchParams, Link } from 'react-router-dom'
-import { PackageSearch, ArrowLeft } from 'lucide-react'
+import { PackageSearch, ArrowLeft, Loader2 } from 'lucide-react'
 import { fetchSearchResults } from '@/lib/catalog'
 import { ProductCard } from '@/components/product/product-card'
 import type { Product } from '@/types/product'
+import { pluralize } from '@/lib/utils'
 
 const SKELETON_COUNT = 10
 
@@ -11,23 +12,29 @@ interface State {
   products: Product[]
   loading: boolean
   fetched: boolean
+  hasNextPage: boolean
 }
 
 type Action =
   | { type: 'loading' }
-  | { type: 'loaded'; products: Product[] }
+  | { type: 'loaded'; products: Product[]; hasNextPage: boolean; append: boolean }
   | { type: 'empty' }
   | { type: 'error' }
 
 function reducer(state: State, action: Action): State {
   switch (action.type) {
     case 'loading':
-      return { ...state, loading: true, fetched: false }
+      return { ...state, loading: true }
     case 'loaded':
-      return { products: action.products, loading: false, fetched: true }
+      return {
+        products: action.append ? [...state.products, ...action.products] : action.products,
+        loading: false,
+        fetched: true,
+        hasNextPage: action.hasNextPage,
+      }
     case 'empty':
     case 'error':
-      return { products: [], loading: false, fetched: true }
+      return { products: [], loading: false, fetched: true, hasNextPage: false }
   }
 }
 
@@ -35,13 +42,19 @@ export function SearchPage() {
   const [searchParams] = useSearchParams()
   const query = searchParams.get('q') ?? ''
 
-  const [{ products, loading, fetched }, dispatch] = useReducer(reducer, {
+  const [{ products, loading, fetched, hasNextPage }, dispatch] = useReducer(reducer, {
     products: [],
     loading: false,
     fetched: false,
+    hasNextPage: false,
   })
 
+  const pageRef = useRef(1)
+
+  // Reset and fetch page 1 when query changes
   useEffect(() => {
+    pageRef.current = 1
+
     if (!query.trim()) {
       dispatch({ type: 'empty' })
       return
@@ -50,9 +63,15 @@ export function SearchPage() {
     let cancelled = false
     dispatch({ type: 'loading' })
 
-    fetchSearchResults(query.trim())
+    fetchSearchResults(query.trim(), 1)
       .then((data) => {
-        if (!cancelled) dispatch({ type: 'loaded', products: data.products })
+        if (!cancelled)
+          dispatch({
+            type: 'loaded',
+            products: data.products,
+            hasNextPage: data.hasNextPage,
+            append: false,
+          })
       })
       .catch(() => {
         if (!cancelled) dispatch({ type: 'error' })
@@ -62,6 +81,21 @@ export function SearchPage() {
       cancelled = true
     }
   }, [query])
+
+  const loadMore = () => {
+    pageRef.current++
+    dispatch({ type: 'loading' })
+    fetchSearchResults(query.trim(), pageRef.current)
+      .then((data) =>
+        dispatch({
+          type: 'loaded',
+          products: data.products,
+          hasNextPage: data.hasNextPage,
+          append: true,
+        }),
+      )
+      .catch(() => dispatch({ type: 'error' }))
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-8">
@@ -83,19 +117,15 @@ export function SearchPage() {
             'Поиск'
           )}
         </h1>
-        {fetched && !loading && (
+        {fetched && !loading && products.length > 0 && (
           <p className="text-sm text-muted-foreground mt-0.5">
-            {products.length > 0
-              ? `Найдено ${products.length} товар${products.length === 1 ? '' : products.length < 5 ? 'а' : 'ов'}`
-              : query
-                ? 'Ничего не найдено'
-                : 'Введите запрос для поиска'}
+            {products.length} {pluralize(products.length, 'товар', 'товара', 'товаров')}
           </p>
         )}
       </div>
 
-      {/* Loading skeletons */}
-      {loading && (
+      {/* Initial loading skeletons */}
+      {loading && products.length === 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
           {Array.from({ length: SKELETON_COUNT }).map((_, i) => (
             <div key={i} className="rounded-2xl bg-muted animate-pulse" style={{ height: 340 }} />
@@ -104,11 +134,32 @@ export function SearchPage() {
       )}
 
       {/* Results grid */}
-      {!loading && products.length > 0 && (
+      {products.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
           {products.map((product) => (
             <ProductCard key={product.id} product={product} className="w-full" />
           ))}
+          {loading &&
+            Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="rounded-2xl bg-muted animate-pulse" style={{ height: 340 }} />
+            ))}
+        </div>
+      )}
+
+      {/* Load more */}
+      {hasNextPage && !loading && (
+        <div className="flex justify-center mt-8">
+          <button
+            onClick={loadMore}
+            className="flex items-center gap-2 px-6 py-2.5 rounded-xl border border-border text-sm text-muted-foreground hover:text-foreground hover:border-primary/50 transition-colors cursor-pointer"
+          >
+            Показать ещё
+          </button>
+        </div>
+      )}
+      {loading && products.length > 0 && (
+        <div className="flex justify-center mt-6">
+          <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
         </div>
       )}
 

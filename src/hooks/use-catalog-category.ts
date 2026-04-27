@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useReducer, useState, useEffect } from 'react'
 import { fetchCategoryById } from '@/lib/catalog'
 import type { Product } from '@/types/product'
 
@@ -6,46 +6,91 @@ interface CategoryData {
   id: string
   name: string
   emoji: string
-  products: Product[]
 }
 
 interface State {
-  data: CategoryData | null
+  info: CategoryData | null
+  products: Product[]
+  hasNextPage: boolean
+  loading: boolean
   error: string | null
-  loadedForId: string | null
 }
 
-export function useCatalogCategory(categoryId: string | undefined) {
-  const [state, setState] = useState<State>({ data: null, error: null, loadedForId: null })
+type Action =
+  | { type: 'fetching' }
+  | {
+      type: 'fetched'
+      info: CategoryData
+      products: Product[]
+      hasNextPage: boolean
+      append: boolean
+    }
+  | { type: 'error'; message: string }
 
-  const loading = Boolean(categoryId) && state.loadedForId !== categoryId
+function reducer(state: State, action: Action): State {
+  switch (action.type) {
+    case 'fetching':
+      return { ...state, loading: true }
+    case 'fetched':
+      return {
+        info: action.info,
+        products: action.append ? [...state.products, ...action.products] : action.products,
+        hasNextPage: action.hasNextPage,
+        loading: false,
+        error: null,
+      }
+    case 'error':
+      return { ...state, loading: false, error: action.message }
+  }
+}
+
+export function useCatalogCategory(categoryId: string) {
+  const [state, dispatch] = useReducer(reducer, {
+    info: null,
+    products: [],
+    hasNextPage: false,
+    loading: false,
+    error: null,
+  })
+  const [page, setPage] = useState(1)
 
   useEffect(() => {
-    if (!categoryId) return
-
     let cancelled = false
+    const append = page > 1
 
-    fetchCategoryById(categoryId)
+    dispatch({ type: 'fetching' })
+
+    fetchCategoryById(categoryId, page)
       .then((data) => {
-        if (!cancelled) setState({ data, error: null, loadedForId: categoryId })
+        if (!cancelled)
+          dispatch({
+            type: 'fetched',
+            info: { id: data.id, name: data.name, emoji: data.emoji },
+            products: data.products,
+            hasNextPage: data.hasNextPage,
+            append,
+          })
       })
       .catch((err: unknown) => {
         if (!cancelled)
-          setState({
-            data: null,
-            error: err instanceof Error ? err.message : 'Ошибка загрузки',
-            loadedForId: categoryId,
+          dispatch({
+            type: 'error',
+            message: err instanceof Error ? err.message : 'Ошибка загрузки',
           })
       })
 
     return () => {
       cancelled = true
     }
-  }, [categoryId])
+  }, [categoryId, page])
+
+  const data = state.info ? { ...state.info, products: state.products } : null
 
   return {
-    data: state.data,
-    loading,
-    error: categoryId ? state.error : 'Категория не найдена',
+    data,
+    loading: state.loading,
+    error: state.error,
+    hasNextPage: state.hasNextPage,
+    loadMore: () => setPage((p) => p + 1),
   }
 }

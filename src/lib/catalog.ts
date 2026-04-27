@@ -1,8 +1,9 @@
 import noImageUrl from '@/assets/no-image-available.jpg'
-import { CategoriesService, ProductsService } from '@/api/catalog'
-import type { ProductDto, ProductSummaryDto, CategoryTreeDto } from '@/api/catalog'
+import { CategoriesService, ProductsService, ShopsService, SellersService } from '@/api/catalog'
+import type { ProductDto, ProductSummaryDto, CategoryTreeDto, ShopDto } from '@/api/catalog'
 import type { Product } from '@/types/product'
 import type { ProductDetail } from '@/types/product-detail'
+import type { ShopDetail } from '@/types/shop'
 
 const EMOJI_MAP: [string, string][] = [
   ['выпечк', '🥐'],
@@ -165,7 +166,7 @@ export async function fetchSearchSuggestions(query: string): Promise<Product[]> 
 export async function fetchSearchResults(
   query: string,
   page = 1,
-): Promise<{ products: Product[]; totalCount: number; totalPages: number }> {
+): Promise<{ products: Product[]; hasNextPage: boolean }> {
   const result = await ProductsService.getApiCatalogProductsSearch({
     search: query,
     pageSize: 20,
@@ -173,8 +174,7 @@ export async function fetchSearchResults(
   })
   return {
     products: (result.items ?? []).map(mapProduct),
-    totalCount: result.totalCount ?? 0,
-    totalPages: result.totalPages ?? 0,
+    hasNextPage: result.hasNextPage ?? false,
   }
 }
 
@@ -210,21 +210,64 @@ export function mapProductDetail(dto: ProductDto): ProductDetail {
   }
 }
 
+function mapShopDetail(dto: ShopDto): ShopDetail {
+  const photos = (dto.photos ?? [])
+    .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+    .map((p) => p.storageUrl ?? '')
+    .filter(Boolean)
+  return {
+    id: dto.id ?? '',
+    sellerId: dto.sellerId ?? '',
+    name: dto.businessName ?? '',
+    sellerDisplayName: null,
+    description: dto.description ?? null,
+    avatarUrl: dto.avatarUrl ?? null,
+    businessType: dto.businessType ?? null,
+    workingHours: dto.workingHours ?? null,
+    serviceRadiusKm: dto.serviceRadiusMeters
+      ? Math.round(dto.serviceRadiusMeters / 100) / 10
+      : null,
+    allowCourierDelivery: dto.allowCourierDelivery ?? false,
+    isVerified: dto.isVerified ?? false,
+    photos,
+  }
+}
+
+export async function fetchShopDetail(shopId: string): Promise<ShopDetail> {
+  const dto = await ShopsService.getApiCatalogShops({ id: shopId })
+  const base = mapShopDetail(dto)
+  const sellerDto = await SellersService.getApiCatalogSellers({ id: base.sellerId }).catch(
+    () => null,
+  )
+  return { ...base, sellerDisplayName: sellerDto?.displayName ?? null }
+}
+
+export async function fetchShopProducts(
+  shopId: string,
+  page = 1,
+  pageSize = 20,
+): Promise<{ products: Product[]; hasNextPage: boolean }> {
+  const result = await ProductsService.getApiCatalogProductsByShop({ shopId, page, pageSize })
+  return {
+    products: (result.items ?? []).map(mapProduct),
+    hasNextPage: result.hasNextPage ?? false,
+  }
+}
+
 export async function fetchProductDetail(id: string): Promise<ProductDetail> {
   const dto = await ProductsService.getApiCatalogProducts({ id })
   return mapProductDetail(dto)
 }
 
 /** Category page: full product list + category info. */
-export async function fetchCategoryById(categoryId: string): Promise<{
-  id: string
-  name: string
-  emoji: string
-  products: Product[]
-}> {
+export async function fetchCategoryById(
+  categoryId: string,
+  page = 1,
+  pageSize = 20,
+): Promise<{ id: string; name: string; emoji: string; products: Product[]; hasNextPage: boolean }> {
   const [catDto, productsResult] = await Promise.all([
     CategoriesService.getApiCatalogCategories({ id: categoryId }),
-    ProductsService.getApiCatalogProductsSearch({ categoryId, pageSize: 50 }),
+    ProductsService.getApiCatalogProductsSearch({ categoryId, page, pageSize }),
   ])
 
   return {
@@ -232,5 +275,6 @@ export async function fetchCategoryById(categoryId: string): Promise<{
     name: catDto.name ?? '',
     emoji: resolveEmoji(catDto.name ?? ''),
     products: (productsResult.items ?? []).map(mapProduct),
+    hasNextPage: productsResult.hasNextPage ?? false,
   }
 }
