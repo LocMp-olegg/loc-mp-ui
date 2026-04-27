@@ -1,9 +1,21 @@
 import { useState, useRef, useCallback, useEffect, useReducer } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { SlidersHorizontal, ChevronDown, X, Search } from 'lucide-react'
+import {
+  SlidersHorizontal,
+  ChevronDown,
+  X,
+  Search,
+  CalendarArrowDown,
+  CalendarArrowUp,
+  TrendingUp,
+  TrendingDown,
+  ArrowUpAZ,
+  ArrowDownAZ,
+} from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { ShopProductFilter } from '@/lib/catalog'
 import type { ProductSortBy } from '@/api/catalog'
+import * as React from "react";
 
 interface Category {
   id: string
@@ -26,12 +38,20 @@ interface Props {
   onReset: () => void
 }
 
-const SORT_OPTIONS: { value: ProductSortBy; label: string }[] = [
-  { value: 'Newest', label: 'По новизне' },
-  { value: 'PriceAsc', label: 'Цена ↑' },
-  { value: 'PriceDesc', label: 'Цена ↓' },
-  { value: 'NameAsc', label: 'По названию' },
+const SORT_OPTIONS: {
+  value: ProductSortBy
+  label: string
+  Icon: React.FC<{ className?: string }>
+}[] = [
+  { value: 'Newest', label: 'Новее', Icon: CalendarArrowDown },
+  { value: 'Oldest', label: 'Старее', Icon: CalendarArrowUp },
+  { value: 'PriceAsc', label: 'Дешевле', Icon: TrendingUp },
+  { value: 'PriceDesc', label: 'Дороже', Icon: TrendingDown },
+  { value: 'NameAsc', label: 'А → Я', Icon: ArrowUpAZ },
+  { value: 'NameDesc', label: 'Я → А', Icon: ArrowDownAZ },
 ]
+
+const SORT_SEPARATORS = new Set([2, 4])
 
 const POPUP_ANIM = {
   initial: { opacity: 0, scale: 0.95, y: -6 },
@@ -55,7 +75,6 @@ function hasActiveFilters(f: ShopProductFilter): boolean {
     f.rootCategoryId ||
     f.minPrice !== undefined ||
     f.maxPrice !== undefined ||
-    f.isInStock ||
     f.search
   )
 }
@@ -170,7 +189,6 @@ export function ShopProductFilters({
   const pillInactive =
     'border-border text-muted-foreground hover:border-primary/50 hover:text-foreground'
 
-  // Group leaf categories by root for display
   const leafByRoot = new Map<string, Category[]>()
   for (const cat of categories) {
     const list = leafByRoot.get(cat.rootCategoryId) ?? []
@@ -203,6 +221,7 @@ export function ShopProductFilters({
                 : 'bg-card border-border text-muted-foreground hover:border-primary/50 hover:text-foreground',
             )}
           >
+            <currentSort.Icon className="w-3.5 h-3.5 shrink-0" />
             {currentSort.label}
             <ChevronDown
               className={cn('w-3 h-3 transition-transform duration-150', sortOpen && 'rotate-180')}
@@ -211,23 +230,26 @@ export function ShopProductFilters({
 
           <AnimatePresence>
             {sortOpen && (
-              <motion.div {...POPUP_ANIM} className={cn(popupBase, 'py-1 min-w-[160px]')}>
-                {SORT_OPTIONS.map((opt) => (
-                  <button
-                    key={opt.value}
-                    onClick={() => {
-                      onChange({ ...filter, sort: opt.value })
-                      setSortOpen(false)
-                    }}
-                    className={cn(
-                      'w-full text-left px-3 py-2 text-sm transition-colors cursor-pointer',
-                      filter.sort === opt.value
-                        ? 'text-primary font-medium bg-primary/8'
-                        : 'text-foreground hover:bg-muted',
-                    )}
-                  >
-                    {opt.label}
-                  </button>
+              <motion.div {...POPUP_ANIM} className={cn(popupBase, 'py-1 min-w-40')}>
+                {SORT_OPTIONS.map((opt, i) => (
+                  <div key={opt.value}>
+                    {SORT_SEPARATORS.has(i) && <div className="my-1 border-t border-border/60" />}
+                    <button
+                      onClick={() => {
+                        onChange({ ...filter, sort: opt.value })
+                        setSortOpen(false)
+                      }}
+                      className={cn(
+                        'w-full flex items-center gap-2 px-3 py-2 text-sm transition-colors cursor-pointer',
+                        filter.sort === opt.value
+                          ? 'text-primary font-medium bg-primary/8'
+                          : 'text-foreground hover:bg-muted',
+                      )}
+                    >
+                      <opt.Icon className="w-3.5 h-3.5 shrink-0" />
+                      {opt.label}
+                    </button>
+                  </div>
                 ))}
               </motion.div>
             )}
@@ -256,13 +278,12 @@ export function ShopProductFilters({
             {filterOpen && (
               <motion.div
                 {...POPUP_ANIM}
-                className={cn(popupBase, 'p-3 flex flex-col gap-3 min-w-[280px]')}
+                className={cn(popupBase, 'p-3 flex flex-col gap-3 min-w-70')}
               >
-                {/* Categories — hierarchical */}
+                {/* Categories */}
                 <div className="flex flex-col gap-1.5">
                   <span className="text-xs font-medium text-muted-foreground">Категория</span>
                   <div className="flex flex-col gap-2 max-h-48 overflow-y-auto scrollbar-thin pr-0.5">
-                    {/* All */}
                     <button
                       onClick={selectAll}
                       className={cn(
@@ -274,14 +295,12 @@ export function ShopProductFilters({
                     </button>
 
                     {hasHierarchy
-                      ? /* Grouped by root */
-                        rootCategories.map((root) => {
+                      ? rootCategories.map((root) => {
                           const children = leafByRoot.get(root.id) ?? []
                           if (children.length === 0) return null
                           const rootActive = draft.rootCategoryId === root.id
                           return (
                             <div key={root.id} className="flex flex-col gap-1.5">
-                              {/* Root pill */}
                               <button
                                 onClick={() => selectRoot(root.id)}
                                 className={cn(
@@ -292,7 +311,6 @@ export function ShopProductFilters({
                               >
                                 {root.emoji} {root.name}
                               </button>
-                              {/* Children indented */}
                               <div className="flex flex-wrap gap-1.5 pl-3">
                                 {children.map((cat) => (
                                   <button
@@ -310,8 +328,7 @@ export function ShopProductFilters({
                             </div>
                           )
                         })
-                      : /* Flat list if no root hierarchy */
-                        categories.map((cat) => (
+                      : categories.map((cat) => (
                           <button
                             key={cat.id}
                             onClick={() => selectLeaf(cat.id)}
@@ -339,7 +356,7 @@ export function ShopProductFilters({
                         const val = e.target.value === '' ? undefined : Number(e.target.value)
                         dispatchDraft({ type: 'patch', patch: { minPrice: val } })
                       }}
-                      className="h-8 w-[90px] px-2 rounded-lg border border-border bg-card text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/60 input-no-spin"
+                      className="h-8 w-22.5 px-2 rounded-lg border border-border bg-card text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/60 input-no-spin"
                     />
                     <span className="text-muted-foreground text-xs">—</span>
                     <input
@@ -351,7 +368,7 @@ export function ShopProductFilters({
                         const val = e.target.value === '' ? undefined : Number(e.target.value)
                         dispatchDraft({ type: 'patch', patch: { maxPrice: val } })
                       }}
-                      className="h-8 w-[90px] px-2 rounded-lg border border-border bg-card text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/60 input-no-spin"
+                      className="h-8 w-22.5 px-2 rounded-lg border border-border bg-card text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/60 input-no-spin"
                     />
                   </div>
                 </div>

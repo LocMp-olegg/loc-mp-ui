@@ -72,7 +72,12 @@ export function useShopFilteredProducts(
           const filtered = rootCategoryId
             ? applyRootFilter(products, rootCategoryId, leafToRoot)
             : products
-          dispatch({ type: 'loaded', products: filtered, hasNextPage, append: false })
+          dispatch({
+            type: 'loaded',
+            products: filtered,
+            hasNextPage,
+            append: false,
+          })
         }
       })
       .catch(() => {
