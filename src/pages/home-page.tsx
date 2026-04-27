@@ -1,19 +1,41 @@
 import { useState, useCallback } from 'react'
 import { PackageSearch } from 'lucide-react'
 import { AnimatePresence } from 'framer-motion'
+import { useSearchParams } from 'react-router-dom'
 import { useCatalogHome } from '@/hooks/use-catalog-home'
 import { useUserLocation } from '@/contexts/location-context'
 import { CategorySection } from '@/components/catalog/category-section'
+import { ProductFiltersBar } from '@/components/catalog/product-filters-bar'
 import { LocationPicker } from '@/components/location/location-picker'
+import { useFilterParams } from '@/hooks/use-filter-params'
+import { useScrollRestore } from '@/hooks/use-scroll-restore'
 
 export function HomePage() {
   const { data, loading, error } = useCatalogHome()
   const { location } = useUserLocation()
-  const [activeRootId, setActiveRootId] = useState<string>('all')
+  const [searchParams, setSearchParams] = useSearchParams()
+  const [filter, setFilterUrl] = useFilterParams()
   const [pickerOpen, setPickerOpen] = useState(false)
-  // Map key: `${activeRootId}:${categoryId}` → hasProducts
-  // No reset needed — old keys become irrelevant when activeRootId changes
   const [loadResults, setLoadResults] = useState<Record<string, boolean>>({})
+
+  useScrollRestore(!loading && !!data)
+
+  const activeRootId = searchParams.get('root') ?? 'all'
+
+  const setActiveRootId = useCallback(
+    (id: string) => {
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev)
+          if (id === 'all') next.delete('root')
+          else next.set('root', id)
+          return next
+        },
+        { replace: true },
+      )
+    },
+    [setSearchParams],
+  )
 
   const visibleLeaves =
     activeRootId === 'all'
@@ -27,6 +49,8 @@ export function HomePage() {
     [activeRootId],
   )
 
+  const filterKey = `${activeRootId}:${filter.sort ?? ''}:${filter.minPrice ?? ''}:${filter.maxPrice ?? ''}:${filter.isInStock ?? ''}`
+
   const currentKeys = visibleLeaves.map((c) => `${activeRootId}:${c.id}`)
   const allLoaded = currentKeys.length > 0 && currentKeys.every((k) => k in loadResults)
   const allEmpty = allLoaded && currentKeys.every((k) => !loadResults[k])
@@ -34,10 +58,25 @@ export function HomePage() {
   const isFiltered = activeRootId !== 'all'
   const activeCategory = data?.rootCategories.find((c) => c.id === activeRootId)
 
+  const handleRootChange = (id: string) => {
+    setActiveRootId(id)
+    setLoadResults({})
+  }
+
+  const handleFilterChange = (next: typeof filter) => {
+    setFilterUrl(next)
+    setLoadResults({})
+  }
+
+  const handleFilterReset = () => {
+    setFilterUrl({ sort: filter.sort, isInStock: true })
+    setLoadResults({})
+  }
+
   const filterPill = (id: string, emoji: string, label: string) => (
     <button
       key={id}
-      onClick={() => setActiveRootId(id)}
+      onClick={() => handleRootChange(id)}
       className={`flex items-center gap-1.5 px-3 md:px-3.5 py-1.5 rounded-full text-sm font-medium transition-all whitespace-nowrap shrink-0 cursor-pointer ${
         activeRootId === id
           ? 'bg-primary text-primary-foreground shadow-sm'
@@ -57,7 +96,6 @@ export function HomePage() {
         <p className="text-muted-foreground text-sm">Товары из вашего района</p>
       </div>
 
-      {/* Filter pills */}
       {loading ? (
         <div className="flex gap-2 px-4 md:px-6 pb-3 mb-2">
           {Array.from({ length: 4 }).map((_, i) => (
@@ -65,9 +103,19 @@ export function HomePage() {
           ))}
         </div>
       ) : !error && data ? (
-        <div className="flex gap-2 overflow-x-auto scrollbar-hide px-4 md:px-6 pb-3 mb-2">
-          {filterPill('all', '🏪', 'Все')}
-          {data.rootCategories.map((cat) => filterPill(cat.id, cat.emoji, cat.name))}
+        <div className="px-4 md:px-6 pb-3 mb-2 flex flex-col gap-2">
+          <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+            {filterPill('all', '🏪', 'Все')}
+            {data.rootCategories.map((cat) => filterPill(cat.id, cat.emoji, cat.name))}
+          </div>
+          <div className="flex items-center justify-end">
+            <ProductFiltersBar
+              filter={filter}
+              onChange={handleFilterChange}
+              onReset={handleFilterReset}
+              disableSort={!!location}
+            />
+          </div>
         </div>
       ) : null}
 
@@ -78,7 +126,6 @@ export function HomePage() {
         </div>
       )}
 
-      {/* Empty state */}
       {allEmpty && (
         <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
           <div className="relative mb-5">
@@ -102,7 +149,7 @@ export function HomePage() {
           <div className="flex gap-2 mt-6">
             {isFiltered && (
               <button
-                onClick={() => setActiveRootId('all')}
+                onClick={() => handleRootChange('all')}
                 className="px-5 py-2 rounded-xl border border-border text-sm text-muted-foreground hover:text-foreground hover:border-primary/50 transition-colors cursor-pointer"
               >
                 Все товары
@@ -118,13 +165,13 @@ export function HomePage() {
         </div>
       )}
 
-      {/* Sections */}
       {!error &&
         visibleLeaves.map((category) => (
           <CategorySection
             key={category.id}
             category={category}
-            filterKey={activeRootId}
+            filterKey={filterKey}
+            filter={filter}
             onLoadComplete={handleLoadComplete}
           />
         ))}

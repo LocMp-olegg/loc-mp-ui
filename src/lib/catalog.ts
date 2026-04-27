@@ -1,6 +1,12 @@
 import noImageUrl from '@/assets/no-image-available.jpg'
 import { CategoriesService, ProductsService, ShopsService, SellersService } from '@/api/catalog'
-import type { ProductDto, ProductSummaryDto, CategoryTreeDto, ShopDto } from '@/api/catalog'
+import type {
+  ProductDto,
+  ProductSummaryDto,
+  CategoryTreeDto,
+  ShopDto,
+  ProductSortBy,
+} from '@/api/catalog'
 import type { Product } from '@/types/product'
 import type { ProductDetail } from '@/types/product-detail'
 import type { ShopDetail } from '@/types/shop'
@@ -132,6 +138,13 @@ export async function fetchCatalogStructure(): Promise<CatalogStructure> {
   }
 }
 
+export interface ProductFilter {
+  sort?: ProductSortBy
+  minPrice?: number
+  maxPrice?: number
+  isInStock?: boolean
+}
+
 export interface GeoFilter {
   lat: number
   lng: number
@@ -142,19 +155,31 @@ export interface GeoFilter {
 export async function fetchCategoryProducts(
   categoryId: string,
   geo?: GeoFilter,
+  filter: ProductFilter = {},
   pageSize = 10,
 ): Promise<Product[]> {
+  const { sort, minPrice, maxPrice, isInStock } = filter
   if (geo) {
     const result = await ProductsService.getApiCatalogProductsNearby({
       categoryId,
       lat: geo.lat,
       lon: geo.lng,
       radiusKm: geo.radiusKm,
+      minPrice,
+      maxPrice,
+      isInStock,
       pageSize,
     })
     return (result.items ?? []).map(mapProduct)
   }
-  const result = await ProductsService.getApiCatalogProductsSearch({ categoryId, pageSize })
+  const result = await ProductsService.getApiCatalogProductsSearch({
+    categoryId,
+    sort,
+    minPrice,
+    maxPrice,
+    isInStock,
+    pageSize,
+  })
   return (result.items ?? []).map(mapProduct)
 }
 
@@ -166,11 +191,17 @@ export async function fetchSearchSuggestions(query: string): Promise<Product[]> 
 export async function fetchSearchResults(
   query: string,
   page = 1,
+  filter: ProductFilter = {},
 ): Promise<{ products: Product[]; hasNextPage: boolean }> {
+  const { sort, minPrice, maxPrice, isInStock } = filter
   const result = await ProductsService.getApiCatalogProductsSearch({
     search: query,
     pageSize: 20,
     page,
+    sort,
+    minPrice,
+    maxPrice,
+    isInStock,
   })
   return {
     products: (result.items ?? []).map(mapProduct),
@@ -280,10 +311,20 @@ export async function fetchCategoryById(
   categoryId: string,
   page = 1,
   pageSize = 20,
+  filter: ProductFilter = {},
 ): Promise<{ id: string; name: string; emoji: string; products: Product[]; hasNextPage: boolean }> {
+  const { sort, minPrice, maxPrice, isInStock } = filter
   const [catDto, productsResult] = await Promise.all([
     CategoriesService.getApiCatalogCategories({ id: categoryId }),
-    ProductsService.getApiCatalogProductsSearch({ categoryId, page, pageSize }),
+    ProductsService.getApiCatalogProductsSearch({
+      categoryId,
+      page,
+      pageSize,
+      sort,
+      minPrice,
+      maxPrice,
+      isInStock,
+    }),
   ])
 
   return {

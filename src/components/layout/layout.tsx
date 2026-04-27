@@ -1,6 +1,7 @@
 import { Outlet } from 'react-router-dom'
 import { FloatingNav } from '@/components/aceternity/floating-nav'
 import { LandscapeBackground } from './landscape-background'
+import { ScrollManager } from './scroll-manager'
 
 export function Layout() {
   return (
@@ -15,6 +16,7 @@ export function Layout() {
           <Outlet />
         </div>
       </main>
+      <ScrollManager />
     </div>
   )
 }

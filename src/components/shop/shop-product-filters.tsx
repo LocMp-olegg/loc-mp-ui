@@ -1,21 +1,11 @@
 import { useState, useRef, useCallback, useEffect, useReducer } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import {
-  SlidersHorizontal,
-  ChevronDown,
-  X,
-  Search,
-  CalendarArrowDown,
-  CalendarArrowUp,
-  TrendingUp,
-  TrendingDown,
-  ArrowUpAZ,
-  ArrowDownAZ,
-} from 'lucide-react'
+import { SlidersHorizontal, X, Search } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { ShopProductFilter } from '@/lib/catalog'
-import type { ProductSortBy } from '@/api/catalog'
-import * as React from 'react'
+import { POPUP_ANIM, POPUP_BASE, popupAlign } from '@/components/catalog/filters-constants'
+import { SortDropdown, InStockToggle, PriceRangeInputs } from '@/components/catalog/filters-shared'
+import { useClickOutside } from '@/hooks/use-click-outside'
 
 interface Category {
   id: string
@@ -37,28 +27,6 @@ interface Props {
   onChange: (filter: ShopProductFilter) => void
   onReset: () => void
 }
-
-const SORT_OPTIONS: {
-  value: ProductSortBy
-  label: string
-  Icon: React.FC<{ className?: string }>
-}[] = [
-  { value: 'Newest', label: 'Новее', Icon: CalendarArrowDown },
-  { value: 'Oldest', label: 'Старее', Icon: CalendarArrowUp },
-  { value: 'PriceAsc', label: 'Дешевле', Icon: TrendingUp },
-  { value: 'PriceDesc', label: 'Дороже', Icon: TrendingDown },
-  { value: 'NameAsc', label: 'А → Я', Icon: ArrowUpAZ },
-  { value: 'NameDesc', label: 'Я → А', Icon: ArrowDownAZ },
-]
-
-const SORT_SEPARATORS = new Set([2, 4])
-
-const POPUP_ANIM = {
-  initial: { opacity: 0, scale: 0.95, y: -6 },
-  animate: { opacity: 1, scale: 1, y: 0 },
-  exit: { opacity: 0, scale: 0.95, y: -6 },
-  transition: { duration: 0.13 },
-} as const
 
 type DraftAction =
   | { type: 'reset'; filter: ShopProductFilter }
@@ -135,26 +103,24 @@ export function ShopProductFilters({
 }: Props) {
   const [sortOpen, setSortOpen] = useState(false)
   const [filterOpen, setFilterOpen] = useState(false)
+  const [sortAlign, setSortAlign] = useState('right-0')
+  const [filterAlign, setFilterAlign] = useState('right-0')
   const [draft, dispatchDraft] = useReducer(draftReducer, filter)
   const sortRef = useRef<HTMLDivElement>(null)
   const filterRef = useRef<HTMLDivElement>(null)
   const active = hasActiveFilters(filter)
-  const currentSort = SORT_OPTIONS.find((o) => o.value === filter.sort) ?? SORT_OPTIONS[0]
 
   useEffect(() => {
     dispatchDraft({ type: 'reset', filter })
   }, [filter])
 
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (sortRef.current && !sortRef.current.contains(e.target as Node)) setSortOpen(false)
-      if (filterRef.current && !filterRef.current.contains(e.target as Node)) setFilterOpen(false)
-    }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [])
+  useClickOutside([
+    { ref: sortRef, onClose: () => setSortOpen(false) },
+    { ref: filterRef, onClose: () => setFilterOpen(false) },
+  ])
 
   const openFilter = () => {
+    setFilterAlign(popupAlign(filterRef, 280))
     dispatchDraft({ type: 'reset', filter })
     setFilterOpen((v) => !v)
     setSortOpen(false)
@@ -180,9 +146,6 @@ export function ShopProductFilters({
   const selectAll = () =>
     dispatchDraft({ type: 'patch', patch: { categoryId: undefined, rootCategoryId: undefined } })
 
-  const popupBase =
-    'absolute right-0 top-full mt-1.5 z-50 rounded-xl border border-border bg-card shadow-xl backdrop-blur-md origin-top-right'
-
   const pillBase =
     'px-2.5 py-1 rounded-full text-xs font-medium border transition-colors cursor-pointer whitespace-nowrap'
   const pillActive = 'bg-primary text-primary-foreground border-primary'
@@ -207,56 +170,22 @@ export function ShopProductFilters({
           onClear={() => onChange({ ...filter, search: undefined })}
         />
 
-        {/* Sort dropdown */}
-        <div ref={sortRef} className="relative shrink-0">
-          <button
-            onClick={() => {
-              setSortOpen((v) => !v)
-              setFilterOpen(false)
-            }}
-            className={cn(
-              'flex items-center gap-1.5 h-8 px-3 rounded-lg border text-xs font-medium transition-colors cursor-pointer whitespace-nowrap',
-              sortOpen
-                ? 'bg-primary text-primary-foreground border-primary'
-                : 'bg-card border-border text-muted-foreground hover:border-primary/50 hover:text-foreground',
-            )}
-          >
-            <currentSort.Icon className="w-3.5 h-3.5 shrink-0" />
-            {currentSort.label}
-            <ChevronDown
-              className={cn('w-3 h-3 transition-transform duration-150', sortOpen && 'rotate-180')}
-            />
-          </button>
+        <SortDropdown
+          containerRef={sortRef}
+          open={sortOpen}
+          align={sortAlign}
+          activeValue={filter.sort}
+          onToggle={() => {
+            setSortAlign(popupAlign(sortRef, 160))
+            setSortOpen((v) => !v)
+            setFilterOpen(false)
+          }}
+          onSelect={(value) => {
+            onChange({ ...filter, sort: value })
+            setSortOpen(false)
+          }}
+        />
 
-          <AnimatePresence>
-            {sortOpen && (
-              <motion.div {...POPUP_ANIM} className={cn(popupBase, 'py-1 min-w-40')}>
-                {SORT_OPTIONS.map((opt, i) => (
-                  <div key={opt.value}>
-                    {SORT_SEPARATORS.has(i) && <div className="my-1 border-t border-border/60" />}
-                    <button
-                      onClick={() => {
-                        onChange({ ...filter, sort: opt.value })
-                        setSortOpen(false)
-                      }}
-                      className={cn(
-                        'w-full flex items-center gap-2 px-3 py-2 text-sm transition-colors cursor-pointer',
-                        filter.sort === opt.value
-                          ? 'text-primary font-medium bg-primary/8'
-                          : 'text-foreground hover:bg-muted',
-                      )}
-                    >
-                      <opt.Icon className="w-3.5 h-3.5 shrink-0" />
-                      {opt.label}
-                    </button>
-                  </div>
-                ))}
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-
-        {/* Filter popup */}
         <div ref={filterRef} className="relative shrink-0">
           <button
             onClick={openFilter}
@@ -278,7 +207,7 @@ export function ShopProductFilters({
             {filterOpen && (
               <motion.div
                 {...POPUP_ANIM}
-                className={cn(popupBase, 'p-3 flex flex-col gap-3 min-w-70')}
+                className={cn(POPUP_BASE, filterAlign, 'p-3 flex flex-col gap-3 min-w-70')}
               >
                 {/* Categories */}
                 <div className="flex flex-col gap-1.5">
@@ -343,70 +272,23 @@ export function ShopProductFilters({
                   </div>
                 </div>
 
-                {/* Price range */}
-                <div className="flex flex-col gap-1.5">
-                  <span className="text-xs font-medium text-muted-foreground">Цена, ₽</span>
-                  <div className="flex items-center gap-1.5">
-                    <input
-                      type="number"
-                      min={0}
-                      placeholder="от"
-                      value={draft.minPrice ?? ''}
-                      onChange={(e) => {
-                        const val = e.target.value === '' ? undefined : Number(e.target.value)
-                        dispatchDraft({ type: 'patch', patch: { minPrice: val } })
-                      }}
-                      className="h-8 w-22.5 px-2 rounded-lg border border-border bg-card text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/60 input-no-spin"
-                    />
-                    <span className="text-muted-foreground text-xs">—</span>
-                    <input
-                      type="number"
-                      min={0}
-                      placeholder="до"
-                      value={draft.maxPrice ?? ''}
-                      onChange={(e) => {
-                        const val = e.target.value === '' ? undefined : Number(e.target.value)
-                        dispatchDraft({ type: 'patch', patch: { maxPrice: val } })
-                      }}
-                      className="h-8 w-22.5 px-2 rounded-lg border border-border bg-card text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/60 input-no-spin"
-                    />
-                  </div>
-                </div>
+                <PriceRangeInputs
+                  minPrice={draft.minPrice}
+                  maxPrice={draft.maxPrice}
+                  onMinChange={(val) => dispatchDraft({ type: 'patch', patch: { minPrice: val } })}
+                  onMaxChange={(val) => dispatchDraft({ type: 'patch', patch: { maxPrice: val } })}
+                />
 
-                {/* In stock */}
-                <button
-                  onClick={() =>
+                <InStockToggle
+                  checked={draft.isInStock === true}
+                  onToggle={() =>
                     dispatchDraft({
                       type: 'patch',
                       patch: { isInStock: draft.isInStock === true ? undefined : true },
                     })
                   }
-                  className={cn(
-                    'flex items-center gap-2 px-3 py-2 rounded-lg border text-xs font-medium transition-colors cursor-pointer',
-                    draft.isInStock === true
-                      ? 'bg-primary/10 text-primary border-primary/30'
-                      : 'border-border text-muted-foreground hover:border-primary/50 hover:text-foreground',
-                  )}
-                >
-                  <span
-                    className={cn(
-                      'w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 transition-colors',
-                      draft.isInStock === true ? 'border-primary bg-primary' : 'border-border',
-                    )}
-                  >
-                    {draft.isInStock === true && (
-                      <svg
-                        viewBox="0 0 12 12"
-                        className="w-2.5 h-2.5 fill-none stroke-primary-foreground stroke-2"
-                      >
-                        <polyline points="2,6 5,9 10,3" />
-                      </svg>
-                    )}
-                  </span>
-                  Только в наличии
-                </button>
+                />
 
-                {/* Actions */}
                 <div className="flex items-center gap-2 pt-1 border-t border-border">
                   {hasActiveFilters(draft) && (
                     <button

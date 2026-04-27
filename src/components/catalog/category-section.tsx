@@ -5,19 +5,20 @@ import { ProductCard } from '@/components/product/product-card'
 import { type CarouselApi, Carousel, CarouselContent, CarouselItem } from '@/components/ui/carousel'
 import { useCarouselProgress } from '@/hooks/use-carousel-progress'
 import { useLazyCategoryProducts } from '@/hooks/use-lazy-category-products'
-import type { LeafCategory } from '@/lib/catalog'
+import type { LeafCategory, ProductFilter } from '@/lib/catalog'
 import { cn, pluralize } from '@/lib/utils'
 
 interface Props {
   category: LeafCategory
   onLoadComplete?: (categoryId: string, hasProducts: boolean) => void
   filterKey?: string
+  filter?: ProductFilter
 }
 
 const SKELETON_COUNT = 5
 
-export function CategorySection({ category, onLoadComplete, filterKey }: Props) {
-  const { products, loading, fetched, visible, ref } = useLazyCategoryProducts(category.id)
+export function CategorySection({ category, onLoadComplete, filterKey, filter }: Props) {
+  const { products, loading, fetched, visible, ref } = useLazyCategoryProducts(category.id, filter)
   const [api, setApi] = useState<CarouselApi>()
 
   // Re-report when filterKey changes so parent tracking stays correct

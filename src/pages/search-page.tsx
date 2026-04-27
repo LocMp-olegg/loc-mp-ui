@@ -2,9 +2,12 @@ import { useEffect, useReducer, useRef } from 'react'
 import { useSearchParams, Link } from 'react-router-dom'
 import { PackageSearch, ArrowLeft, Loader2 } from 'lucide-react'
 import { fetchSearchResults } from '@/lib/catalog'
+import { ProductFiltersBar } from '@/components/catalog/product-filters-bar'
 import { ProductCard } from '@/components/product/product-card'
 import type { Product } from '@/types/product'
 import { pluralize } from '@/lib/utils'
+import { useFilterParams } from '@/hooks/use-filter-params'
+import { useScrollRestore } from '@/hooks/use-scroll-restore'
 
 const SKELETON_COUNT = 10
 
@@ -41,6 +44,7 @@ function reducer(state: State, action: Action): State {
 export function SearchPage() {
   const [searchParams] = useSearchParams()
   const query = searchParams.get('q') ?? ''
+  const [filter, setFilter] = useFilterParams()
 
   const [{ products, loading, fetched, hasNextPage }, dispatch] = useReducer(reducer, {
     products: [],
@@ -50,8 +54,8 @@ export function SearchPage() {
   })
 
   const pageRef = useRef(1)
+  const { sort, minPrice, maxPrice, isInStock } = filter
 
-  // Reset and fetch page 1 when query changes
   useEffect(() => {
     pageRef.current = 1
 
@@ -63,7 +67,7 @@ export function SearchPage() {
     let cancelled = false
     dispatch({ type: 'loading' })
 
-    fetchSearchResults(query.trim(), 1)
+    fetchSearchResults(query.trim(), 1, { sort, minPrice, maxPrice, isInStock })
       .then((data) => {
         if (!cancelled)
           dispatch({
@@ -80,12 +84,12 @@ export function SearchPage() {
     return () => {
       cancelled = true
     }
-  }, [query])
+  }, [query, sort, minPrice, maxPrice, isInStock])
 
   const loadMore = () => {
     pageRef.current++
     dispatch({ type: 'loading' })
-    fetchSearchResults(query.trim(), pageRef.current)
+    fetchSearchResults(query.trim(), pageRef.current, { sort, minPrice, maxPrice, isInStock })
       .then((data) =>
         dispatch({
           type: 'loaded',
@@ -97,6 +101,10 @@ export function SearchPage() {
       .catch(() => dispatch({ type: 'error' }))
   }
 
+  useScrollRestore(fetched && !loading)
+
+  const handleFilterReset = () => setFilter({ sort: filter.sort, isInStock: true })
+
   return (
     <div className="max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-8">
       <Link
@@ -107,24 +115,29 @@ export function SearchPage() {
         На главную
       </Link>
 
-      <div className="mb-6">
-        <h1 className="text-xl md:text-2xl font-bold text-foreground break-all">
-          {query ? (
-            <>
-              Результаты по <span className="text-primary">«{query}»</span>
-            </>
-          ) : (
-            'Поиск'
+      <div className="flex items-center justify-between flex-wrap gap-3 mb-6">
+        <div className="min-w-0">
+          <h1 className="text-xl md:text-2xl font-bold text-foreground break-all">
+            {query ? (
+              <>
+                Результаты по <span className="text-primary">«{query}»</span>
+              </>
+            ) : (
+              'Поиск'
+            )}
+          </h1>
+          {fetched && !loading && products.length > 0 && (
+            <p className="text-sm text-muted-foreground mt-0.5">
+              {products.length}
+              {hasNextPage ? '+' : ''} {pluralize(products.length, 'товар', 'товара', 'товаров')}
+            </p>
           )}
-        </h1>
-        {fetched && !loading && products.length > 0 && (
-          <p className="text-sm text-muted-foreground mt-0.5">
-            {products.length} {pluralize(products.length, 'товар', 'товара', 'товаров')}
-          </p>
+        </div>
+        {query && (
+          <ProductFiltersBar filter={filter} onChange={setFilter} onReset={handleFilterReset} />
         )}
       </div>
 
-      {/* Initial loading skeletons */}
       {loading && products.length === 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
           {Array.from({ length: SKELETON_COUNT }).map((_, i) => (
@@ -133,7 +146,6 @@ export function SearchPage() {
         </div>
       )}
 
-      {/* Results grid */}
       {products.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
           {products.map((product) => (
@@ -146,7 +158,6 @@ export function SearchPage() {
         </div>
       )}
 
-      {/* Load more */}
       {hasNextPage && !loading && (
         <div className="flex justify-center mt-8">
           <button
@@ -163,7 +174,6 @@ export function SearchPage() {
         </div>
       )}
 
-      {/* Empty state */}
       {!loading && fetched && products.length === 0 && query && (
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <div className="relative mb-5">

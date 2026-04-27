@@ -1,15 +1,16 @@
-import { useReducer, useState, useEffect } from 'react'
+import { useReducer, useEffect, useRef, useCallback } from 'react'
 import { fetchCategoryById } from '@/lib/catalog'
+import type { ProductFilter } from '@/lib/catalog'
 import type { Product } from '@/types/product'
 
-interface CategoryData {
+interface CategoryInfo {
   id: string
   name: string
   emoji: string
 }
 
 interface State {
-  info: CategoryData | null
+  info: CategoryInfo | null
   products: Product[]
   hasNextPage: boolean
   loading: boolean
@@ -20,7 +21,7 @@ type Action =
   | { type: 'fetching' }
   | {
       type: 'fetched'
-      info: CategoryData
+      info: CategoryInfo
       products: Product[]
       hasNextPage: boolean
       append: boolean
@@ -44,23 +45,26 @@ function reducer(state: State, action: Action): State {
   }
 }
 
-export function useCatalogCategory(categoryId: string) {
-  const [state, dispatch] = useReducer(reducer, {
-    info: null,
-    products: [],
-    hasNextPage: false,
-    loading: false,
-    error: null,
-  })
-  const [page, setPage] = useState(1)
+const INITIAL_STATE: State = {
+  info: null,
+  products: [],
+  hasNextPage: false,
+  loading: false,
+  error: null,
+}
 
+export function useCatalogCategory(categoryId: string, filter: ProductFilter = {}) {
+  const [state, dispatch] = useReducer(reducer, INITIAL_STATE)
+  const pageRef = useRef(1)
+  const { sort, minPrice, maxPrice, isInStock } = filter
+
+  // Reset and fetch page 1 when category or filter changes
   useEffect(() => {
     let cancelled = false
-    const append = page > 1
-
+    pageRef.current = 1
     dispatch({ type: 'fetching' })
 
-    fetchCategoryById(categoryId, page)
+    fetchCategoryById(categoryId, 1, 20, { sort, minPrice, maxPrice, isInStock })
       .then((data) => {
         if (!cancelled)
           dispatch({
@@ -68,7 +72,7 @@ export function useCatalogCategory(categoryId: string) {
             info: { id: data.id, name: data.name, emoji: data.emoji },
             products: data.products,
             hasNextPage: data.hasNextPage,
-            append,
+            append: false,
           })
       })
       .catch((err: unknown) => {
@@ -82,7 +86,29 @@ export function useCatalogCategory(categoryId: string) {
     return () => {
       cancelled = true
     }
-  }, [categoryId, page])
+  }, [categoryId, sort, minPrice, maxPrice, isInStock])
+
+  const loadMore = useCallback(() => {
+    pageRef.current += 1
+    dispatch({ type: 'fetching' })
+
+    fetchCategoryById(categoryId, pageRef.current, 20, { sort, minPrice, maxPrice, isInStock })
+      .then((data) =>
+        dispatch({
+          type: 'fetched',
+          info: { id: data.id, name: data.name, emoji: data.emoji },
+          products: data.products,
+          hasNextPage: data.hasNextPage,
+          append: true,
+        }),
+      )
+      .catch((err: unknown) =>
+        dispatch({
+          type: 'error',
+          message: err instanceof Error ? err.message : 'Ошибка загрузки',
+        }),
+      )
+  }, [categoryId, sort, minPrice, maxPrice, isInStock])
 
   const data = state.info ? { ...state.info, products: state.products } : null
 
@@ -91,6 +117,6 @@ export function useCatalogCategory(categoryId: string) {
     loading: state.loading,
     error: state.error,
     hasNextPage: state.hasNextPage,
-    loadMore: () => setPage((p) => p + 1),
+    loadMore,
   }
 }
