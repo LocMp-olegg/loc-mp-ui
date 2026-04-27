@@ -242,12 +242,28 @@ export async function fetchShopDetail(shopId: string): Promise<ShopDetail> {
   return { ...base, sellerDisplayName: sellerDto?.displayName ?? null }
 }
 
+export interface ShopProductFilter {
+  categoryId?: string
+  rootCategoryId?: string
+  minPrice?: number
+  maxPrice?: number
+  isInStock?: boolean
+  sort?: import('@/api/catalog').ProductSortBy
+  search?: string
+}
+
 export async function fetchShopProducts(
   shopId: string,
   page = 1,
   pageSize = 20,
+  filter: ShopProductFilter = {},
 ): Promise<{ products: Product[]; hasNextPage: boolean }> {
-  const result = await ProductsService.getApiCatalogProductsByShop({ shopId, page, pageSize })
+  const result = await ProductsService.getApiCatalogProductsByShop({
+    shopId,
+    page,
+    pageSize,
+    ...filter,
+  })
   return {
     products: (result.items ?? []).map(mapProduct),
     hasNextPage: result.hasNextPage ?? false,

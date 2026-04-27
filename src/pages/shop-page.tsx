@@ -15,14 +15,18 @@ import {
   ChevronRight,
 } from 'lucide-react'
 import { useShopDetail } from '@/hooks/use-shop-detail'
+import { useShopFilteredProducts } from '@/hooks/use-shop-filtered-products'
 import { ProductCard } from '@/components/product/product-card'
 import { ShopReviewsModal } from '@/components/shop/reviews-modal'
 import { ShopGalleryModal } from '@/components/shop/gallery-modal'
+import { ShopProductSection } from '@/components/shop/shop-product-section'
+import { ShopProductFilters } from '@/components/shop/shop-product-filters'
 import { PhotoLightbox } from '@/components/ui/photo-lightbox'
 import { type CarouselApi, Carousel, CarouselContent, CarouselItem } from '@/components/ui/carousel'
 import { useCarouselProgress } from '@/hooks/use-carousel-progress'
 import { pluralize, cn } from '@/lib/utils'
 import noImageUrl from '@/assets/no-image-available.jpg'
+import type { ShopProductFilter } from '@/lib/catalog'
 
 const BUSINESS_LABELS: Record<string, string> = {
   Individual: 'Частное лицо',
@@ -48,14 +52,30 @@ function ShopSkeleton() {
 }
 
 function ShopContent({ id }: { id: string }) {
-  const { shop, products, hasMoreProducts, loadingMore, rating, loading, error, loadMore } =
-    useShopDetail(id)
+  const {
+    shop,
+    products,
+    categoryGroups,
+    rootCategoriesInShop,
+    leafToRoot,
+    rating,
+    loading,
+    error,
+  } = useShopDetail(id)
   const [reviewsOpen, setReviewsOpen] = useState(false)
   const [avatarLightbox, setAvatarLightbox] = useState(false)
   const [galleryOpen, setGalleryOpen] = useState(false)
   const [photoLightboxIndex, setPhotoLightboxIndex] = useState<number | null>(null)
   const [carouselApi, setCarouselApi] = useState<CarouselApi>()
   const { canScrollPrev, canScrollNext } = useCarouselProgress(carouselApi)
+  const [viewMode, setViewMode] = useState<'categories' | 'grid'>('categories')
+  const [filter, setFilter] = useState<ShopProductFilter>({ sort: 'Newest', isInStock: true })
+  const {
+    products: filteredProducts,
+    loading: filteredLoading,
+    hasNextPage: filteredHasMore,
+    loadMore: filteredLoadMore,
+  } = useShopFilteredProducts(id, filter, leafToRoot)
 
   if (loading) return <ShopSkeleton />
 
@@ -217,10 +237,7 @@ function ShopContent({ id }: { id: string }) {
 
           {/* Carousel */}
           <div className="px-3 md:px-4 pb-4 md:pb-5">
-            <Carousel
-              setApi={setCarouselApi}
-              opts={{ align: 'start', dragFree: true }}
-            >
+            <Carousel setApi={setCarouselApi} opts={{ align: 'start', dragFree: true }}>
               <CarouselContent>
                 {shop.photos.map((photo, i) => (
                   <CarouselItem key={i} className="basis-1/3 sm:basis-1/4 md:basis-1/5">
@@ -243,28 +260,83 @@ function ShopContent({ id }: { id: string }) {
         </section>
       )}
 
-      {/* Products */}
-      <div className="mb-3 flex items-center gap-2">
-        <Store className="w-4 h-4 text-muted-foreground" />
-        <h2 className="text-lg font-semibold text-foreground">Товары магазина</h2>
-        {products.length > 0 && (
-          <span className="text-sm text-muted-foreground">
-            {products.length} {pluralize(products.length, 'товар', 'товара', 'товаров')}
-          </span>
-        )}
+      {/* Products header + view toggle */}
+      <div className="mb-3 px-2 flex items-center gap-2">
+        <Store className="w-4 h-4 text-muted-foreground shrink-0" />
+        <div className="flex items-baseline gap-1.5 min-w-0">
+          <h2 className="text-lg font-semibold text-foreground">Товары магазина</h2>
+          {products.length > 0 && (
+            <span className="text-sm text-muted-foreground">
+              {products.length} {pluralize(products.length, 'товар', 'товара', 'товаров')}
+            </span>
+          )}
+        </div>
+        <div className="ml-auto flex items-center gap-1">
+          <button
+            onClick={() => setViewMode('categories')}
+            aria-label="По категориям"
+            className={cn(
+              'px-2.5 py-1 rounded-lg text-xs border transition-colors cursor-pointer',
+              viewMode === 'categories'
+                ? 'bg-primary text-primary-foreground border-primary'
+                : 'border-border text-muted-foreground hover:border-primary/50 hover:text-foreground',
+            )}
+          >
+            По категориям
+          </button>
+          <button
+            onClick={() => setViewMode('grid')}
+            aria-label="Сеткой"
+            className={cn(
+              'px-2.5 py-1 rounded-lg text-xs border transition-colors cursor-pointer',
+              viewMode === 'grid'
+                ? 'bg-primary text-primary-foreground border-primary'
+                : 'border-border text-muted-foreground hover:border-primary/50 hover:text-foreground',
+            )}
+          >
+            Все товары
+          </button>
+        </div>
       </div>
 
       {products.length === 0 && !loading ? (
-        <div className="rounded-2xl border border-border bg-card/40 px-6 py-12 text-center">
+        <div className="rounded-2xl border border-border bg-card/40 px-6 py-12 text-center mx-2">
           <p className="text-muted-foreground text-sm">В этом магазине пока нет товаров</p>
         </div>
-      ) : (
+      ) : viewMode === 'categories' ? (
+        /* Category islands */
         <>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-            {products.map((product) => (
+          {categoryGroups.map((group) => (
+            <ShopProductSection
+              key={group.id}
+              group={group}
+              onViewAll={(catId) => {
+                setViewMode('grid')
+                setFilter((f) => ({ ...f, categoryId: catId }))
+              }}
+            />
+          ))}
+        </>
+      ) : (
+        /* Flat grid with filters */
+        <>
+          <ShopProductFilters
+            rootCategories={rootCategoriesInShop}
+            categories={categoryGroups.map((g) => ({
+              id: g.id,
+              name: g.name,
+              emoji: g.emoji,
+              rootCategoryId: g.rootCategoryId,
+            }))}
+            filter={filter}
+            onChange={setFilter}
+            onReset={() => setFilter({ sort: 'Newest' })}
+          />
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 px-2">
+            {filteredProducts.map((product) => (
               <ProductCard key={product.id} product={product} className="w-full" />
             ))}
-            {loadingMore &&
+            {filteredLoading &&
               Array.from({ length: 5 }).map((_, i) => (
                 <div
                   key={i}
@@ -273,18 +345,17 @@ function ShopContent({ id }: { id: string }) {
                 />
               ))}
           </div>
-
-          {hasMoreProducts && !loadingMore && (
+          {filteredHasMore && !filteredLoading && (
             <div className="flex justify-center mt-8">
               <button
-                onClick={loadMore}
+                onClick={filteredLoadMore}
                 className="flex items-center gap-2 px-6 py-2.5 rounded-xl border border-border text-sm text-muted-foreground hover:text-foreground hover:border-primary/50 transition-colors cursor-pointer"
               >
                 Показать ещё
               </button>
             </div>
           )}
-          {loadingMore && (
+          {filteredLoading && (
             <div className="flex justify-center mt-6">
               <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
             </div>
