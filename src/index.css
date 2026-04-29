@@ -25,6 +25,9 @@
 
 /* Light */
 :root {
+  --shadow-input:
+    0px 2px 3px -1px rgba(0, 0, 0, 0.1), 0px 1px 0px 0px rgba(25, 28, 33, 0.02),
+    0px 0px 0px 1px rgba(25, 28, 33, 0.08);
   --background: #f8f5ee;
   --foreground: #264653;
   --card: #ffffff;
@@ -134,4 +137,14 @@
 
 @utility animate-shimmer {
   animation: shimmer 2.2s ease-in-out infinite;
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--nav-text);
+  transition: background-color 9999s ease-in-out 0s;
+
+  box-shadow: 0 0 0 1000px rgba(255, 255, 255, 0.1) inset;
+  -webkit-box-shadow: 0 0 0 1000px rgba(255, 255, 255, 0.1) inset;
 }
