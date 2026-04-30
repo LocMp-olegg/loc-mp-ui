@@ -11,6 +11,7 @@ import {
 } from '@/lib/auth'
 import { UsersService } from '@/api/identity'
 import type { RegisterUserCommand } from '@/api/identity'
+import { AuthPromptModal } from '@/components/auth/auth-prompt-modal'
 
 export interface AuthUser {
   id: string
@@ -26,6 +27,7 @@ interface AuthContextType {
   login: (usernameOrEmail: string, password: string) => Promise<void>
   register: (data: RegisterUserCommand) => Promise<void>
   logout: () => void
+  openAuthPrompt: () => void
 }
 
 const AuthContext = createContext<AuthContextType | null>(null)
@@ -44,6 +46,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null)
   // true only when there's a stored refresh token that needs to be validated
   const [initializing, setInitializing] = useState(() => !!getStoredRefreshToken())
+  const [authPromptOpen, setAuthPromptOpen] = useState(false)
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -52,7 +55,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       navigate('/login', { replace: true })
     })
 
-    // If no stored token, initializing was already false from useState initializer
     if (!getStoredRefreshToken()) return
 
     let cancelled = false
@@ -90,9 +92,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, isAuthenticated: !!user, initializing, login, register, logout }}
+      value={{
+        user,
+        isAuthenticated: !!user,
+        initializing,
+        login,
+        register,
+        logout,
+        openAuthPrompt: () => setAuthPromptOpen(true),
+      }}
     >
       {children}
+      <AuthPromptModal open={authPromptOpen} onClose={() => setAuthPromptOpen(false)} />
     </AuthContext.Provider>
   )
 }

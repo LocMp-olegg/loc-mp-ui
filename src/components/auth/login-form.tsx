@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { Loader2, Mail, Lock, Eye, EyeOff } from 'lucide-react'
 import { ShimmerButton } from '@/components/aceternity/shimmer-button'
 import { GlowInput } from '@/components/ui/glow-input'
@@ -13,6 +13,8 @@ const LOGIN_SESSION_KEY = 'login-form-draft'
 export function LoginForm({ onSwitch }: { onSwitch: () => void }) {
   const { login } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
+  const from = (location.state as { from?: { pathname: string } } | null)?.from?.pathname ?? '/'
   const [credential, setCredential] = useState(() => {
     try {
       return JSON.parse(sessionStorage.getItem(LOGIN_SESSION_KEY) ?? '{}').credential ?? ''
@@ -52,7 +54,7 @@ export function LoginForm({ onSwitch }: { onSwitch: () => void }) {
       await login(credential, password)
       sessionStorage.removeItem(LOGIN_SESSION_KEY)
       sessionStorage.removeItem('auth-tab')
-      navigate('/', { replace: true })
+      navigate(from, { replace: true })
     } catch (err) {
       setServerError(err instanceof Error ? err.message : 'Ошибка входа')
     } finally {

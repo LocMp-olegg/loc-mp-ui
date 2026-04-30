@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
   Loader2,
@@ -70,6 +70,8 @@ function loadRegisterDraft() {
 export function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
   const { register, login } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
+  const from = (location.state as { from?: { pathname: string } } | null)?.from?.pathname ?? '/'
   const draft = React.useMemo(() => loadRegisterDraft(), [])
   const [form, setForm] = useState<RegisterFormData>(() => draft?.form ?? emptyRegisterForm())
   const [step, setStep] = useState<1 | 2>(() => draft?.step ?? 1)
@@ -170,7 +172,7 @@ export function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
         gender: form.gender || undefined,
       })
       await login(form.email, form.password)
-      navigate('/', { replace: true })
+      navigate(from, { replace: true })
     } catch (err) {
       setServerError(err instanceof Error ? err.message : 'Ошибка регистрации')
     } finally {

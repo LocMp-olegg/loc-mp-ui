@@ -1,23 +1,73 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { AnimatePresence, motion, useScroll, useMotionValueEvent } from 'framer-motion'
-import { Heart, ShoppingCart, MapPin, User, Menu, X } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import {
+  Heart,
+  ShoppingCart,
+  MapPin,
+  User,
+  Menu,
+  X,
+  LogOut,
+  Sun,
+  Moon,
+  Monitor,
+} from 'lucide-react'
+import { Link, useNavigate } from 'react-router-dom'
 import { useCart } from '@/contexts/cart-context'
 import { useFavorites } from '@/contexts/favorites-context'
 import { useUserLocation } from '@/contexts/location-context'
+import { useAuth } from '@/contexts/auth-context'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { LocationPicker } from '@/components/location/location-picker'
 import { SearchBar } from '@/components/nav/search-bar'
 import { useTheme } from '@/contexts/theme-context'
-import { Sun, Moon, Monitor } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 const THEME_ICONS = { light: Sun, dark: Moon, system: Monitor } as const
 const THEME_LABELS = { light: 'Светлая', dark: 'Тёмная', system: 'Системная' } as const
+
+function ProfileDropdown({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const { user, logout } = useAuth()
+  const navigate = useNavigate()
+
+  const handleLogout = () => {
+    onClose()
+    logout()
+    navigate('/login', { replace: true })
+  }
+
+  return (
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95, y: -6 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.95, y: -6 }}
+          transition={{ duration: 0.13 }}
+          className="absolute top-full right-0 mt-2 z-50 rounded-xl border border-white/10 bg-nav-bg/95 backdrop-blur-md shadow-xl min-w-44 overflow-hidden"
+        >
+          <div className="px-4 py-3 border-b border-white/8">
+            <p className="text-nav-text text-sm font-medium truncate">{user?.username}</p>
+            <p className="text-nav-text/45 text-xs truncate mt-0.5">{user?.email}</p>
+          </div>
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center gap-2.5 px-4 py-3 text-sm text-nav-text/80 hover:bg-white/8 hover:text-nav-text transition-colors cursor-pointer"
+          >
+            <LogOut className="w-4 h-4 shrink-0" />
+            Выйти
+          </button>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  )
+}
 
 export function FloatingNav() {
   const { totalItems } = useCart()
   const { totalFavorites } = useFavorites()
   const { location } = useUserLocation()
+  const { isAuthenticated, initializing } = useAuth()
   const { theme, setTheme } = useTheme()
   const ThemeIcon = THEME_ICONS[theme] ?? Monitor
   const { scrollY } = useScroll()
@@ -25,6 +75,8 @@ export function FloatingNav() {
   const [isWide, setIsWide] = useState(() => window.innerWidth >= 768)
   const [pickerOpen, setPickerOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [profileOpen, setProfileOpen] = useState(false)
+  const profileRef = useRef<HTMLDivElement>(null)
 
   useMotionValueEvent(scrollY, 'change', (y) => {
     setScrolled(y > 80)
@@ -36,6 +88,15 @@ export function FloatingNav() {
     return () => window.removeEventListener('resize', handler)
   }, [])
 
+  useEffect(() => {
+    if (!profileOpen) return
+    const handler = (e: MouseEvent) => {
+      if (!profileRef.current?.contains(e.target as Node)) setProfileOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [profileOpen])
+
   const iconBtn =
     'w-9 h-9 rounded-xl flex items-center justify-center hover:bg-white/10 transition-colors cursor-pointer'
 
@@ -44,6 +105,45 @@ export function FloatingNav() {
       <span className="text-primary-foreground text-sm font-bold leading-none">Р</span>
     </div>
   )
+
+  const authIcons =
+    !initializing && isAuthenticated ? (
+      <>
+        <Link to="/favorites" aria-label="Избранное" className={`relative ${iconBtn}`}>
+          <Heart className="w-5 h-5 text-nav-text/70" />
+          {totalFavorites > 0 && (
+            <span className="absolute top-1 right-1 min-w-3.5 h-3.5 bg-destructive text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
+              {totalFavorites > 9 ? '9+' : totalFavorites}
+            </span>
+          )}
+        </Link>
+        <Link to="/cart" aria-label="Корзина" className={`relative ${iconBtn}`}>
+          <ShoppingCart className="w-5 h-5 text-nav-text/70" />
+          {totalItems > 0 && (
+            <span className="absolute top-1 right-1 min-w-3.5 h-3.5 bg-accent text-nav-bg text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
+              {totalItems > 9 ? '9+' : totalItems}
+            </span>
+          )}
+        </Link>
+        <div ref={profileRef} className="relative">
+          <button
+            onClick={() => setProfileOpen((o) => !o)}
+            aria-label="Профиль"
+            className={cn(iconBtn, profileOpen && 'bg-white/10')}
+          >
+            <User className="w-5 h-5 text-nav-text/70" />
+          </button>
+          <ProfileDropdown open={profileOpen} onClose={() => setProfileOpen(false)} />
+        </div>
+      </>
+    ) : !initializing ? (
+      <Link
+        to="/login"
+        className="h-8 px-4 rounded-xl border border-white/15 text-nav-text/80 hover:text-nav-text hover:border-white/25 text-sm font-medium transition-colors flex items-center"
+      >
+        Войти
+      </Link>
+    ) : null
 
   return (
     <>
@@ -139,32 +239,14 @@ export function FloatingNav() {
             </div>
           </div>
 
-          {/* Center: Search — perfectly centred because both siblings are flex-1 */}
+          {/* Center: Search */}
           <div className="hidden md:block shrink-0 w-[min(480px,40%)] px-3">
             <SearchBar />
           </div>
 
           {/* Right: Action icons */}
           <div className="hidden md:flex flex-1 items-center justify-end gap-0.5 min-w-0">
-            <Link to="/favorites" aria-label="Избранное" className={`relative ${iconBtn}`}>
-              <Heart className="w-5 h-5 text-nav-text/70" />
-              {totalFavorites > 0 && (
-                <span className="absolute top-1 right-1 min-w-3.5 h-3.5 bg-destructive text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
-                  {totalFavorites > 9 ? '9+' : totalFavorites}
-                </span>
-              )}
-            </Link>
-            <Link to="/cart" aria-label="Корзина" className={`relative ${iconBtn}`}>
-              <ShoppingCart className="w-5 h-5 text-nav-text/70" />
-              {totalItems > 0 && (
-                <span className="absolute top-1 right-1 min-w-3.5 h-3.5 bg-accent text-nav-bg text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
-                  {totalItems > 9 ? '9+' : totalItems}
-                </span>
-              )}
-            </Link>
-            <Link to="/login" aria-label="Профиль" className={iconBtn}>
-              <User className="w-5 h-5 text-nav-text/70" />
-            </Link>
+            {authIcons}
             <ThemeToggle className="hover:bg-white/10" iconClassName="text-nav-text/70" />
           </div>
 
@@ -252,46 +334,52 @@ export function FloatingNav() {
                 </button>
 
                 <div className="flex flex-col py-1">
-                  <Link
-                    to="/favorites"
-                    onClick={() => setMenuOpen(false)}
-                    className="flex items-center gap-3 px-4 py-3 text-nav-text/80 hover:bg-white/5 transition-colors"
-                  >
-                    <div className="relative w-5 h-5 shrink-0">
-                      <Heart className="w-5 h-5 text-nav-text/70" />
-                      {totalFavorites > 0 && (
-                        <span className="absolute -top-1 -right-1 min-w-3.5 h-3.5 bg-destructive text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
-                          {totalFavorites > 9 ? '9+' : totalFavorites}
-                        </span>
-                      )}
-                    </div>
-                    <span className="text-sm">Избранное</span>
-                  </Link>
+                  {!initializing && isAuthenticated ? (
+                    <>
+                      <Link
+                        to="/favorites"
+                        onClick={() => setMenuOpen(false)}
+                        className="flex items-center gap-3 px-4 py-3 text-nav-text/80 hover:bg-white/5 transition-colors"
+                      >
+                        <div className="relative w-5 h-5 shrink-0">
+                          <Heart className="w-5 h-5 text-nav-text/70" />
+                          {totalFavorites > 0 && (
+                            <span className="absolute -top-1 -right-1 min-w-3.5 h-3.5 bg-destructive text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
+                              {totalFavorites > 9 ? '9+' : totalFavorites}
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-sm">Избранное</span>
+                      </Link>
 
-                  <Link
-                    to="/cart"
-                    onClick={() => setMenuOpen(false)}
-                    className="flex items-center gap-3 px-4 py-3 text-nav-text/80 hover:bg-white/5 transition-colors"
-                  >
-                    <div className="relative w-5 h-5 shrink-0">
-                      <ShoppingCart className="w-5 h-5 text-nav-text/70" />
-                      {totalItems > 0 && (
-                        <span className="absolute -top-1 -right-1 min-w-3.5 h-3.5 bg-accent text-nav-bg text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
-                          {totalItems > 9 ? '9+' : totalItems}
-                        </span>
-                      )}
-                    </div>
-                    <span className="text-sm">Корзина</span>
-                  </Link>
+                      <Link
+                        to="/cart"
+                        onClick={() => setMenuOpen(false)}
+                        className="flex items-center gap-3 px-4 py-3 text-nav-text/80 hover:bg-white/5 transition-colors"
+                      >
+                        <div className="relative w-5 h-5 shrink-0">
+                          <ShoppingCart className="w-5 h-5 text-nav-text/70" />
+                          {totalItems > 0 && (
+                            <span className="absolute -top-1 -right-1 min-w-3.5 h-3.5 bg-accent text-nav-bg text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
+                              {totalItems > 9 ? '9+' : totalItems}
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-sm">Корзина</span>
+                      </Link>
 
-                  <Link
-                    to="/login"
-                    onClick={() => setMenuOpen(false)}
-                    className="flex items-center gap-3 px-4 py-3 text-nav-text/80 hover:bg-white/5 transition-colors"
-                  >
-                    <User className="w-5 h-5 text-nav-text/70 shrink-0" />
-                    <span className="text-sm">Профиль</span>
-                  </Link>
+                      <MobileProfileSection onClose={() => setMenuOpen(false)} />
+                    </>
+                  ) : !initializing ? (
+                    <Link
+                      to="/login"
+                      onClick={() => setMenuOpen(false)}
+                      className="flex items-center gap-3 px-4 py-3 text-nav-text/80 hover:bg-white/5 transition-colors"
+                    >
+                      <User className="w-5 h-5 text-nav-text/70 shrink-0" />
+                      <span className="text-sm">Войти</span>
+                    </Link>
+                  ) : null}
 
                   <button
                     onClick={() => {
@@ -312,6 +400,49 @@ export function FloatingNav() {
 
       <AnimatePresence>
         {pickerOpen && <LocationPicker onClose={() => setPickerOpen(false)} />}
+      </AnimatePresence>
+    </>
+  )
+}
+
+function MobileProfileSection({ onClose }: { onClose: () => void }) {
+  const { user, logout } = useAuth()
+  const navigate = useNavigate()
+  const [expanded, setExpanded] = useState(false)
+
+  const handleLogout = () => {
+    onClose()
+    logout()
+    navigate('/login', { replace: true })
+  }
+
+  return (
+    <>
+      <button
+        onClick={() => setExpanded((o) => !o)}
+        className="w-full flex items-center gap-3 px-4 py-3 text-nav-text/80 hover:bg-white/5 transition-colors cursor-pointer"
+      >
+        <User className="w-5 h-5 text-nav-text/70 shrink-0" />
+        <span className="text-sm flex-1 text-left truncate">{user?.username ?? 'Профиль'}</span>
+      </button>
+      <AnimatePresence>
+        {expanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.15 }}
+            className="overflow-hidden"
+          >
+            <button
+              onClick={handleLogout}
+              className="w-full flex items-center gap-3 px-4 py-3 pl-12 text-sm text-destructive hover:bg-white/5 transition-colors cursor-pointer"
+            >
+              <LogOut className="w-4 h-4 shrink-0" />
+              Выйти
+            </button>
+          </motion.div>
+        )}
       </AnimatePresence>
     </>
   )
