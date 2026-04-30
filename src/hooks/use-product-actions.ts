@@ -1,5 +1,6 @@
 import { useCart } from '@/contexts/cart-context'
 import { useFavorites } from '@/contexts/favorites-context'
+import { useAuth } from '@/contexts/auth-context'
 import type { Product } from '@/types/product'
 import * as React from 'react'
 
@@ -15,12 +16,17 @@ interface ProductActions {
 export function useProductActions(product: Product): ProductActions {
   const { addToCart, updateQuantity, items } = useCart()
   const { toggleFavorite, isFavorite } = useFavorites()
+  const { isAuthenticated, openAuthPrompt } = useAuth()
 
   const quantity = items.find((item) => item.product.id === product.id)?.quantity ?? 0
 
   const onAdd = (e: React.MouseEvent): void => {
     e.preventDefault()
     e.stopPropagation()
+    if (!isAuthenticated) {
+      openAuthPrompt()
+      return
+    }
     if (product.isAvailable) addToCart(product)
   }
 
@@ -39,6 +45,10 @@ export function useProductActions(product: Product): ProductActions {
   const onToggleFavorite = (e: React.MouseEvent): void => {
     e.preventDefault()
     e.stopPropagation()
+    if (!isAuthenticated) {
+      openAuthPrompt()
+      return
+    }
     toggleFavorite(product.id)
   }
 
