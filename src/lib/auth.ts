@@ -16,16 +16,16 @@ export function setOnAuthFailure(cb: () => void): void {
 
 export function setTokens(at: string, rt?: string): void {
   _accessToken = at
-  if (rt) localStorage.setItem(REFRESH_TOKEN_KEY, rt)
+  if (rt) sessionStorage.setItem(REFRESH_TOKEN_KEY, rt)
 }
 
 export function clearTokens(): void {
   _accessToken = null
-  localStorage.removeItem(REFRESH_TOKEN_KEY)
+  sessionStorage.removeItem(REFRESH_TOKEN_KEY)
 }
 
 export function getStoredRefreshToken(): string | null {
-  return localStorage.getItem(REFRESH_TOKEN_KEY)
+  return sessionStorage.getItem(REFRESH_TOKEN_KEY)
 }
 
 export interface TokenResponse {

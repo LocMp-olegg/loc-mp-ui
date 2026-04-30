@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, Navigate, useLocation } from 'react-router-dom'
+import { useAuth } from '@/contexts/auth-context'
 import { AnimatePresence, motion } from 'framer-motion'
 import { ChevronLeft } from 'lucide-react'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
@@ -39,11 +40,17 @@ function TabSwitcher({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
 }
 
 export function LoginPage() {
+  const { isAuthenticated, initializing } = useAuth()
+  const location = useLocation()
+  const from = (location.state as { from?: { pathname: string } } | null)?.from?.pathname ?? '/'
   const [tab, setTab] = useState<Tab>(() => {
     const saved = sessionStorage.getItem('auth-tab')
     return saved === 'register' ? 'register' : 'login'
   })
   const isDesktop = useIsDesktop()
+
+  if (initializing) return null
+  if (isAuthenticated) return <Navigate to={from} replace />
 
   const handleSetTab = (t: Tab) => {
     sessionStorage.setItem('auth-tab', t)
