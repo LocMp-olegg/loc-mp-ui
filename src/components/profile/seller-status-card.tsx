@@ -84,11 +84,7 @@ export function SellerStatusCard({ onDeactivate }: SellerStatusCardProps) {
               whileTap={{ scale: 0.97 }}
               className="h-8 px-4 rounded-xl border border-destructive/40 text-destructive text-xs font-medium flex items-center gap-1.5 hover:bg-destructive/8 transition-colors cursor-pointer disabled:opacity-60"
             >
-              {loading ? (
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              ) : (
-                'Да, отключить'
-              )}
+              {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Да, отключить'}
             </motion.button>
           </>
         ) : (

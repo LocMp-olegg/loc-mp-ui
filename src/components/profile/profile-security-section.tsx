@@ -74,11 +74,7 @@ export function ProfileSecuritySection({ onLogoutAll, onLogout }: ProfileSecurit
             whileTap={{ scale: 0.97 }}
             className="flex-1 h-10 rounded-xl bg-destructive text-destructive-foreground text-sm font-medium flex items-center justify-center gap-2 hover:bg-destructive/90 transition-colors cursor-pointer disabled:opacity-60"
           >
-            {loading ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              'Да, выйти отовсюду'
-            )}
+            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Да, выйти отовсюду'}
           </motion.button>
         </div>
       ) : (

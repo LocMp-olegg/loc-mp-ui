@@ -54,7 +54,7 @@ export function DatePickerField({
       <span className="flex-1 text-left truncate min-w-0">
         {selected ? format(selected, 'dd.MM.yyyy') : 'дд.мм.гггг'}
       </span>
-      <div className="flex items-center shrink-0 min-w-[20px] justify-end">
+      <div className="flex items-center shrink-0 min-w-5 justify-end">
         {value && (
           <button
             type="button"

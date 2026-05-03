@@ -27,11 +27,7 @@ async function createImage(url: string): Promise<HTMLImageElement> {
   })
 }
 
-async function getCroppedBlob(
-  imageSrc: string,
-  pixelCrop: Area,
-  rotation: number,
-): Promise<Blob> {
+async function getCroppedBlob(imageSrc: string, pixelCrop: Area, rotation: number): Promise<Blob> {
   const image = await createImage(imageSrc)
   const canvas = document.createElement('canvas')
   const ctx = canvas.getContext('2d')!
@@ -168,9 +164,11 @@ export function PhotoEditorModal({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.18 }}
-          className="fixed inset-0 z-[200] flex items-center justify-center p-4"
+          className="fixed inset-0 z-200 flex items-center justify-center p-4"
           style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}
-          onMouseDown={(e) => { if (e.target === e.currentTarget) handleClose() }}
+          onMouseDown={(e) => {
+            if (e.target === e.currentTarget) handleClose()
+          }}
         >
           <motion.div
             key="photo-modal-panel"
@@ -236,9 +234,7 @@ export function PhotoEditorModal({
 
                   {/* Rotate */}
                   <div className="flex items-center gap-3">
-                    <span className="text-xs text-muted-foreground w-8 shrink-0">
-                      {rotation}°
-                    </span>
+                    <span className="text-xs text-muted-foreground w-8 shrink-0">{rotation}°</span>
                     <div className="flex gap-2">
                       <button
                         type="button"
@@ -273,7 +269,14 @@ export function PhotoEditorModal({
                   <div className="flex gap-2 pt-1">
                     <button
                       type="button"
-                      onClick={() => { setPhase('view'); if (srcUrl) { URL.revokeObjectURL(srcUrl); setSrcUrl(null) }; resetCropState() }}
+                      onClick={() => {
+                        setPhase('view')
+                        if (srcUrl) {
+                          URL.revokeObjectURL(srcUrl)
+                          setSrcUrl(null)
+                        }
+                        resetCropState()
+                      }}
                       className="h-9 px-4 rounded-xl border border-border text-sm text-foreground hover:bg-muted transition-colors cursor-pointer"
                     >
                       Отмена

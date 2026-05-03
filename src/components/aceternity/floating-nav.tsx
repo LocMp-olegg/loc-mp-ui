@@ -436,8 +436,8 @@ function MobileProfileSection({ onClose }: { onClose: () => void }) {
         <span className="text-sm flex-1 text-left truncate">{user?.username || 'Профиль'}</span>
         <ChevronRight
           className={cn(
-            'w-4 h-4 text-nav-text/40 shrink-0 transition-transform duration-150 rotate-270',
-            expanded && 'rotate-90',
+            'w-4 h-4 text-nav-text/40 shrink-0 transition-transform duration-150 rotate-90',
+            expanded && 'rotate-270',
           )}
         />
       </button>

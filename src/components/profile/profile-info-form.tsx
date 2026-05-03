@@ -47,8 +47,7 @@ export function ProfileInfoForm({ profile, onSave }: ProfileInfoFormProps) {
     lastName !== (profile.lastName ?? '') ||
     gender !== (profile.gender ?? '') ||
     birthDate !== (profile.birthDate ?? '') ||
-    phoneDigits !==
-      (profile.phoneNumber ?? '').replace(/\D/g, '').replace(/^7/, '').slice(0, 10)
+    phoneDigits !== (profile.phoneNumber ?? '').replace(/\D/g, '').replace(/^7/, '').slice(0, 10)
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const allDigits = e.target.value.replace(/\D/g, '')
@@ -129,7 +128,10 @@ export function ProfileInfoForm({ profile, onSave }: ProfileInfoFormProps) {
           {phoneDigits && (
             <button
               type="button"
-              onClick={() => { setPhoneDigits(''); setPhoneTouched(false) }}
+              onClick={() => {
+                setPhoneDigits('')
+                setPhoneTouched(false)
+              }}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
             >
               <X className="w-3.5 h-3.5" />
