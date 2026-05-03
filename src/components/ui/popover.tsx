@@ -22,7 +22,7 @@ export function PopoverContent({
         align={align}
         sideOffset={sideOffset}
         className={cn(
-          'z-60 w-auto rounded-2xl border border-border shadow-2xl backdrop-blur-md outline-none',
+          'z-60 w-auto rounded-2xl border border-border shadow-2xl backdrop-blur-md outline-none popover-content',
           className,
         )}
         style={{ background: 'color-mix(in srgb, var(--card) 92%, transparent)' }}

@@ -11,6 +11,8 @@ import {
   Sun,
   Moon,
   Monitor,
+  Settings,
+  ChevronRight,
 } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useCart } from '@/contexts/cart-context'
@@ -50,9 +52,17 @@ function ProfileDropdown({ open, onClose }: { open: boolean; onClose: () => void
             <p className="text-nav-text text-sm font-medium truncate">{user?.username}</p>
             <p className="text-nav-text/45 text-xs truncate mt-0.5">{user?.email}</p>
           </div>
+          <Link
+            to="/profile"
+            onClick={onClose}
+            className="w-full flex items-center gap-2.5 px-4 py-3 text-sm text-nav-text/80 hover:bg-white/8 hover:text-nav-text transition-colors cursor-pointer"
+          >
+            <Settings className="w-4 h-4 shrink-0" />
+            Настройки профиля
+          </Link>
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-2.5 px-4 py-3 text-sm text-nav-text/80 hover:bg-white/8 hover:text-nav-text transition-colors cursor-pointer"
+            className="w-full flex items-center gap-2.5 px-4 py-3 text-sm text-nav-text/80 hover:bg-white/8 hover:text-nav-text transition-colors cursor-pointer border-t border-white/8"
           >
             <LogOut className="w-4 h-4 shrink-0" />
             Выйти
@@ -423,7 +433,13 @@ function MobileProfileSection({ onClose }: { onClose: () => void }) {
         className="w-full flex items-center gap-3 px-4 py-3 text-nav-text/80 hover:bg-white/5 transition-colors cursor-pointer"
       >
         <User className="w-5 h-5 text-nav-text/70 shrink-0" />
-        <span className="text-sm flex-1 text-left truncate">{user?.username ?? 'Профиль'}</span>
+        <span className="text-sm flex-1 text-left truncate">{user?.username || 'Профиль'}</span>
+        <ChevronRight
+          className={cn(
+            'w-4 h-4 text-nav-text/40 shrink-0 transition-transform duration-150 rotate-270',
+            expanded && 'rotate-90',
+          )}
+        />
       </button>
       <AnimatePresence>
         {expanded && (
@@ -434,6 +450,14 @@ function MobileProfileSection({ onClose }: { onClose: () => void }) {
             transition={{ duration: 0.15 }}
             className="overflow-hidden"
           >
+            <Link
+              to="/profile"
+              onClick={onClose}
+              className="w-full flex items-center gap-3 px-4 py-3 pl-12 text-sm text-nav-text/80 hover:bg-white/5 transition-colors"
+            >
+              <Settings className="w-4 h-4 shrink-0" />
+              Настройки профиля
+            </Link>
             <button
               onClick={handleLogout}
               className="w-full flex items-center gap-3 px-4 py-3 pl-12 text-sm text-destructive hover:bg-white/5 transition-colors cursor-pointer"
