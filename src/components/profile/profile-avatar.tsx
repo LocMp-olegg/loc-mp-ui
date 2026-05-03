@@ -1,7 +1,7 @@
-import { useRef, useState } from 'react'
-import { Camera, User, Loader2 } from 'lucide-react'
-import { AnimatePresence, motion } from 'framer-motion'
+import { useState } from 'react'
+import { Camera, User } from 'lucide-react'
 import type { UserProfileDto } from '@/hooks/use-profile'
+import { PhotoEditorModal } from './photo-editor-modal'
 
 interface ProfileAvatarProps {
   profile: UserProfileDto
@@ -11,120 +11,48 @@ interface ProfileAvatarProps {
 }
 
 export function ProfileAvatar({ profile, photoUrl, onUpload, onDelete }: ProfileAvatarProps) {
-  const inputRef = useRef<HTMLInputElement>(null)
-  const [busy, setBusy] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-
-  const handleFile = async (file: File) => {
-    if (file.size > 5 * 1024 * 1024) {
-      setError('Файл слишком большой (максимум 5 МБ)')
-      return
-    }
-    setBusy(true)
-    setError(null)
-    try {
-      await onUpload(file)
-    } catch {
-      setError('Не удалось загрузить фото')
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  const handleDelete = async () => {
-    setBusy(true)
-    setError(null)
-    try {
-      await onDelete()
-    } catch {
-      setError('Не удалось удалить фото')
-    } finally {
-      setBusy(false)
-    }
-  }
+  const [modalOpen, setModalOpen] = useState(false)
 
   return (
-    <div className="flex flex-col items-center gap-3 shrink-0">
-      <div className="relative group">
-        <div className="w-24 h-24 rounded-2xl overflow-hidden bg-muted border border-border shrink-0">
-          {photoUrl ? (
-            <img
-              src={photoUrl}
-              alt={profile.userName ?? 'Аватар'}
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <User className="w-10 h-10 text-muted-foreground/40" />
-            </div>
-          )}
-        </div>
-
-        <button
-          type="button"
-          onClick={() => inputRef.current?.click()}
-          disabled={busy}
-          className="absolute inset-0 rounded-2xl bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"
-          aria-label="Изменить фото"
-        >
-          <Camera className="w-6 h-6 text-white" />
-        </button>
-
-        {busy && (
-          <div className="absolute inset-0 rounded-2xl bg-black/60 flex items-center justify-center">
-            <Loader2 className="w-5 h-5 text-white animate-spin" />
+    <>
+      <button
+        type="button"
+        onClick={() => setModalOpen(true)}
+        className="relative group w-24 h-24 rounded-2xl overflow-hidden bg-muted border border-border shrink-0 cursor-pointer self-center sm:self-auto"
+        aria-label="Изменить фото профиля"
+      >
+        {photoUrl ? (
+          <img
+            src={photoUrl}
+            alt={profile.userName ?? 'Аватар'}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center">
+            <User className="w-10 h-10 text-muted-foreground/40" />
           </div>
         )}
-      </div>
 
-      <input
-        ref={inputRef}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={(e) => {
-          const file = e.target.files?.[0]
-          if (file) void handleFile(file)
-          e.target.value = ''
-        }}
+        {/* Hover overlay */}
+        <div className="absolute inset-0 bg-black/45 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+          <Camera className="w-6 h-6 text-white" />
+        </div>
+
+        {/* Camera badge */}
+        <div className="absolute bottom-1.5 right-1.5 w-5 h-5 rounded-full bg-primary flex items-center justify-center shadow-sm opacity-0 group-hover:opacity-100 transition-opacity">
+          <Camera className="w-3 h-3 text-primary-foreground" />
+        </div>
+      </button>
+
+      <PhotoEditorModal
+        open={modalOpen}
+        hasPhoto={profile.hasPhoto}
+        photoUrl={photoUrl}
+        userName={profile.userName}
+        onClose={() => setModalOpen(false)}
+        onUpload={onUpload}
+        onDelete={onDelete}
       />
-
-      <div className="flex items-center gap-2 text-xs">
-        <button
-          type="button"
-          onClick={() => inputRef.current?.click()}
-          disabled={busy}
-          className="text-primary hover:text-primary/80 transition-colors cursor-pointer font-medium disabled:opacity-50"
-        >
-          {profile.hasPhoto ? 'Изменить' : 'Загрузить фото'}
-        </button>
-        {profile.hasPhoto && (
-          <>
-            <span className="text-muted-foreground/40">·</span>
-            <button
-              type="button"
-              onClick={() => void handleDelete()}
-              disabled={busy}
-              className="text-destructive hover:text-destructive/80 transition-colors cursor-pointer disabled:opacity-50"
-            >
-              Удалить
-            </button>
-          </>
-        )}
-      </div>
-
-      <AnimatePresence>
-        {error && (
-          <motion.p
-            initial={{ opacity: 0, y: -4 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            className="text-xs text-destructive text-center"
-          >
-            {error}
-          </motion.p>
-        )}
-      </AnimatePresence>
-    </div>
+    </>
   )
 }
