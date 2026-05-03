@@ -124,7 +124,7 @@ function ShopContent({ id }: { id: string }) {
           {/* Seller name */}
           {shop.sellerDisplayName && (
             <Link
-              to={`/seller/${shop.sellerId}`}
+              to={`/sellers/${shop.sellerId}`}
               className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors mb-2"
             >
               <User className="w-3.5 h-3.5 shrink-0" />

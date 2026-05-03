@@ -13,6 +13,7 @@ import {
   Monitor,
   Settings,
   ChevronRight,
+  Store,
 } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useCart } from '@/contexts/cart-context'
@@ -27,6 +28,12 @@ import { cn } from '@/lib/utils'
 
 const THEME_ICONS = { light: Sun, dark: Moon, system: Monitor } as const
 const THEME_LABELS = { light: 'Светлая', dark: 'Тёмная', system: 'Системная' } as const
+
+function isSeller(user: { role: string | string[] } | null) {
+  if (!user) return false
+  const roles = Array.isArray(user.role) ? user.role : [user.role]
+  return roles.includes('Seller')
+}
 
 function ProfileDropdown({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { user, logout } = useAuth()
@@ -52,6 +59,16 @@ function ProfileDropdown({ open, onClose }: { open: boolean; onClose: () => void
             <p className="text-nav-text text-sm font-medium truncate">{user?.username}</p>
             <p className="text-nav-text/45 text-xs truncate mt-0.5">{user?.email}</p>
           </div>
+          {isSeller(user) && (
+            <Link
+              to="/seller"
+              onClick={onClose}
+              className="w-full flex items-center gap-2.5 px-4 py-3 text-sm text-nav-text/80 hover:bg-white/8 hover:text-nav-text transition-colors cursor-pointer"
+            >
+              <Store className="w-4 h-4 shrink-0" />
+              Панель продавца
+            </Link>
+          )}
           <Link
             to="/profile"
             onClick={onClose}
@@ -450,6 +467,16 @@ function MobileProfileSection({ onClose }: { onClose: () => void }) {
             transition={{ duration: 0.15 }}
             className="overflow-hidden"
           >
+            {isSeller(user) && (
+              <Link
+                to="/seller"
+                onClick={onClose}
+                className="w-full flex items-center gap-3 px-4 py-3 pl-12 text-sm text-nav-text/80 hover:bg-white/5 transition-colors"
+              >
+                <Store className="w-4 h-4 shrink-0" />
+                Панель продавца
+              </Link>
+            )}
             <Link
               to="/profile"
               onClick={onClose}
