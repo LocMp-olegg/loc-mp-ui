@@ -94,7 +94,9 @@ function _getUrl(input: RequestInfo | URL): string {
 
 export function installFetchInterceptor(): void {
   window.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
-    if (_getUrl(input).includes('/connect/token')) {
+    const url = _getUrl(input)
+    const isExternal = url.startsWith('http') && !url.includes('localhost')
+    if (url.includes('/connect/token') || isExternal) {
       return _originalFetch(input, init)
     }
 

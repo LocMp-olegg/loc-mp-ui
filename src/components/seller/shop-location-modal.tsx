@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import {useState, useEffect, useRef, useCallback} from 'react'
 import { createPortal } from 'react-dom'
 import { motion } from 'framer-motion'
 import { MapContainer, TileLayer, Marker, Circle } from 'react-leaflet'
@@ -7,7 +7,7 @@ import { MapClickHandler, MapRecenter } from '@/lib/map-utils'
 import { X, Locate, Search, MapPin } from 'lucide-react'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
-import { useUserLocation, type UserLocation } from '@/contexts/location-context'
+import { reverseGeocode } from '@/lib/geo'
 import { useAddressSuggestions } from '@/hooks/use-address-suggestions'
 import { useApplyPoint } from '@/hooks/use-apply-point'
 import { useMapHandlers } from '@/hooks/use-map-handlers'
@@ -20,24 +20,74 @@ const markerIcon = L.divIcon({
   iconAnchor: [10, 10],
 })
 
-const RADIUS_OPTIONS = [0.2, 0.5, 1, 2, 3, 5, 10, 20]
+const SERVICE_RADIUS_OPTIONS = [500, 1000, 2000, 3000, 5000, 10000, 20000]
 
-function formatRadius(km: number): string {
-  return km < 1 ? `${Math.round(km * 1000)} м` : `${km} км`
+function formatMeters(m: number): string {
+  return m >= 1000 ? `${m / 1000} км` : `${m} м`
 }
 
-interface Props {
+interface ShopLocationModalProps {
+  initialLat: number | null
+  initialLng: number | null
+  initialRadiusMeters: number | null
   onClose: () => void
+  onSave: (lat: number, lng: number, radiusMeters: number | null, label: string) => void
 }
 
-export function LocationPicker({ onClose }: Props) {
-  const { location, setLocation, clearLocation } = useUserLocation()
+export function ShopLocationModal({
+  initialLat,
+  initialLng,
+  initialRadiusMeters,
+  onClose,
+  onSave,
+}: ShopLocationModalProps) {
+  const [lat, setLat] = useState(initialLat ?? MOSCOW[0])
+  const [lng, setLng] = useState(initialLng ?? MOSCOW[1])
+  const [radius, setRadius] = useState<number | null>(initialRadiusMeters)
 
-  const [lat, setLat] = useState(location?.lat ?? MOSCOW[0])
-  const [lng, setLng] = useState(location?.lng ?? MOSCOW[1])
-  const [label, setLabel] = useState(location?.label ?? '')
-  const [radius, setRadius] = useState(location?.radius ?? 1)
-  const [search, setSearch] = useState(location?.label ?? '')
+  const [unit, setUnit] = useState<'m' | 'km'>(() =>
+    initialRadiusMeters !== null && initialRadiusMeters >= 1000 ? 'km' : 'm',
+  )
+  const [customInput, setCustomInput] = useState(() => {
+    if (initialRadiusMeters === null) return ''
+    return initialRadiusMeters >= 1000
+      ? String(initialRadiusMeters / 1000)
+      : String(initialRadiusMeters)
+  })
+
+  const applyRadius = (r: number | null, input: string) => {
+    setRadius(r)
+    setCustomInput(input)
+  }
+
+  const handleChipClick = (r: number | null) => {
+    if (r === null) {
+      applyRadius(null, '')
+    } else {
+      applyRadius(r, unit === 'km' ? String(r / 1000) : String(r))
+    }
+  }
+
+  const handleCustomInput = (val: string) => {
+    setCustomInput(val)
+    const num = parseFloat(val)
+    if (!val || isNaN(num) || num <= 0) {
+      setRadius(null)
+    } else {
+      setRadius(Math.round(unit === 'km' ? num * 1000 : num))
+    }
+  }
+
+  const handleUnitToggle = (next: 'm' | 'km') => {
+    if (next === unit) return
+    setUnit(next)
+    if (radius !== null) {
+      setCustomInput(next === 'km' ? String(radius / 1000) : String(radius))
+    }
+  }
+
+  const [label, setLabel] = useState('')
+  const [search, setSearch] = useState('')
   const [loadingGeo, setLoadingGeo] = useState(false)
   const [recenter, setRecenter] = useState(false)
 
@@ -48,13 +98,16 @@ export function LocationPicker({ onClose }: Props) {
   const applyPoint = useApplyPoint({ setLat, setLng, setRecenter, setLabel, setSearch, setLoadingGeo })
 
   useEffect(() => {
+    if (initialLat === null || initialLng === null) return
+    reverseGeocode(initialLat, initialLng).then((l) => {
+      setLabel(l)
+      setSearch(l)
+    })
+  }, [])
+
+  useEffect(() => {
     const handler = (e: MouseEvent) => {
-      const target = e.target as HTMLElement
-      if (
-        searchRef.current &&
-        !searchRef.current.contains(target) &&
-        !target.closest('[data-suggestions-portal]')
-      ) {
+      if (searchRef.current && !searchRef.current.contains(e.target as Element)) {
         dispatchSug({ type: 'hide' })
       }
     }
@@ -65,15 +118,8 @@ export function LocationPicker({ onClose }: Props) {
   const { handleSuggestionSelect, handleGeolocate } = useMapHandlers({ applyPoint, dispatchSug })
 
   const handleSave = useCallback(() => {
-    const loc: UserLocation = {
-      lat,
-      lng,
-      label: label || `${lat.toFixed(4)}, ${lng.toFixed(4)}`,
-      radius,
-    }
-    setLocation(loc)
-    onClose()
-  }, [lat, lng, label, radius, setLocation, onClose])
+    onSave(lat, lng, radius, label || `${lat.toFixed(4)}, ${lng.toFixed(4)}`)
+  }, [lat, lng, radius, label, onSave])
 
   return createPortal(
     <motion.div
@@ -97,7 +143,7 @@ export function LocationPicker({ onClose }: Props) {
         <div className="flex items-center justify-between px-5 py-4 border-b border-white/8">
           <div className="flex items-center gap-2">
             <MapPin className="w-4 h-4 text-accent" />
-            <h2 className="font-semibold text-nav-text">Выберите район</h2>
+            <h2 className="font-semibold text-nav-text">Местоположение магазина</h2>
           </div>
           <button
             onClick={onClose}
@@ -110,7 +156,7 @@ export function LocationPicker({ onClose }: Props) {
         {/* Search */}
         <div className="px-5 pt-4 pb-2 relative z-10" ref={searchRef}>
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-nav-text/40 pointer-events-none" />
             <input
               type="text"
               value={search}
@@ -118,7 +164,7 @@ export function LocationPicker({ onClose }: Props) {
               onFocus={() =>
                 suggestions.length > 0 && dispatchSug({ type: 'set', items: suggestions })
               }
-              placeholder="Адрес или район..."
+              placeholder="Адрес магазина..."
               className="w-full pl-9 pr-4 py-2 rounded-xl border border-white/10 bg-white/5 text-sm text-nav-text placeholder:text-nav-text/40 focus:outline-none focus:border-white/20 transition-colors"
             />
             {showSuggestions && (
@@ -150,7 +196,7 @@ export function LocationPicker({ onClose }: Props) {
             center={[lat, lng]}
             zoom={13}
             style={{ height: '100%', width: '100%' }}
-            zoomControl={true}
+            zoomControl
           >
             <TileLayer
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -159,16 +205,18 @@ export function LocationPicker({ onClose }: Props) {
             <MapClickHandler onMapClick={(a, b) => void applyPoint(a, b)} />
             {recenter && <MapRecenter lat={lat} lng={lng} />}
             <Marker position={[lat, lng]} icon={markerIcon} />
-            <Circle
-              center={[lat, lng]}
-              radius={radius * 1000}
-              pathOptions={{
-                color: '#52796f',
-                fillColor: '#52796f',
-                fillOpacity: 0.1,
-                weight: 2,
-              }}
-            />
+            {radius !== null && (
+              <Circle
+                center={[lat, lng]}
+                radius={radius}
+                pathOptions={{
+                  color: '#52796f',
+                  fillColor: '#52796f',
+                  fillOpacity: 0.12,
+                  weight: 2,
+                }}
+              />
+            )}
           </MapContainer>
         </div>
 
@@ -176,14 +224,27 @@ export function LocationPicker({ onClose }: Props) {
         <div className="px-5 py-4 flex flex-col gap-4">
           <div>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-nav-text/80">Радиус поиска</span>
-              <span className="text-sm font-medium text-accent">{formatRadius(radius)}</span>
+              <span className="text-sm text-nav-text/80">Радиус обслуживания</span>
+              <span className="text-sm font-medium text-accent">
+                {radius !== null ? formatMeters(radius) : 'Не задан'}
+              </span>
             </div>
             <div className="flex gap-1.5 flex-wrap">
-              {RADIUS_OPTIONS.map((r) => (
+              <button
+                onClick={() => handleChipClick(null)}
+                className={cn(
+                  'px-2.5 py-1 rounded-lg text-xs border transition-colors cursor-pointer',
+                  radius === null
+                    ? 'bg-primary text-primary-foreground border-primary'
+                    : 'border-white/10 text-nav-text/60 hover:border-white/20 hover:text-nav-text',
+                )}
+              >
+                Не задан
+              </button>
+              {SERVICE_RADIUS_OPTIONS.map((r) => (
                 <button
                   key={r}
-                  onClick={() => setRadius(r)}
+                  onClick={() => handleChipClick(r)}
                   className={cn(
                     'px-2.5 py-1 rounded-lg text-xs border transition-colors cursor-pointer',
                     radius === r
@@ -191,9 +252,38 @@ export function LocationPicker({ onClose }: Props) {
                       : 'border-white/10 text-nav-text/60 hover:border-white/20 hover:text-nav-text',
                   )}
                 >
-                  {formatRadius(r)}
+                  {formatMeters(r)}
                 </button>
               ))}
+            </div>
+
+            {/* Custom radius input */}
+            <div className="flex items-center gap-2 mt-1">
+              <input
+                type="number"
+                min="0"
+                step={unit === 'km' ? '0.1' : '100'}
+                value={customInput}
+                onChange={(e) => handleCustomInput(e.target.value)}
+                placeholder={unit === 'km' ? 'напр. 1.5' : 'напр. 1500'}
+                className="flex-1 h-8 px-3 rounded-lg border border-white/10 bg-white/5 text-sm text-nav-text placeholder:text-nav-text/30 focus:outline-none focus:border-white/20 transition-colors input-no-spin"
+              />
+              <div className="flex rounded-lg border border-white/10 overflow-hidden shrink-0">
+                {(['m', 'km'] as const).map((u) => (
+                  <button
+                    key={u}
+                    onClick={() => handleUnitToggle(u)}
+                    className={cn(
+                      'px-3 h-8 text-xs transition-colors cursor-pointer',
+                      unit === u
+                        ? 'bg-primary text-primary-foreground'
+                        : 'text-nav-text/60 hover:text-nav-text hover:bg-white/5',
+                    )}
+                  >
+                    {u === 'm' ? 'м' : 'км'}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
@@ -204,15 +294,6 @@ export function LocationPicker({ onClose }: Props) {
             >
               <Locate className="w-4 h-4" />
               Моё место
-            </button>
-            <button
-              onClick={() => {
-                clearLocation()
-                onClose()
-              }}
-              className="px-3 py-2 rounded-xl border border-white/10 text-sm text-nav-text/60 hover:text-nav-text hover:border-white/20 transition-colors cursor-pointer"
-            >
-              Весь каталог
             </button>
             <button
               onClick={handleSave}
