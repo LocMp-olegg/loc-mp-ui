@@ -1,5 +1,16 @@
 import { useParams, Link } from 'react-router-dom'
-import { ArrowLeft, Save, Loader2, Store, MapPin, Truck, Camera, Image, Check, Map } from 'lucide-react'
+import {
+  ArrowLeft,
+  Save,
+  Loader2,
+  Store,
+  MapPin,
+  Truck,
+  Camera,
+  Image,
+  Check,
+  Map,
+} from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useShopById } from '@/hooks/use-my-shops'
 import { useShopForm } from '@/hooks/use-shop-form'
@@ -21,11 +32,27 @@ const labelClass = 'block text-xs font-medium text-muted-foreground mb-1.5'
 const sectionClass = 'rounded-2xl border border-border bg-card/60 p-5 sm:p-6'
 const sectionTitle = 'text-sm font-semibold text-foreground mb-4 flex items-center gap-2'
 
-function Toggle({ checked, onChange, label }: { checked: boolean; onChange: (v: boolean) => void; label: string }) {
+function Toggle({
+  checked,
+  onChange,
+  label,
+}: {
+  checked: boolean
+  onChange: (v: boolean) => void
+  label: string
+}) {
   return (
-    <button type="button" onClick={() => onChange(!checked)} className="flex items-center gap-3 cursor-pointer group">
-      <div className={`w-10 h-6 rounded-full transition-colors relative ${checked ? 'bg-primary' : 'bg-muted-foreground/30'}`}>
-        <div className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all ${checked ? 'left-5' : 'left-1'}`} />
+    <button
+      type="button"
+      onClick={() => onChange(!checked)}
+      className="flex items-center gap-3 cursor-pointer group"
+    >
+      <div
+        className={`w-10 h-6 rounded-full transition-colors relative ${checked ? 'bg-primary' : 'bg-muted-foreground/30'}`}
+      >
+        <div
+          className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all ${checked ? 'left-5' : 'left-1'}`}
+        />
       </div>
       <span className="text-sm text-foreground">{label}</span>
     </button>
@@ -39,18 +66,30 @@ export function ShopEditPage() {
   const { shop, setShop, loading: shopLoading, error: shopError } = useShopById(shopId)
 
   const {
-    form, dispatch,
-    fieldErrors, setFieldErrors,
-    touched, touch,
+    form,
+    dispatch,
+    fieldErrors,
+    setFieldErrors,
+    touched,
+    touch,
     formatPhone,
-    locationLabel, setLocationLabel,
-    locationModalOpen, setLocationModalOpen,
-    saving, saved, error,
-    courierSaved, courierSaving, courierError,
-    handlePhoneChange, handlePhoneKeyDown,
-    handleInnChange, handleInnBlur,
+    locationLabel,
+    setLocationLabel,
+    locationModalOpen,
+    setLocationModalOpen,
+    saving,
+    saved,
+    error,
+    courierSaved,
+    courierSaving,
+    courierError,
+    handlePhoneChange,
+    handlePhoneKeyDown,
+    handleInnChange,
+    handleInnBlur,
     handleEmailChange,
-    handleSubmit, handleSaveCourier,
+    handleSubmit,
+    handleSaveCourier,
   } = useShopForm(shopId, shop, setShop)
 
   if (isEdit && shopLoading) {
@@ -89,7 +128,13 @@ export function ShopEditPage() {
         </h1>
       </div>
 
-      <form onSubmit={(e) => { e.preventDefault(); void handleSubmit() }} className="space-y-4">
+      <form
+        onSubmit={(e) => {
+          e.preventDefault()
+          void handleSubmit()
+        }}
+        className="space-y-4"
+      >
         {/* Basic info */}
         <div className={sectionClass}>
           <h2 className={sectionTitle}>
@@ -108,14 +153,22 @@ export function ShopEditPage() {
                 onChange={(e) => {
                   dispatch({ type: 'patch', patch: { businessName: e.target.value } })
                   if (touched.businessName)
-                    setFieldErrors((prev) => ({ ...prev, businessName: e.target.value.trim() ? undefined : 'Обязательное поле' }))
+                    setFieldErrors((prev) => ({
+                      ...prev,
+                      businessName: e.target.value.trim() ? undefined : 'Обязательное поле',
+                    }))
                 }}
                 onBlur={() => {
                   touch('businessName')
-                  setFieldErrors((prev) => ({ ...prev, businessName: form.businessName.trim() ? undefined : 'Обязательное поле' }))
+                  setFieldErrors((prev) => ({
+                    ...prev,
+                    businessName: form.businessName.trim() ? undefined : 'Обязательное поле',
+                  }))
                 }}
                 placeholder="Пекарня у Ивановых"
-                className={touched.businessName && fieldErrors.businessName ? inputErrorClass : inputClass}
+                className={
+                  touched.businessName && fieldErrors.businessName ? inputErrorClass : inputClass
+                }
               />
               {touched.businessName && fieldErrors.businessName && (
                 <p className="text-xs text-destructive mt-1">{fieldErrors.businessName}</p>
@@ -128,7 +181,12 @@ export function ShopEditPage() {
                 <ProfileSelect
                   options={BUSINESS_OPTIONS}
                   value={form.businessType}
-                  onChange={(v) => dispatch({ type: 'patch', patch: { businessType: v as typeof form.businessType } })}
+                  onChange={(v) =>
+                    dispatch({
+                      type: 'patch',
+                      patch: { businessType: v as typeof form.businessType },
+                    })
+                  }
                   placeholder="Не указан"
                 />
               </div>
@@ -160,11 +218,16 @@ export function ShopEditPage() {
                     touch('phoneNumber')
                     setFieldErrors((prev) => ({
                       ...prev,
-                      phoneNumber: form.phoneNumber && !PHONE_RE.test(form.phoneNumber) ? 'Введите все 10 цифр номера' : undefined,
+                      phoneNumber:
+                        form.phoneNumber && !PHONE_RE.test(form.phoneNumber)
+                          ? 'Введите все 10 цифр номера'
+                          : undefined,
                     }))
                   }}
                   placeholder="+7(900)-123-45-67"
-                  className={touched.phoneNumber && fieldErrors.phoneNumber ? inputErrorClass : inputClass}
+                  className={
+                    touched.phoneNumber && fieldErrors.phoneNumber ? inputErrorClass : inputClass
+                  }
                 />
                 {touched.phoneNumber && fieldErrors.phoneNumber && (
                   <p className="text-xs text-destructive mt-1">{fieldErrors.phoneNumber}</p>
@@ -180,7 +243,8 @@ export function ShopEditPage() {
                     touch('email')
                     setFieldErrors((prev) => ({
                       ...prev,
-                      email: form.email && !EMAIL_RE.test(form.email) ? 'Некорректный email' : undefined,
+                      email:
+                        form.email && !EMAIL_RE.test(form.email) ? 'Некорректный email' : undefined,
                     }))
                   }}
                   placeholder="shop@example.com"
@@ -196,7 +260,9 @@ export function ShopEditPage() {
               <label className={labelClass}>Описание</label>
               <textarea
                 value={form.description}
-                onChange={(e) => dispatch({ type: 'patch', patch: { description: e.target.value } })}
+                onChange={(e) =>
+                  dispatch({ type: 'patch', patch: { description: e.target.value } })
+                }
                 placeholder="Расскажите о вашем магазине..."
                 rows={3}
                 className={textareaClass}
@@ -208,7 +274,9 @@ export function ShopEditPage() {
               <input
                 type="text"
                 value={form.workingHours}
-                onChange={(e) => dispatch({ type: 'patch', patch: { workingHours: e.target.value } })}
+                onChange={(e) =>
+                  dispatch({ type: 'patch', patch: { workingHours: e.target.value } })
+                }
                 placeholder="Пн-Пт 10:00–18:00, Сб 11:00–16:00"
                 className={inputClass}
               />
@@ -245,7 +313,10 @@ export function ShopEditPage() {
                 </span>
                 {form.serviceRadiusMeters !== null && (
                   <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
-                    Радиус: {form.serviceRadiusMeters >= 1000 ? `${form.serviceRadiusMeters / 1000} км` : `${form.serviceRadiusMeters} м`}
+                    Радиус:{' '}
+                    {form.serviceRadiusMeters >= 1000
+                      ? `${form.serviceRadiusMeters / 1000} км`
+                      : `${form.serviceRadiusMeters} м`}
                   </span>
                 )}
               </div>
@@ -268,7 +339,10 @@ export function ShopEditPage() {
               initialRadiusMeters={form.serviceRadiusMeters}
               onClose={() => setLocationModalOpen(false)}
               onSave={(lat, lng, radius, lbl) => {
-                dispatch({ type: 'patch', patch: { latitude: lat, longitude: lng, serviceRadiusMeters: radius } })
+                dispatch({
+                  type: 'patch',
+                  patch: { latitude: lat, longitude: lng, serviceRadiusMeters: radius },
+                })
                 setLocationLabel(lbl)
                 setLocationModalOpen(false)
               }}
@@ -287,9 +361,15 @@ export function ShopEditPage() {
           {saving ? (
             <Loader2 className="w-4 h-4 animate-spin" />
           ) : saved ? (
-            <><Check className="w-4 h-4" />Сохранено</>
+            <>
+              <Check className="w-4 h-4" />
+              Сохранено
+            </>
           ) : (
-            <><Save className="w-4 h-4" />{isEdit ? 'Сохранить' : 'Создать магазин'}</>
+            <>
+              <Save className="w-4 h-4" />
+              {isEdit ? 'Сохранить' : 'Создать магазин'}
+            </>
           )}
         </motion.button>
       </form>
@@ -322,7 +402,8 @@ export function ShopEditPage() {
             </h2>
             {form.photos.length === 0 && (
               <p className="text-xs text-muted-foreground mb-3">
-                Перетащите фото сюда или нажмите «Добавить» · до 10 файлов за раз · JPEG, PNG, WEBP, GIF · до 10 МБ каждый
+                Перетащите фото сюда или нажмите «Добавить» · до 10 файлов за раз · JPEG, PNG, WEBP,
+                GIF · до 10 МБ каждый
               </p>
             )}
             <ShopPhotosSection
@@ -356,7 +437,9 @@ export function ShopEditPage() {
                       type="number"
                       min={0}
                       value={form.maxCourierMeters}
-                      onChange={(e) => dispatch({ type: 'patch', patch: { maxCourierMeters: e.target.value } })}
+                      onChange={(e) =>
+                        dispatch({ type: 'patch', patch: { maxCourierMeters: e.target.value } })
+                      }
                       placeholder="5000"
                       className={cn(inputClass, 'input-no-spin')}
                     />
@@ -374,7 +457,10 @@ export function ShopEditPage() {
                 {courierSaving ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
                 ) : courierSaved ? (
-                  <><Check className="w-4 h-4" />Сохранено</>
+                  <>
+                    <Check className="w-4 h-4" />
+                    Сохранено
+                  </>
                 ) : (
                   'Сохранить доставку'
                 )}

@@ -45,7 +45,14 @@ export function LocationPicker({ onClose }: Props) {
 
   const { suggestions, showSuggestions, dispatchSug } = useAddressSuggestions(search, label)
 
-  const applyPoint = useApplyPoint({ setLat, setLng, setRecenter, setLabel, setSearch, setLoadingGeo })
+  const applyPoint = useApplyPoint({
+    setLat,
+    setLng,
+    setRecenter,
+    setLabel,
+    setSearch,
+    setLoadingGeo,
+  })
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {

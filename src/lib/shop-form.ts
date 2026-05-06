@@ -87,12 +87,19 @@ export type FieldErrors = {
 
 export type TouchedFields = Partial<Record<keyof FieldErrors, boolean>>
 
-export function validateFields(name: string, phone: string, mail: string, inn: string): FieldErrors {
+export function validateFields(
+  name: string,
+  phone: string,
+  mail: string,
+  inn: string,
+): FieldErrors {
   const e: FieldErrors = {}
   if (!name.trim()) e.businessName = 'Обязательное поле'
   else if (name.length > 200) e.businessName = 'Максимум 200 символов'
-  if (phone && !PHONE_RE.test(phone)) e.phoneNumber = 'Введите все 10 цифр номера'
-  if (mail && !EMAIL_RE.test(mail)) e.email = 'Некорректный email'
+  if (!phone) e.phoneNumber = 'Обязательное поле'
+  else if (!PHONE_RE.test(phone)) e.phoneNumber = 'Введите все 10 цифр номера'
+  if (!mail) e.email = 'Обязательное поле'
+  else if (!EMAIL_RE.test(mail)) e.email = 'Некорректный email'
   if (inn && !INN_RE.test(inn)) e.inn = 'ИНН — 10 (юрлицо) или 12 (физлицо) цифр'
   return e
 }

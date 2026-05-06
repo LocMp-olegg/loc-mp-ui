@@ -8,7 +8,12 @@ interface ConfirmDeleteProps {
   onConfirm: () => void
 }
 
-export function ConfirmDelete({ confirming, onConfirmingChange, label, onConfirm }: ConfirmDeleteProps) {
+export function ConfirmDelete({
+  confirming,
+  onConfirmingChange,
+  label,
+  onConfirm,
+}: ConfirmDeleteProps) {
   return (
     <AnimatePresence mode="wait" initial={false}>
       {confirming ? (

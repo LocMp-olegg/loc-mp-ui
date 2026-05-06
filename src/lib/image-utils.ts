@@ -35,7 +35,17 @@ export async function getCroppedBlob(
   canvas.width = pixelCrop.width
   canvas.height = pixelCrop.height
   const ctx = canvas.getContext('2d')!
-  ctx.drawImage(offscreen, pixelCrop.x, pixelCrop.y, pixelCrop.width, pixelCrop.height, 0, 0, pixelCrop.width, pixelCrop.height)
+  ctx.drawImage(
+    offscreen,
+    pixelCrop.x,
+    pixelCrop.y,
+    pixelCrop.width,
+    pixelCrop.height,
+    0,
+    0,
+    pixelCrop.width,
+    pixelCrop.height,
+  )
 
   return new Promise((resolve, reject) =>
     canvas.toBlob(

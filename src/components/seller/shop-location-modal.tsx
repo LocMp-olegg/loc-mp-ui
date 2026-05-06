@@ -1,4 +1,4 @@
-import {useState, useEffect, useRef, useCallback} from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { motion } from 'framer-motion'
 import { MapContainer, TileLayer, Marker, Circle } from 'react-leaflet'
@@ -95,11 +95,21 @@ export function ShopLocationModal({
 
   const { suggestions, showSuggestions, dispatchSug } = useAddressSuggestions(search, label)
 
-  const applyPoint = useApplyPoint({ setLat, setLng, setRecenter, setLabel, setSearch, setLoadingGeo })
+  const applyPoint = useApplyPoint({
+    setLat,
+    setLng,
+    setRecenter,
+    setLabel,
+    setSearch,
+    setLoadingGeo,
+  })
+
+  const initLatRef = useRef(initialLat)
+  const initLngRef = useRef(initialLng)
 
   useEffect(() => {
-    if (initialLat === null || initialLng === null) return
-    reverseGeocode(initialLat, initialLng).then((l) => {
+    if (initLatRef.current === null || initLngRef.current === null) return
+    reverseGeocode(initLatRef.current, initLngRef.current).then((l) => {
       setLabel(l)
       setSearch(l)
     })

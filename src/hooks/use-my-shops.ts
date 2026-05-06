@@ -24,9 +24,15 @@ export function useMyShops() {
     let cancelled = false
     dispatch({ type: 'loading' })
     ShopsService.getApiCatalogShopsMy()
-      .then((data) => { if (!cancelled) dispatch({ type: 'success', shops: data }) })
-      .catch(() => { if (!cancelled) dispatch({ type: 'error', message: 'Не удалось загрузить магазины' }) })
-    return () => { cancelled = true }
+      .then((data) => {
+        if (!cancelled) dispatch({ type: 'success', shops: data })
+      })
+      .catch(() => {
+        if (!cancelled) dispatch({ type: 'error', message: 'Не удалось загрузить магазины' })
+      })
+    return () => {
+      cancelled = true
+    }
   }, [version])
 
   return { shops: state.shops, loading: state.loading, error: state.error, reload }
@@ -54,9 +60,15 @@ export function useShopById(shopId: string | undefined) {
     let cancelled = false
     dispatch({ type: 'loading' })
     ShopsService.getApiCatalogShops({ id: shopId })
-      .then((data) => { if (!cancelled) dispatch({ type: 'success', shop: data }) })
-      .catch(() => { if (!cancelled) dispatch({ type: 'error', message: 'Не удалось загрузить магазин' }) })
-    return () => { cancelled = true }
+      .then((data) => {
+        if (!cancelled) dispatch({ type: 'success', shop: data })
+      })
+      .catch(() => {
+        if (!cancelled) dispatch({ type: 'error', message: 'Не удалось загрузить магазин' })
+      })
+    return () => {
+      cancelled = true
+    }
   }, [shopId])
 
   const setShop = useCallback((shop: ShopDto) => dispatch({ type: 'set', shop }), [])

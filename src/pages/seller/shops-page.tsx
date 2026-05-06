@@ -25,8 +25,9 @@ function ShopSkeleton() {
 }
 
 function ShopCard({ shop }: { shop: ShopDto }) {
-  const serviceRadiusKm =
-    shop.serviceRadiusMeters ? Math.round(shop.serviceRadiusMeters / 100) / 10 : null
+  const serviceRadiusKm = shop.serviceRadiusMeters
+    ? Math.round(shop.serviceRadiusMeters / 100) / 10
+    : null
 
   return (
     <motion.div
@@ -139,7 +140,9 @@ export function ShopsPage() {
       {/* Content */}
       {loading ? (
         <div className="space-y-3">
-          {[1, 2].map((i) => <ShopSkeleton key={i} />)}
+          {[1, 2].map((i) => (
+            <ShopSkeleton key={i} />
+          ))}
         </div>
       ) : error ? (
         <div className="rounded-2xl border border-border bg-card/60 p-8 text-center">

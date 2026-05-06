@@ -6,8 +6,14 @@ import type { BusinessType, ShopDto } from '@/api/catalog'
 import { reverseGeocode } from '@/lib/geo'
 import { formatPhone, EMAIL_RE, PHONE_RE } from '@/lib/auth-validation'
 import {
-  formReducer, INIT_FORM, INN_RE, validateFields,
-  type FormState, type FormAction, type FieldErrors, type TouchedFields,
+  formReducer,
+  INIT_FORM,
+  INN_RE,
+  validateFields,
+  type FormState,
+  type FormAction,
+  type FieldErrors,
+  type TouchedFields,
 } from '@/lib/shop-form'
 
 export type { FormState, FormAction }
@@ -69,9 +75,10 @@ export function useShopForm(
     if (touched.inn)
       setFieldErrors((prev) => ({
         ...prev,
-        inn: e.target.value && !INN_RE.test(e.target.value)
-          ? 'ИНН — 10 (юрлицо) или 12 (физлицо) цифр'
-          : undefined,
+        inn:
+          e.target.value && !INN_RE.test(e.target.value)
+            ? 'ИНН — 10 (юрлицо) или 12 (физлицо) цифр'
+            : undefined,
       }))
   }
 
@@ -79,7 +86,8 @@ export function useShopForm(
     touch('inn')
     setFieldErrors((prev) => ({
       ...prev,
-      inn: form.inn && !INN_RE.test(form.inn) ? 'ИНН — 10 (юрлицо) или 12 (физлицо) цифр' : undefined,
+      inn:
+        form.inn && !INN_RE.test(form.inn) ? 'ИНН — 10 (юрлицо) или 12 (физлицо) цифр' : undefined,
     }))
   }
 

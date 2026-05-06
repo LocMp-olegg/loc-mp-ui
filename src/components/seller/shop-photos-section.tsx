@@ -60,7 +60,10 @@ export function ShopPhotosSection({ shopId, photos, onUpdate }: ShopPhotosSectio
 
   return (
     <div
-      className={cn('rounded-xl transition-all duration-150', dragging && 'ring-2 ring-primary/50 bg-primary/5')}
+      className={cn(
+        'rounded-xl transition-all duration-150',
+        dragging && 'ring-2 ring-primary/50 bg-primary/5',
+      )}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
@@ -73,7 +76,11 @@ export function ShopPhotosSection({ shopId, photos, onUpdate }: ShopPhotosSectio
             onClick={() => setSelectedPhoto(photo)}
             className="aspect-square rounded-xl overflow-hidden bg-muted border border-border hover:opacity-85 transition-opacity cursor-pointer"
           >
-            <img src={photo.storageUrl ?? noImageUrl} alt="" className="w-full h-full object-cover" />
+            <img
+              src={photo.storageUrl ?? noImageUrl}
+              alt=""
+              className="w-full h-full object-cover"
+            />
           </button>
         ))}
         {photos.length < MAX_PHOTOS && (
@@ -101,7 +108,9 @@ export function ShopPhotosSection({ shopId, photos, onUpdate }: ShopPhotosSectio
         </p>
       )}
       {dragging && photos.length < MAX_PHOTOS && (
-        <p className="text-xs text-primary text-center py-1 font-medium">Перетащите файлы для загрузки</p>
+        <p className="text-xs text-primary text-center py-1 font-medium">
+          Перетащите файлы для загрузки
+        </p>
       )}
       {error && <p className="text-xs text-destructive mt-1">{error}</p>}
 

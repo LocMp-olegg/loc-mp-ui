@@ -10,7 +10,12 @@ interface ShopAvatarSectionProps {
   onUpdate: (url: string) => void
 }
 
-export function ShopAvatarSection({ shopId, avatarUrl, businessName, onUpdate }: ShopAvatarSectionProps) {
+export function ShopAvatarSection({
+  shopId,
+  avatarUrl,
+  businessName,
+  onUpdate,
+}: ShopAvatarSectionProps) {
   const [modalOpen, setModalOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
