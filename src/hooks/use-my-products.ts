@@ -1,4 +1,4 @@
-import { useReducer, useState, useEffect, useCallback } from 'react'
+import { useReducer, useState, useEffect, useCallback, useRef } from 'react'
 import { ProductsService } from '@/api/catalog'
 import type { ProductSummaryDto, ProductDto, ProductSortBy } from '@/api/catalog'
 
@@ -8,22 +8,28 @@ type ListState = {
   products: ProductSummaryDto[]
   loading: boolean
   error: string | null
-  totalPages: number
+  hasNextPage: boolean
   totalCount: number
 }
 type ListAction =
   | { type: 'loading' }
-  | { type: 'success'; products: ProductSummaryDto[]; totalPages: number; totalCount: number }
+  | {
+      type: 'success'
+      products: ProductSummaryDto[]
+      hasNextPage: boolean
+      totalCount: number
+      append: boolean
+    }
   | { type: 'error'; message: string }
 
 function listReducer(s: ListState, a: ListAction): ListState {
   if (a.type === 'loading') return { ...s, loading: true, error: null }
   if (a.type === 'success')
     return {
-      products: a.products,
+      products: a.append ? [...s.products, ...a.products] : a.products,
       loading: false,
       error: null,
-      totalPages: a.totalPages,
+      hasNextPage: a.hasNextPage,
       totalCount: a.totalCount,
     }
   return { ...s, loading: false, error: a.message }
@@ -34,43 +40,53 @@ export function useMyProducts({
   isActive,
   isInStock,
   sort,
-  page,
+  pageSize = 20,
 }: {
   shopId?: string
   isActive?: boolean
   isInStock?: boolean
   sort?: ProductSortBy
-  page: number
+  pageSize?: number
 }) {
   const [state, dispatch] = useReducer(listReducer, {
     products: [],
     loading: true,
     error: null,
-    totalPages: 1,
+    hasNextPage: false,
     totalCount: 0,
   })
-  const [version, setVersion] = useState(0)
+  const [reloadKey, setReloadKey] = useState(0)
+  const pageRef = useRef(1)
+  const fetchingMoreRef = useRef(false)
 
-  const reload = useCallback(() => setVersion((v) => v + 1), [])
+  const filtersRef = useRef({ shopId, isActive, isInStock, sort, pageSize })
+  useEffect(() => {
+    filtersRef.current = { shopId, isActive, isInStock, sort, pageSize }
+  })
+
+  const filterKey = `${shopId}|${String(isActive)}|${String(isInStock)}|${sort}|${pageSize}`
 
   useEffect(() => {
     let cancelled = false
+    pageRef.current = 1
     dispatch({ type: 'loading' })
+    const f = filtersRef.current
     ProductsService.getApiCatalogProductsMy({
-      shopId: shopId || undefined,
-      isActive,
-      isInStock: isInStock || undefined,
-      sort,
-      page,
-      pageSize: 20,
+      shopId: f.shopId,
+      isActive: f.isActive,
+      isInStock: f.isInStock || undefined,
+      sort: f.sort,
+      page: 1,
+      pageSize: f.pageSize,
     })
       .then((data) => {
         if (!cancelled)
           dispatch({
             type: 'success',
             products: data.items ?? [],
-            totalPages: data.totalPages ?? 1,
+            hasNextPage: pageRef.current < (data.totalPages ?? 1),
             totalCount: data.totalCount ?? 0,
+            append: false,
           })
       })
       .catch(() => {
@@ -79,9 +95,42 @@ export function useMyProducts({
     return () => {
       cancelled = true
     }
-  }, [shopId, isActive, isInStock, sort, page, version])
+  }, [filterKey, reloadKey])
 
-  return { ...state, reload }
+  const loadMore = useCallback(() => {
+    if (fetchingMoreRef.current) return
+    fetchingMoreRef.current = true
+    const nextPage = pageRef.current + 1
+    pageRef.current = nextPage
+    dispatch({ type: 'loading' })
+    const f = filtersRef.current
+    ProductsService.getApiCatalogProductsMy({
+      shopId: f.shopId,
+      isActive: f.isActive,
+      isInStock: f.isInStock || undefined,
+      sort: f.sort,
+      page: nextPage,
+      pageSize: f.pageSize,
+    })
+      .then((data) => {
+        fetchingMoreRef.current = false
+        dispatch({
+          type: 'success',
+          products: data.items ?? [],
+          hasNextPage: pageRef.current < (data.totalPages ?? 1),
+          totalCount: data.totalCount ?? 0,
+          append: true,
+        })
+      })
+      .catch(() => {
+        fetchingMoreRef.current = false
+        dispatch({ type: 'error', message: 'Не удалось загрузить товары' })
+      })
+  }, [])
+
+  const reload = useCallback(() => setReloadKey((k) => k + 1), [])
+
+  return { ...state, loadMore, reload }
 }
 
 // ── useProductById ────────────────────────────────────────────────────────────

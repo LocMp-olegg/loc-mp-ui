@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Package, Plus, Edit2, Trash2, Loader2, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Package, Plus, Edit2, Trash2, Loader2 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ProductsService } from '@/api/catalog'
 import type { ProductSummaryDto } from '@/api/catalog'
@@ -47,18 +47,16 @@ export function ProductsPage() {
   const [shopFilter, setShopFilter] = useState('')
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
   const [inStock, setInStock] = useState(false)
-  const [page, setPage] = useState(1)
 
   const [togglingId, setTogglingId] = useState<string | null>(null)
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
 
   const isActive = statusFilter === 'all' ? undefined : statusFilter === 'active'
-  const { products, loading, error, totalPages, totalCount, reload } = useMyProducts({
+  const { products, loading, error, hasNextPage, totalCount, loadMore, reload } = useMyProducts({
     shopId: shopFilter || undefined,
     isActive,
     isInStock: inStock || undefined,
-    page,
   })
 
   const { shops } = useMyShops()
@@ -129,10 +127,7 @@ export function ProductsPage() {
         <ProfileSelect
           options={shopOptions}
           value={shopFilter}
-          onChange={(v) => {
-            setShopFilter(v)
-            setPage(1)
-          }}
+          onChange={setShopFilter}
           placeholder="Все магазины"
           className="w-48"
         />
@@ -141,10 +136,7 @@ export function ProductsPage() {
             <button
               key={pill.value}
               type="button"
-              onClick={() => {
-                setStatusFilter(pill.value)
-                setPage(1)
-              }}
+              onClick={() => setStatusFilter(pill.value)}
               className={cn(
                 'h-8 px-3 rounded-lg text-xs font-medium transition-colors cursor-pointer',
                 statusFilter === pill.value
@@ -156,17 +148,11 @@ export function ProductsPage() {
             </button>
           ))}
         </div>
-        <InStockToggle
-          checked={inStock}
-          onChange={(v) => {
-            setInStock(v)
-            setPage(1)
-          }}
-        />
+        <InStockToggle checked={inStock} onChange={setInStock} />
       </div>
 
       {/* Content */}
-      {loading ? (
+      {loading && products.length === 0 ? (
         <div className="space-y-3">
           {[...Array(5)].map((_, i) => (
             <div
@@ -320,28 +306,20 @@ export function ProductsPage() {
         </div>
       )}
 
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-2 mt-6">
+      {/* Load more */}
+      {hasNextPage && !loading && (
+        <div className="flex justify-center mt-6">
           <button
-            type="button"
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-            disabled={page === 1}
-            className="w-8 h-8 rounded-lg border border-border flex items-center justify-center disabled:opacity-40 hover:bg-muted transition-colors cursor-pointer"
+            onClick={loadMore}
+            className="flex items-center gap-2 px-6 py-2.5 rounded-xl border border-border text-sm text-muted-foreground hover:text-foreground hover:border-primary/50 transition-colors cursor-pointer"
           >
-            <ChevronLeft className="w-4 h-4" />
+            Показать ещё
           </button>
-          <span className="text-sm text-muted-foreground">
-            {page} / {totalPages}
-          </span>
-          <button
-            type="button"
-            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-            disabled={page === totalPages}
-            className="w-8 h-8 rounded-lg border border-border flex items-center justify-center disabled:opacity-40 hover:bg-muted transition-colors cursor-pointer"
-          >
-            <ChevronRight className="w-4 h-4" />
-          </button>
+        </div>
+      )}
+      {loading && products.length > 0 && (
+        <div className="flex justify-center mt-6">
+          <Loader2 className="w-5 h-5 text-muted-foreground animate-spin" />
         </div>
       )}
     </div>
