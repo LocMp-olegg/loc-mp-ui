@@ -5,6 +5,10 @@ export interface GeoSuggestion {
   label: string
   lat: number
   lng: number
+  city?: string
+  street?: string
+  houseNumber?: string
+  apartment?: string
 }
 
 interface DaDataAddressData {
@@ -14,6 +18,9 @@ interface DaDataAddressData {
   city_area?: string | null
   settlement?: string | null
   city?: string | null
+  street?: string | null
+  house?: string | null
+  flat?: string | null
 }
 
 interface DaDataSuggestion {
@@ -40,9 +47,48 @@ export async function suggestAddress(query: string): Promise<GeoSuggestion[]> {
         label: s.value,
         lat: parseFloat(s.data.geo_lat!),
         lng: parseFloat(s.data.geo_lon!),
+        city: s.data.city ?? s.data.settlement ?? undefined,
+        street: s.data.street ?? undefined,
+        houseNumber: s.data.house ?? undefined,
+        apartment: s.data.flat ?? undefined,
       }))
   } catch {
     return []
+  }
+}
+
+export async function reverseGeocodeStructured(
+  lat: number,
+  lng: number,
+): Promise<GeoSuggestion | null> {
+  try {
+    const res = await fetch(
+      'https://suggestions.dadata.ru/suggestions/api/4_1/rs/geolocate/address',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Token ${KEY}`,
+          'X-Secret': SECRET,
+        },
+        body: JSON.stringify({ lat, lon: lng, count: 1 }),
+      },
+    )
+    if (!res.ok) return null
+    const data = (await res.json()) as { suggestions?: DaDataSuggestion[] }
+    const s = data.suggestions?.[0]
+    if (!s?.data?.geo_lat || !s.data.geo_lon) return null
+    return {
+      label: s.value,
+      lat: parseFloat(s.data.geo_lat),
+      lng: parseFloat(s.data.geo_lon),
+      city: s.data.city ?? s.data.settlement ?? undefined,
+      street: s.data.street ?? undefined,
+      houseNumber: s.data.house ?? undefined,
+      apartment: s.data.flat ?? undefined,
+    }
+  } catch {
+    return null
   }
 }
 

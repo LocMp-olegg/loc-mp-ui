@@ -3,6 +3,7 @@ import { FloatingNav } from '@/components/aceternity/floating-nav'
 import { LandscapeBackground } from './landscape-background'
 import { ScrollManager } from './scroll-manager'
 import { AuthProvider } from '@/contexts/auth-context'
+import { AddressesProvider } from '@/contexts/addresses-context'
 
 export function Layout() {
   const location = useLocation()
@@ -10,6 +11,7 @@ export function Layout() {
 
   return (
     <AuthProvider>
+      <AddressesProvider>
       <div className="min-h-screen">
         <LandscapeBackground />
         {!isLogin && <FloatingNav />}
@@ -23,6 +25,7 @@ export function Layout() {
         </main>
         <ScrollManager />
       </div>
+      </AddressesProvider>
     </AuthProvider>
   )
 }

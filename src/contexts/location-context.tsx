@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, type ReactNode } from 'react'
+import { createContext, useContext, useState, useEffect, type ReactNode } from 'react'
 
 export interface UserLocation {
   lat: number
@@ -26,8 +26,16 @@ function readStored(): UserLocation | null {
   }
 }
 
+export const LOCATION_CLEAR_EVENT = 'location:clear'
+
 export function LocationProvider({ children }: { children: ReactNode }) {
   const [location, setLocationState] = useState<UserLocation | null>(readStored)
+
+  useEffect(() => {
+    const handler = () => setLocationState(null)
+    window.addEventListener(LOCATION_CLEAR_EVENT, handler)
+    return () => window.removeEventListener(LOCATION_CLEAR_EVENT, handler)
+  }, [])
 
   const setLocation = (loc: UserLocation) => {
     setLocationState(loc)

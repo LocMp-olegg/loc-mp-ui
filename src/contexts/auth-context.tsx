@@ -12,6 +12,7 @@ import {
 import { UsersService } from '@/api/identity'
 import type { RegisterUserCommand } from '@/api/identity'
 import { AuthPromptModal } from '@/components/auth/auth-prompt-modal'
+import { LOCATION_CLEAR_EVENT } from '@/contexts/location-context'
 
 export interface AuthUser {
   id: string
@@ -28,6 +29,7 @@ interface AuthContextType {
   register: (data: RegisterUserCommand) => Promise<void>
   logout: () => void
   openAuthPrompt: () => void
+  refreshUser: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | null>(null)
@@ -51,6 +53,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     setOnAuthFailure(() => {
       setUser(null)
+      localStorage.removeItem('user-location')
+      window.dispatchEvent(new Event(LOCATION_CLEAR_EVENT))
       navigate('/login', { replace: true })
     })
 
@@ -86,7 +90,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = () => {
     clearTokens()
     setUser(null)
+    localStorage.removeItem('user-location')
+    window.dispatchEvent(new Event(LOCATION_CLEAR_EVENT))
     navigate('/login', { replace: true })
+  }
+
+  const refreshUser = async () => {
+    const token = await refreshAccessToken()
+    setUser(userFromToken(token))
   }
 
   return (
@@ -99,6 +110,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         register,
         logout,
         openAuthPrompt: () => setAuthPromptOpen(true),
+        refreshUser,
       }}
     >
       {children}

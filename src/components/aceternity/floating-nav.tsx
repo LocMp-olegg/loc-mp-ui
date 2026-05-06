@@ -22,6 +22,7 @@ import { useUserLocation } from '@/contexts/location-context'
 import { useAuth } from '@/contexts/auth-context'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { LocationPicker } from '@/components/location/location-picker'
+import { AddressDropdown } from '@/components/location/address-dropdown'
 import { SearchBar } from '@/components/nav/search-bar'
 import { useTheme } from '@/contexts/theme-context'
 import { cn } from '@/lib/utils'
@@ -217,53 +218,59 @@ export function FloatingNav() {
               </AnimatePresence>
             </Link>
 
-            <div className="relative group/loc shrink-0">
-              <motion.button
-                onClick={() => setPickerOpen(true)}
-                animate={{
-                  paddingLeft: scrolled ? 8 : 12,
-                  paddingRight: scrolled ? 8 : 12,
-                  paddingTop: scrolled ? 8 : 6,
-                  paddingBottom: scrolled ? 8 : 6,
-                  borderRadius: scrolled ? 12 : 9999,
-                  backgroundColor: scrolled ? 'rgba(255,255,255,0)' : 'rgba(255,255,255,0.1)',
-                  boxShadow: scrolled ? 'none' : 'inset 0 0 0 1px rgba(255,255,255,0.15)',
-                }}
-                whileHover={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
-                whileTap={{ scale: 0.95 }}
-                transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                className="flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap"
-              >
-                <MapPin
-                  className={`w-5 h-5 shrink-0 ${location ? 'text-accent' : 'text-nav-text/70'}`}
-                />
-                <AnimatePresence initial={false}>
-                  {!scrolled && (
-                    <motion.span
-                      key="loc-label"
-                      initial={{ opacity: 0, width: 0 }}
-                      animate={{ opacity: 1, width: 'auto' }}
-                      exit={{ opacity: 0, width: 0 }}
-                      transition={{ duration: 0.15 }}
-                      className="text-sm text-nav-text/80 overflow-hidden whitespace-nowrap hidden lg:block"
-                    >
-                      {location ? 'Район выбран' : 'Выбрать район'}
-                    </motion.span>
-                  )}
-                </AnimatePresence>
-              </motion.button>
-
-              {location && (
-                <div className="absolute top-full left-0 mt-2 z-50 px-3 py-2 rounded-xl bg-foreground text-background text-xs whitespace-nowrap pointer-events-none opacity-0 group-hover/loc:opacity-100 transition-opacity duration-150 shadow-lg">
-                  <p className="font-medium">{location.label}</p>
-                  <p className="text-background/60 mt-0.5">
-                    {location.radius < 1
-                      ? `${Math.round(location.radius * 1000)} м`
-                      : `${location.radius} км`}
-                  </p>
-                </div>
-              )}
-            </div>
+            {!initializing && isAuthenticated ? (
+              <AddressDropdown
+                onOpenPicker={() => setPickerOpen(true)}
+                scrolled={scrolled}
+              />
+            ) : !initializing ? (
+              <div className="relative group/loc shrink-0">
+                <motion.button
+                  onClick={() => setPickerOpen(true)}
+                  animate={{
+                    paddingLeft: scrolled ? 8 : 12,
+                    paddingRight: scrolled ? 8 : 12,
+                    paddingTop: scrolled ? 8 : 6,
+                    paddingBottom: scrolled ? 8 : 6,
+                    borderRadius: scrolled ? 12 : 9999,
+                    backgroundColor: scrolled ? 'rgba(255,255,255,0)' : 'rgba(255,255,255,0.1)',
+                    boxShadow: scrolled ? 'none' : 'inset 0 0 0 1px rgba(255,255,255,0.15)',
+                  }}
+                  whileHover={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
+                  whileTap={{ scale: 0.95 }}
+                  transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                  className="flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap"
+                >
+                  <MapPin
+                    className={`w-5 h-5 shrink-0 ${location ? 'text-accent' : 'text-nav-text/70'}`}
+                  />
+                  <AnimatePresence initial={false}>
+                    {!scrolled && (
+                      <motion.span
+                        key="loc-label"
+                        initial={{ opacity: 0, width: 0 }}
+                        animate={{ opacity: 1, width: 'auto' }}
+                        exit={{ opacity: 0, width: 0 }}
+                        transition={{ duration: 0.15 }}
+                        className="text-sm text-nav-text/80 overflow-hidden whitespace-nowrap hidden lg:block"
+                      >
+                        {location ? location.label : 'Выбрать район'}
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
+                </motion.button>
+                {location && (
+                  <div className="absolute top-full left-0 mt-2 z-50 px-3 py-2 rounded-xl bg-foreground text-background text-xs whitespace-nowrap pointer-events-none opacity-0 group-hover/loc:opacity-100 transition-opacity duration-150 shadow-lg">
+                    <p className="font-medium">{location.label}</p>
+                    <p className="text-background/60 mt-0.5">
+                      {location.radius < 1
+                        ? `${Math.round(location.radius * 1000)} м`
+                        : `${location.radius} км`}
+                    </p>
+                  </div>
+                )}
+              </div>
+            ) : null}
           </div>
 
           {/* Center: Search */}
