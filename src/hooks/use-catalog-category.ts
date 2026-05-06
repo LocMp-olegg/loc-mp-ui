@@ -58,7 +58,6 @@ export function useCatalogCategory(categoryId: string, filter: ProductFilter = {
   const pageRef = useRef(1)
   const { sort, minPrice, maxPrice, isInStock } = filter
 
-  // Reset and fetch page 1 when category or filter changes
   useEffect(() => {
     let cancelled = false
     pageRef.current = 1

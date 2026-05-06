@@ -46,7 +46,6 @@ export function AddressPicker({
     }, 300)
   }
 
-  // Compute fixed position when dropdown opens
   useEffect(() => {
     if (!open || !containerRef.current) return
     const rect = containerRef.current.getBoundingClientRect()
@@ -59,7 +58,6 @@ export function AddressPicker({
     })
   }, [open])
 
-  // Close on any scroll while open
   useEffect(() => {
     if (!open) return
     const handleScroll = () => setOpen(false)
@@ -67,7 +65,6 @@ export function AddressPicker({
     return () => window.removeEventListener('scroll', handleScroll, { capture: true })
   }, [open])
 
-  // Close on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) setOpen(false)

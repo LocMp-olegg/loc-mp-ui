@@ -1,46 +1,40 @@
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import Cropper from 'react-easy-crop'
 import type { Area } from 'react-easy-crop'
-import { X, RotateCcw, RotateCw, Upload, Loader2, Check } from 'lucide-react'
+import { X, RotateCcw, RotateCw, Check, Loader2, Crop } from 'lucide-react'
 import { ConfirmDelete } from '@/components/ui/confirm-delete'
+import { ShopsService } from '@/api/catalog'
+import type { ShopPhotoDto } from '@/api/catalog'
 import { getCroppedBlob } from '@/lib/image-utils'
 
-interface PhotoEditorModalProps {
-  open: boolean
-  hasPhoto: boolean
-  photoUrl: string | null
-  userName: string | null
-  title?: string
+interface ShopPhotoModalProps {
+  photo: ShopPhotoDto | null
+  shopId: string
   onClose: () => void
-  onUpload: (file: File) => Promise<void>
-  onDelete?: () => Promise<void>
+  onDelete: (photoId: string) => void
+  onReplace: (oldId: string, newPhoto: ShopPhotoDto) => void
 }
 
 type Phase = 'view' | 'crop' | 'busy'
 
-export function PhotoEditorModal({
-  open,
-  hasPhoto,
-  photoUrl,
-  userName,
-  title,
+export function ShopPhotoModal({
+  photo,
+  shopId,
   onClose,
-  onUpload,
   onDelete,
-}: PhotoEditorModalProps) {
+  onReplace,
+}: ShopPhotoModalProps) {
   const [phase, setPhase] = useState<Phase>('view')
-  const [srcUrl, setSrcUrl] = useState<string | null>(null)
+  const [confirmDelete, setConfirmDelete] = useState(false)
   const [crop, setCrop] = useState({ x: 0, y: 0 })
   const [zoom, setZoom] = useState(1)
   const [rotation, setRotation] = useState(0)
   const [croppedArea, setCroppedArea] = useState<Area | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [confirmDelete, setConfirmDelete] = useState(false)
-  const inputRef = useRef<HTMLInputElement>(null)
 
-  const resetCropState = () => {
+  const resetCrop = () => {
     setCrop({ x: 0, y: 0 })
     setZoom(1)
     setRotation(0)
@@ -49,45 +43,31 @@ export function PhotoEditorModal({
 
   const handleClose = () => {
     if (phase === 'busy') return
-    if (srcUrl) {
-      URL.revokeObjectURL(srcUrl)
-      setSrcUrl(null)
-    }
-    resetCropState()
-    setError(null)
+    resetCrop()
     setConfirmDelete(false)
+    setError(null)
     setPhase('view')
     onClose()
-  }
-
-  const handleFileSelect = (file: File) => {
-    if (file.size > 5 * 1024 * 1024) {
-      setError('Файл слишком большой (максимум 5 МБ)')
-      return
-    }
-    if (srcUrl) URL.revokeObjectURL(srcUrl)
-    setSrcUrl(URL.createObjectURL(file))
-    resetCropState()
-    setError(null)
-    setPhase('crop')
   }
 
   const handleCropComplete = useCallback((_: Area, pixelCrop: Area) => {
     setCroppedArea(pixelCrop)
   }, [])
 
-  const handleSave = async () => {
-    if (!srcUrl || !croppedArea) return
+  const handleSaveCrop = async () => {
+    if (!photo?.storageUrl || !photo.id || !croppedArea) return
     setPhase('busy')
     setError(null)
     try {
-      const blob = await getCroppedBlob(srcUrl, croppedArea, rotation)
+      const blob = await getCroppedBlob(photo.storageUrl, croppedArea, rotation)
       const file = new File([blob], 'photo.webp', { type: 'image/webp' })
-      await onUpload(file)
-      URL.revokeObjectURL(srcUrl)
-      setSrcUrl(null)
-      resetCropState()
-      setPhase('view')
+      await ShopsService.deleteApiCatalogShopsPhotos({ shopId, photoId: photo.id })
+      const newPhotos = await ShopsService.postApiCatalogShopsPhotos({
+        id: shopId,
+        formData: { images: [file] },
+      })
+      onReplace(photo.id, newPhotos[0])
+      onClose()
     } catch {
       setError('Не удалось сохранить фото')
       setPhase('crop')
@@ -95,13 +75,13 @@ export function PhotoEditorModal({
   }
 
   const handleDelete = async () => {
-    if (!onDelete) return
+    if (!photo?.id) return
     setPhase('busy')
     setError(null)
     try {
-      await onDelete()
-      setConfirmDelete(false)
-      setPhase('view')
+      await ShopsService.deleteApiCatalogShopsPhotos({ shopId, photoId: photo.id })
+      onDelete(photo.id)
+      onClose()
     } catch {
       setError('Не удалось удалить фото')
       setPhase('view')
@@ -110,32 +90,32 @@ export function PhotoEditorModal({
 
   const modal = (
     <AnimatePresence>
-      {open && (
+      {photo && (
         <motion.div
-          key="photo-modal-backdrop"
+          key="shop-photo-backdrop"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.18 }}
-          className="fixed inset-0 z-200 flex items-center justify-center p-4"
-          style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}
+          className="fixed inset-0 z-210 flex items-center justify-center p-4"
+          style={{ background: 'rgba(0,0,0,0.72)', backdropFilter: 'blur(6px)' }}
           onMouseDown={(e) => {
             if (e.target === e.currentTarget) handleClose()
           }}
         >
           <motion.div
-            key="photo-modal-panel"
+            key="shop-photo-panel"
             initial={{ opacity: 0, scale: 0.95, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
             transition={{ duration: 0.18 }}
-            className="relative w-full max-w-sm bg-card border border-border rounded-2xl shadow-2xl overflow-hidden"
+            className="relative w-full max-w-lg bg-card border border-border rounded-2xl shadow-2xl overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
             <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-border">
               <h2 className="text-sm font-semibold text-foreground">
-                {phase === 'crop' ? 'Обрезать фото' : (title ?? 'Фото профиля')}
+                {phase === 'crop' ? 'Обрезать фото' : 'Просмотр фото'}
               </h2>
               <button
                 type="button"
@@ -148,16 +128,15 @@ export function PhotoEditorModal({
             </div>
 
             {/* Body */}
-            {phase === 'crop' && srcUrl ? (
+            {phase === 'crop' ? (
               <div className="flex flex-col">
-                {/* Cropper */}
-                <div className="relative w-full" style={{ height: 280 }}>
+                <div className="relative w-full" style={{ height: 320 }}>
                   <Cropper
-                    image={srcUrl}
+                    image={photo.storageUrl ?? ''}
                     crop={crop}
                     zoom={zoom}
                     rotation={rotation}
-                    aspect={1}
+                    aspect={4 / 3}
                     onCropChange={setCrop}
                     onZoomChange={setZoom}
                     onCropComplete={handleCropComplete}
@@ -168,8 +147,6 @@ export function PhotoEditorModal({
                     }}
                   />
                 </div>
-
-                {/* Controls */}
                 <div className="px-5 py-4 space-y-3">
                   <div className="flex items-center gap-3">
                     <span className="text-xs text-muted-foreground w-8 shrink-0">Zoom</span>
@@ -183,7 +160,6 @@ export function PhotoEditorModal({
                       className="flex-1 h-1.5 accent-primary cursor-pointer"
                     />
                   </div>
-
                   <div className="flex items-center gap-3">
                     <span className="text-xs text-muted-foreground w-8 shrink-0">{rotation}°</span>
                     <div className="flex gap-2">
@@ -192,16 +168,14 @@ export function PhotoEditorModal({
                         onClick={() => setRotation((r) => r - 90)}
                         className="h-8 px-3 rounded-lg border border-border text-sm text-foreground hover:bg-muted transition-colors cursor-pointer flex items-center gap-1.5"
                       >
-                        <RotateCcw className="w-3.5 h-3.5" />
-                        −90°
+                        <RotateCcw className="w-3.5 h-3.5" /> −90°
                       </button>
                       <button
                         type="button"
                         onClick={() => setRotation((r) => r + 90)}
                         className="h-8 px-3 rounded-lg border border-border text-sm text-foreground hover:bg-muted transition-colors cursor-pointer flex items-center gap-1.5"
                       >
-                        <RotateCw className="w-3.5 h-3.5" />
-                        +90°
+                        <RotateCw className="w-3.5 h-3.5" /> +90°
                       </button>
                     </div>
                     {rotation !== 0 && (
@@ -214,19 +188,13 @@ export function PhotoEditorModal({
                       </button>
                     )}
                   </div>
-
                   {error && <p className="text-xs text-destructive">{error}</p>}
-
                   <div className="flex gap-2 pt-1">
                     <button
                       type="button"
                       onClick={() => {
                         setPhase('view')
-                        if (srcUrl) {
-                          URL.revokeObjectURL(srcUrl)
-                          setSrcUrl(null)
-                        }
-                        resetCropState()
+                        resetCrop()
                       }}
                       className="h-9 px-4 rounded-xl border border-border text-sm text-foreground hover:bg-muted transition-colors cursor-pointer"
                     >
@@ -234,12 +202,11 @@ export function PhotoEditorModal({
                     </button>
                     <motion.button
                       type="button"
-                      onClick={() => void handleSave()}
+                      onClick={() => void handleSaveCrop()}
                       whileTap={{ scale: 0.97 }}
                       className="flex-1 h-9 rounded-xl bg-primary text-primary-foreground text-sm font-medium flex items-center justify-center gap-2 hover:bg-primary/90 transition-colors cursor-pointer"
                     >
-                      <Check className="w-4 h-4" />
-                      Сохранить
+                      <Check className="w-4 h-4" /> Сохранить
                     </motion.button>
                   </div>
                 </div>
@@ -249,63 +216,37 @@ export function PhotoEditorModal({
                 <Loader2 className="w-7 h-7 text-primary animate-spin" />
               </div>
             ) : (
-              /* view phase */
-              <div className="p-5 flex flex-col items-center gap-5">
-                {/* Photo preview */}
-                <div className="w-32 h-32 rounded-2xl overflow-hidden bg-muted border border-border shrink-0">
-                  {photoUrl ? (
-                    <img
-                      src={photoUrl}
-                      alt={userName ?? 'Аватар'}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <span className="text-4xl text-muted-foreground/30 select-none">
-                        {userName?.[0]?.toUpperCase() ?? '?'}
-                      </span>
-                    </div>
-                  )}
+              <div className="flex flex-col">
+                {/* Full photo */}
+                <div className="w-full bg-black/20" style={{ maxHeight: 400 }}>
+                  <img
+                    src={photo.storageUrl ?? ''}
+                    alt=""
+                    className="w-full object-contain"
+                    style={{ maxHeight: 400 }}
+                  />
                 </div>
-
-                {error && <p className="text-xs text-destructive text-center">{error}</p>}
-
-                {/* Actions */}
-                <div className="w-full space-y-2">
-                  <motion.button
+                <div className="p-5 space-y-2">
+                  {error && <p className="text-xs text-destructive mb-1">{error}</p>}
+                  <button
                     type="button"
-                    onClick={() => inputRef.current?.click()}
-                    whileTap={{ scale: 0.98 }}
-                    className="w-full h-10 rounded-xl bg-primary text-primary-foreground text-sm font-medium flex items-center justify-center gap-2 hover:bg-primary/90 transition-colors cursor-pointer"
+                    onClick={() => {
+                      setPhase('crop')
+                      resetCrop()
+                    }}
+                    className="w-full h-10 rounded-xl border border-border text-sm text-foreground flex items-center justify-center gap-2 hover:bg-muted transition-colors cursor-pointer"
                   >
-                    <Upload className="w-4 h-4" />
-                    {hasPhoto ? 'Заменить фото' : 'Загрузить фото'}
-                  </motion.button>
-
-                  {hasPhoto && onDelete && (
-                    <ConfirmDelete
-                      confirming={confirmDelete}
-                      onConfirmingChange={setConfirmDelete}
-                      label="Удалить фото"
-                      onConfirm={() => void handleDelete()}
-                    />
-                  )}
+                    <Crop className="w-4 h-4" /> Обрезать
+                  </button>
+                  <ConfirmDelete
+                    confirming={confirmDelete}
+                    onConfirmingChange={setConfirmDelete}
+                    label="Удалить фото"
+                    onConfirm={() => void handleDelete()}
+                  />
                 </div>
               </div>
             )}
-
-            {/* Hidden file input */}
-            <input
-              ref={inputRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={(e) => {
-                const file = e.target.files?.[0]
-                if (file) handleFileSelect(file)
-                e.target.value = ''
-              }}
-            />
           </motion.div>
         </motion.div>
       )}

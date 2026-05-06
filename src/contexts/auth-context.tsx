@@ -44,7 +44,6 @@ function userFromToken(token: string, fallbackEmail?: string): AuthUser {
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null)
-  // true only when there's a stored refresh token that needs to be validated
   const [initializing, setInitializing] = useState(() => !!getStoredRefreshToken())
   const [authPromptOpen, setAuthPromptOpen] = useState(false)
   const navigate = useNavigate()

@@ -11,9 +11,10 @@ const THEMES = [
 interface ThemeToggleProps {
   className?: string
   iconClassName?: string
+  showLabel?: boolean
 }
 
-export function ThemeToggle({ className, iconClassName }: ThemeToggleProps) {
+export function ThemeToggle({ className, iconClassName, showLabel }: ThemeToggleProps) {
   const { theme, setTheme } = useTheme()
 
   const currentIndex = THEMES.findIndex((t) => t.value === theme)
@@ -32,10 +33,12 @@ export function ThemeToggle({ className, iconClassName }: ThemeToggleProps) {
       aria-label={`Сменить тему (сейчас: ${current.label})`}
       className={cn(
         'w-9 h-9 rounded-xl flex items-center justify-center hover:bg-muted transition-colors cursor-pointer',
+        showLabel && 'w-full h-auto px-3 py-2 justify-start gap-3',
         className,
       )}
     >
-      <Icon className={cn('w-4 h-4 text-muted-foreground', iconClassName)} />
+      <Icon className={cn('w-4 h-4 text-muted-foreground shrink-0', iconClassName)} />
+      {showLabel && <span className="text-xs">{current.label}</span>}
     </button>
   )
 }

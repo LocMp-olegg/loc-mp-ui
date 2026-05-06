@@ -1,5 +1,6 @@
-import { createBrowserRouter } from 'react-router-dom'
+import { createBrowserRouter, Navigate } from 'react-router-dom'
 import { Layout } from '@/components/layout/layout'
+import { SellerLayout } from '@/components/layout/seller-layout'
 import { HomePage } from '@/pages/home-page'
 import { CartPage } from '@/pages/cart-page'
 import { FavoritesPage } from '@/pages/favorites-page'
@@ -11,6 +12,12 @@ import { ShopPage } from '@/pages/shop-page'
 import { SellerPage } from '@/pages/seller-page'
 import { ProfilePage } from '@/pages/profile-page'
 import { RequireAuth } from '@/components/auth/require-auth'
+import { ShopsPage } from '@/pages/seller/shops-page'
+import { ShopEditPage } from '@/pages/seller/shop-edit-page'
+import { ProductsPage } from '@/pages/seller/products-page'
+import { ProductEditPage } from '@/pages/seller/product-edit-page'
+import { OrdersPage } from '@/pages/seller/orders-page'
+import { AnalyticsPage } from '@/pages/seller/analytics-page'
 
 export const router = createBrowserRouter([
   {
@@ -22,7 +29,7 @@ export const router = createBrowserRouter([
       { path: 'category/:id', element: <CategoryPage /> },
       { path: 'search', element: <SearchPage /> },
       { path: 'shop/:id', element: <ShopPage /> },
-      { path: 'seller/:id', element: <SellerPage /> },
+      { path: 'sellers/:id', element: <SellerPage /> },
       {
         path: 'cart',
         element: (
@@ -48,6 +55,21 @@ export const router = createBrowserRouter([
         ),
       },
       { path: 'login', element: <LoginPage /> },
+    ],
+  },
+  {
+    path: '/seller',
+    element: <SellerLayout />,
+    children: [
+      { index: true, element: <Navigate to="/seller/shops" replace /> },
+      { path: 'shops', element: <ShopsPage /> },
+      { path: 'shops/new', element: <ShopEditPage /> },
+      { path: 'shops/:shopId/edit', element: <ShopEditPage /> },
+      { path: 'products', element: <ProductsPage /> },
+      { path: 'products/new', element: <ProductEditPage /> },
+      { path: 'products/:productId/edit', element: <ProductEditPage /> },
+      { path: 'orders', element: <OrdersPage /> },
+      { path: 'analytics', element: <AnalyticsPage /> },
     ],
   },
 ])

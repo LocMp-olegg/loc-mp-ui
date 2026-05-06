@@ -28,7 +28,6 @@ export function ProfileInfoForm({ profile, onSave }: ProfileInfoFormProps) {
   const [lastName, setLastName] = useState(profile.lastName ?? '')
   const [gender, setGender] = useState<'Male' | 'Female' | ''>(profile.gender ?? '')
   const [birthDate, setBirthDate] = useState(profile.birthDate ?? '')
-  // phone stored as 10 raw digits (same format as register form)
   const [phoneDigits, setPhoneDigits] = useState(() =>
     (profile.phoneNumber ?? '').replace(/\D/g, '').replace(/^7/, '').slice(0, 10),
   )

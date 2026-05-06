@@ -27,7 +27,6 @@ export function filterToParams(filter: ProductFilter, base: URLSearchParams): UR
   else next.delete('min')
   if (filter.maxPrice !== undefined) next.set('max', String(filter.maxPrice))
   else next.delete('max')
-  // isInStock: true is the default → no param; undefined means "show all" → inStock=false
   if (filter.isInStock !== true) next.set('inStock', 'false')
   else next.delete('inStock')
   return next

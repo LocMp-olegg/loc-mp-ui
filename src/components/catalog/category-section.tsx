@@ -21,7 +21,6 @@ export function CategorySection({ category, onLoadComplete, filterKey, filter }:
   const { products, loading, fetched, visible, ref } = useLazyCategoryProducts(category.id, filter)
   const [api, setApi] = useState<CarouselApi>()
 
-  // Re-report when filterKey changes so parent tracking stays correct
   useEffect(() => {
     if (visible && !loading && fetched) onLoadComplete?.(category.id, products.length > 0)
   }, [visible, loading, fetched, products.length, filterKey, category.id, onLoadComplete])
