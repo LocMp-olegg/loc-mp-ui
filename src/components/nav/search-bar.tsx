@@ -37,7 +37,9 @@ export function SearchBar({ onNavigate, className }: Props) {
       dispatch({ type: 'clear' })
       return
     }
-    const geo = location ? { lat: location.lat, lng: location.lng, radiusKm: location.radius } : undefined
+    const geo = location
+      ? { lat: location.lat, lng: location.lng, radiusKm: location.radius }
+      : undefined
     debounceRef.current = setTimeout(async () => {
       try {
         const results = await fetchSearchSuggestions(query.trim(), geo)
@@ -49,7 +51,7 @@ export function SearchBar({ onNavigate, className }: Props) {
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current)
     }
-  }, [query])
+  }, [location, query])
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {

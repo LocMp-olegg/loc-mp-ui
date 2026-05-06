@@ -66,7 +66,7 @@ export function AddressDropdown({ onOpenPicker, scrolled, className }: Props) {
   }
 
   const buttonLabel = activeAddr
-    ? (activeAddr.title || formatShort(activeAddr))
+    ? activeAddr.title || formatShort(activeAddr)
     : location
       ? location.label
       : 'Выбрать район'
@@ -91,7 +91,9 @@ export function AddressDropdown({ onOpenPicker, scrolled, className }: Props) {
         transition={{ type: 'spring', stiffness: 500, damping: 30 }}
         className="flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap"
       >
-        <MapPin className={cn('w-5 h-5 shrink-0', hasLocation ? 'text-accent' : 'text-nav-text/70')} />
+        <MapPin
+          className={cn('w-5 h-5 shrink-0', hasLocation ? 'text-accent' : 'text-nav-text/70')}
+        />
         <AnimatePresence initial={false}>
           {!scrolled && (
             <motion.span
@@ -104,7 +106,9 @@ export function AddressDropdown({ onOpenPicker, scrolled, className }: Props) {
             >
               <span className="truncate max-w-28">{buttonLabel}</span>
               {hasLocation && location && (
-                <span className="text-xs text-nav-text/50 shrink-0">· {formatRadius(location.radius)}</span>
+                <span className="text-xs text-nav-text/50 shrink-0">
+                  · {formatRadius(location.radius)}
+                </span>
               )}
               <ChevronDown
                 className={cn(
@@ -152,11 +156,17 @@ export function AddressDropdown({ onOpenPicker, scrolled, className }: Props) {
                         ) : null}
                       </div>
                       <div className="min-w-0">
-                        <p className={cn('text-sm truncate', isActive ? 'text-accent font-medium' : 'text-nav-text/80')}>
+                        <p
+                          className={cn(
+                            'text-sm truncate',
+                            isActive ? 'text-accent font-medium' : 'text-nav-text/80',
+                          )}
+                        >
                           {addr.title || 'Адрес'}
                         </p>
                         <p className="text-xs text-nav-text/45 truncate mt-0.5">
-                          {formatShort(addr)}{addr.city ? ` · ${addr.city}` : ''}
+                          {formatShort(addr)}
+                          {addr.city ? ` · ${addr.city}` : ''}
                         </p>
                       </div>
                     </button>

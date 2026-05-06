@@ -4,7 +4,11 @@ import { MapPin, Plus, Pencil, Trash2, Star } from 'lucide-react'
 import { useAddresses } from '@/contexts/addresses-context'
 import { AddressFormModal } from './address-form-modal'
 import { cn } from '@/lib/utils'
-import type { UserAddressDto, CreateUserAddressRequest, UpdateUserAddressRequest } from '@/api/identity'
+import type {
+  UserAddressDto,
+  CreateUserAddressRequest,
+  UpdateUserAddressRequest,
+} from '@/api/identity'
 
 function formatAddress(addr: UserAddressDto): string {
   const street = [addr.street, addr.houseNumber].filter(Boolean).join(', ')
@@ -50,9 +54,7 @@ function AddressCard({ address, onEdit, onDelete, onSetDefault }: AddressCardPro
 
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-sm font-medium text-foreground">
-            {address.title || 'Адрес'}
-          </span>
+          <span className="text-sm font-medium text-foreground">{address.title || 'Адрес'}</span>
           {address.isDefault && (
             <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-primary/12 text-primary border border-primary/25">
               <Star className="w-2.5 h-2.5 fill-current" />
@@ -63,9 +65,7 @@ function AddressCard({ address, onEdit, onDelete, onSetDefault }: AddressCardPro
         {formatAddress(address) && (
           <p className="text-sm text-muted-foreground mt-0.5 truncate">{formatAddress(address)}</p>
         )}
-        {address.city && (
-          <p className="text-xs text-muted-foreground/70 mt-0.5">{address.city}</p>
-        )}
+        {address.city && <p className="text-xs text-muted-foreground/70 mt-0.5">{address.city}</p>}
       </div>
 
       <div className="flex items-center gap-1 shrink-0">

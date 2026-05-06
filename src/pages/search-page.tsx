@@ -57,7 +57,9 @@ export function SearchPage() {
   const pageRef = useRef(1)
   const { sort, minPrice, maxPrice, isInStock } = filter
   const { location } = useUserLocation()
-  const geo = location ? { lat: location.lat, lng: location.lng, radiusKm: location.radius } : undefined
+  const geo = location
+    ? { lat: location.lat, lng: location.lng, radiusKm: location.radius }
+    : undefined
 
   useEffect(() => {
     pageRef.current = 1

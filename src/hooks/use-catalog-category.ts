@@ -60,11 +60,10 @@ export function useCatalogCategory(categoryId: string, filter: ProductFilter = {
   const { sort, minPrice, maxPrice, isInStock } = filter
   const { location } = useUserLocation()
 
-  const geo: GeoFilter | undefined = location
-    ? { lat: location.lat, lng: location.lng, radiusKm: location.radius }
-    : undefined
-
   useEffect(() => {
+    const geo: GeoFilter | undefined = location
+      ? { lat: location.lat, lng: location.lng, radiusKm: location.radius }
+      : undefined
     let cancelled = false
     pageRef.current = 1
     dispatch({ type: 'fetching' })
@@ -91,9 +90,12 @@ export function useCatalogCategory(categoryId: string, filter: ProductFilter = {
     return () => {
       cancelled = true
     }
-  }, [categoryId, sort, minPrice, maxPrice, isInStock, location?.lat, location?.lng, location?.radius]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [categoryId, sort, minPrice, maxPrice, isInStock, location])
 
   const loadMore = useCallback(() => {
+    const geo: GeoFilter | undefined = location
+      ? { lat: location.lat, lng: location.lng, radiusKm: location.radius }
+      : undefined
     pageRef.current += 1
     dispatch({ type: 'fetching' })
 
@@ -113,7 +115,7 @@ export function useCatalogCategory(categoryId: string, filter: ProductFilter = {
           message: err instanceof Error ? err.message : 'Ошибка загрузки',
         }),
       )
-  }, [categoryId, sort, minPrice, maxPrice, isInStock, location?.lat, location?.lng, location?.radius]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [categoryId, sort, minPrice, maxPrice, isInStock, location])
 
   const data = state.info ? { ...state.info, products: state.products } : null
 

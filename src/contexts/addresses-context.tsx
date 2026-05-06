@@ -1,4 +1,11 @@
-import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react'
+import {
+  createContext,
+  useContext,
+  useReducer,
+  useEffect,
+  useCallback,
+  type ReactNode,
+} from 'react'
 import {
   UserAddressesService,
   type UserAddressDto,
@@ -17,38 +24,79 @@ interface AddressesContextType {
   setDefault: (id: string) => Promise<void>
 }
 
+interface State {
+  addresses: UserAddressDto[]
+  loading: boolean
+  error: string | null
+}
+
+type Action =
+  | { type: 'reset' }
+  | { type: 'loading' }
+  | { type: 'loaded'; data: UserAddressDto[] }
+  | { type: 'error' }
+  | { type: 'set'; updater: (prev: UserAddressDto[]) => UserAddressDto[] }
+
+function reducer(state: State, action: Action): State {
+  switch (action.type) {
+    case 'reset':
+      return { addresses: [], loading: false, error: null }
+    case 'loading':
+      return { ...state, loading: true, error: null }
+    case 'loaded':
+      return { addresses: action.data, loading: false, error: null }
+    case 'error':
+      return { ...state, loading: false, error: 'Не удалось загрузить адреса' }
+    case 'set':
+      return { ...state, addresses: action.updater(state.addresses) }
+  }
+}
+
 const AddressesContext = createContext<AddressesContextType | null>(null)
 
 export function AddressesProvider({ children }: { children: ReactNode }) {
   const { isAuthenticated } = useAuth()
-  const [addresses, setAddresses] = useState<UserAddressDto[]>([])
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [{ addresses, loading, error }, dispatch] = useReducer(reducer, {
+    addresses: [],
+    loading: false,
+    error: null,
+  })
 
   useEffect(() => {
     if (!isAuthenticated) {
-      setAddresses([])
+      dispatch({ type: 'reset' })
       return
     }
     let cancelled = false
-    setLoading(true)
-    setError(null)
+    dispatch({ type: 'loading' })
     UserAddressesService.getApiIdentityProfileAddresses()
-      .then((data) => { if (!cancelled) setAddresses(data) })
-      .catch(() => { if (!cancelled) setError('Не удалось загрузить адреса') })
-      .finally(() => { if (!cancelled) setLoading(false) })
-    return () => { cancelled = true }
+      .then((data) => {
+        if (!cancelled) dispatch({ type: 'loaded', data })
+      })
+      .catch(() => {
+        if (!cancelled) dispatch({ type: 'error' })
+      })
+    return () => {
+      cancelled = true
+    }
   }, [isAuthenticated])
 
-  const createAddress = useCallback(async (data: CreateUserAddressRequest): Promise<UserAddressDto> => {
-    const created = await UserAddressesService.postApiIdentityProfileAddresses({ requestBody: data })
-    setAddresses((prev) =>
-      data.isDefault
-        ? [...prev.map((a) => ({ ...a, isDefault: false })), created]
-        : [...prev, created],
-    )
-    return created
-  }, [])
+  const createAddress = useCallback(
+    async (data: CreateUserAddressRequest): Promise<UserAddressDto> => {
+      const created = await UserAddressesService.postApiIdentityProfileAddresses({
+        requestBody: data,
+      })
+      dispatch({
+        type: 'set',
+        updater: (prev) =>
+          data.isDefault
+            ? [...prev.map((a) => ({ ...a, isDefault: false })), created]
+            : [...prev, created],
+      })
+      return created
+    },
+    [],
+  )
 
   const updateAddress = useCallback(
     async (id: string, data: UpdateUserAddressRequest): Promise<UserAddressDto> => {
@@ -56,7 +104,7 @@ export function AddressesProvider({ children }: { children: ReactNode }) {
         addressId: id,
         requestBody: data,
       })
-      setAddresses((prev) => prev.map((a) => (a.id === id ? updated : a)))
+      dispatch({ type: 'set', updater: (prev) => prev.map((a) => (a.id === id ? updated : a)) })
       return updated
     },
     [],
@@ -64,16 +112,21 @@ export function AddressesProvider({ children }: { children: ReactNode }) {
 
   const deleteAddress = useCallback(async (id: string): Promise<void> => {
     await UserAddressesService.deleteApiIdentityProfileAddresses({ addressId: id })
-    setAddresses((prev) => prev.filter((a) => a.id !== id))
+    dispatch({ type: 'set', updater: (prev) => prev.filter((a) => a.id !== id) })
   }, [])
 
   const setDefault = useCallback(async (id: string): Promise<void> => {
     await UserAddressesService.postApiIdentityProfileAddressesSetDefault({ addressId: id })
-    setAddresses((prev) => prev.map((a) => ({ ...a, isDefault: a.id === id })))
+    dispatch({
+      type: 'set',
+      updater: (prev) => prev.map((a) => ({ ...a, isDefault: a.id === id })),
+    })
   }, [])
 
   return (
-    <AddressesContext.Provider value={{ addresses, loading, error, createAddress, updateAddress, deleteAddress, setDefault }}>
+    <AddressesContext.Provider
+      value={{ addresses, loading, error, createAddress, updateAddress, deleteAddress, setDefault }}
+    >
       {children}
     </AddressesContext.Provider>
   )

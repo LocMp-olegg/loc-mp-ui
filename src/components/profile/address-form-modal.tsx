@@ -10,7 +10,11 @@ import { MapClickHandler, MapRecenter } from '@/lib/map-utils'
 import { useAddressSuggestions } from '@/hooks/use-address-suggestions'
 import { reverseGeocodeStructured } from '@/lib/geo'
 import { cn } from '@/lib/utils'
-import type { UserAddressDto, CreateUserAddressRequest, UpdateUserAddressRequest } from '@/api/identity'
+import type {
+  UserAddressDto,
+  CreateUserAddressRequest,
+  UpdateUserAddressRequest,
+} from '@/api/identity'
 import type { GeoSuggestion } from '@/lib/geo'
 
 const markerIcon = L.divIcon({
@@ -67,8 +71,8 @@ export function AddressFormModal({ initial, onClose, onSave }: Props) {
   const [recenter, setRecenter] = useState(false)
   const [saving, setSaving] = useState(false)
   const [loadingGeo, setLoadingGeo] = useState(false)
-  const [errors, setErrors] = useState<FormErrors>({})
   const [submitted, setSubmitted] = useState(false)
+  const errors: FormErrors = submitted ? validate({ title, city, street, houseNumber }) : {}
   const [confirmClose, setConfirmClose] = useState(false)
 
   const isDirty = useMemo(() => {
@@ -102,11 +106,6 @@ export function AddressFormModal({ initial, onClose, onSave }: Props) {
 
   const searchRef = useRef<HTMLDivElement>(null)
   const { suggestions, showSuggestions, dispatchSug } = useAddressSuggestions(search, searchLabel)
-
-  useEffect(() => {
-    if (!submitted) return
-    setErrors(validate({ title, city, street, houseNumber }))
-  }, [title, city, street, houseNumber, submitted])
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -153,7 +152,6 @@ export function AddressFormModal({ initial, onClose, onSave }: Props) {
   const handleSave = async () => {
     setSubmitted(true)
     const errs = validate({ title, city, street, houseNumber })
-    setErrors(errs)
     if (Object.keys(errs).length > 0) return
 
     setSaving(true)
@@ -256,7 +254,10 @@ export function AddressFormModal({ initial, onClose, onSave }: Props) {
           </div>
 
           {/* Map */}
-          <div className="relative rounded-xl overflow-hidden border border-border isolate" style={{ height: 200 }}>
+          <div
+            className="relative rounded-xl overflow-hidden border border-border isolate"
+            style={{ height: 200 }}
+          >
             <MapContainer
               center={mapCenter}
               zoom={lat !== null ? 16 : 10}
@@ -273,12 +274,16 @@ export function AddressFormModal({ initial, onClose, onSave }: Props) {
             </MapContainer>
             {loadingGeo && (
               <div className="absolute inset-0 flex items-center justify-center bg-background/50 backdrop-blur-sm pointer-events-none">
-                <span className="text-xs text-muted-foreground animate-pulse">Определяю адрес...</span>
+                <span className="text-xs text-muted-foreground animate-pulse">
+                  Определяю адрес...
+                </span>
               </div>
             )}
             {lat === null && (
               <div className="absolute inset-0 flex items-center justify-center bg-background/30 pointer-events-none">
-                <span className="text-xs text-muted-foreground/70">Найдите адрес или кликните на карту</span>
+                <span className="text-xs text-muted-foreground/70">
+                  Найдите адрес или кликните на карту
+                </span>
               </div>
             )}
           </div>
@@ -348,7 +353,9 @@ export function AddressFormModal({ initial, onClose, onSave }: Props) {
           {/* Квартира + Подъезд + Этаж */}
           <div className="grid grid-cols-3 gap-3">
             <div>
-              <label className="block text-xs font-medium text-muted-foreground mb-1.5">Квартира</label>
+              <label className="block text-xs font-medium text-muted-foreground mb-1.5">
+                Квартира
+              </label>
               <input
                 type="text"
                 value={apartment}
@@ -358,7 +365,9 @@ export function AddressFormModal({ initial, onClose, onSave }: Props) {
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-muted-foreground mb-1.5">Подъезд</label>
+              <label className="block text-xs font-medium text-muted-foreground mb-1.5">
+                Подъезд
+              </label>
               <input
                 type="text"
                 value={entrance}
@@ -424,7 +433,9 @@ export function AddressFormModal({ initial, onClose, onSave }: Props) {
             >
               <div className="flex flex-col items-center gap-4 px-6 text-center">
                 <p className="text-sm font-semibold text-foreground">Несохранённые изменения</p>
-                <p className="text-xs text-muted-foreground">Вы уверены, что хотите закрыть? Изменения будут потеряны.</p>
+                <p className="text-xs text-muted-foreground">
+                  Вы уверены, что хотите закрыть? Изменения будут потеряны.
+                </p>
                 <div className="flex gap-3">
                   <button
                     onClick={() => setConfirmClose(false)}

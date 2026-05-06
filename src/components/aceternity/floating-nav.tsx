@@ -235,10 +235,7 @@ export function FloatingNav() {
             </Link>
 
             {!initializing && isAuthenticated ? (
-              <AddressDropdown
-                onOpenPicker={() => setPickerOpen(true)}
-                scrolled={scrolled}
-              />
+              <AddressDropdown onOpenPicker={() => setPickerOpen(true)} scrolled={scrolled} />
             ) : !initializing ? (
               <div className="relative group/loc shrink-0">
                 <motion.button
@@ -487,7 +484,9 @@ function MobileAddressSection({
         onClick={() => setExpanded((o) => !o)}
         className="w-full flex items-center gap-3 px-4 py-3.5 text-sm text-nav-text/80 hover:bg-white/5 transition-colors cursor-pointer border-b border-white/8"
       >
-        <MapPin className={cn('w-5 h-5 shrink-0', hasLocation ? 'text-accent' : 'text-nav-text/50')} />
+        <MapPin
+          className={cn('w-5 h-5 shrink-0', hasLocation ? 'text-accent' : 'text-nav-text/50')}
+        />
         <span className="flex-1 text-left truncate">
           {location ? location.label : 'Выбрать район'}
         </span>
@@ -534,7 +533,12 @@ function MobileAddressSection({
                         ) : null}
                       </div>
                       <div className="min-w-0">
-                        <p className={cn('text-sm truncate', isActive ? 'text-accent font-medium' : 'text-nav-text/80')}>
+                        <p
+                          className={cn(
+                            'text-sm truncate',
+                            isActive ? 'text-accent font-medium' : 'text-nav-text/80',
+                          )}
+                        >
                           {addr.title || 'Адрес'}
                         </p>
                         <p className="text-xs text-nav-text/45 truncate">
@@ -584,7 +588,10 @@ function MobileAddressSection({
               </button>
             )}
             <button
-              onClick={() => { onOpenPicker(); onClose() }}
+              onClick={() => {
+                onOpenPicker()
+                onClose()
+              }}
               className="w-full flex items-center gap-3 px-4 py-3 text-sm text-nav-text/70 hover:bg-white/5 transition-colors cursor-pointer"
             >
               <Map className="w-4 h-4 shrink-0 text-nav-text/40" />
