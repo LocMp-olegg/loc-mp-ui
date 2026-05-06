@@ -16,13 +16,5 @@ export function useMapHandlers({ applyPoint, dispatchSug }: MapHandlersOptions) 
     [applyPoint, dispatchSug],
   )
 
-  const handleGeolocate = useCallback(() => {
-    navigator.geolocation.getCurrentPosition(
-      (pos) => void applyPoint(pos.coords.latitude, pos.coords.longitude),
-      () => {},
-      { timeout: 5000 },
-    )
-  }, [applyPoint])
-
-  return { handleSuggestionSelect, handleGeolocate }
+  return { handleSuggestionSelect }
 }

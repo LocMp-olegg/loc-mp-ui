@@ -4,13 +4,14 @@ import { motion } from 'framer-motion'
 import { MapContainer, TileLayer, Marker, Circle } from 'react-leaflet'
 import { MOSCOW } from '@/lib/map-constants'
 import { MapClickHandler, MapRecenter } from '@/lib/map-utils'
-import { X, Locate, Search, MapPin } from 'lucide-react'
+import { X, Search, MapPin } from 'lucide-react'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { useUserLocation, type UserLocation } from '@/contexts/location-context'
 import { useAddressSuggestions } from '@/hooks/use-address-suggestions'
 import { useApplyPoint } from '@/hooks/use-apply-point'
 import { useMapHandlers } from '@/hooks/use-map-handlers'
+import { RadiusInput } from '@/components/ui/radius-input'
 import { cn } from '@/lib/utils'
 
 const markerIcon = L.divIcon({
@@ -41,6 +42,27 @@ export function LocationPicker({ onClose }: Props) {
   const [loadingGeo, setLoadingGeo] = useState(false)
   const [recenter, setRecenter] = useState(false)
 
+  const [unit, setUnit] = useState<'m' | 'km'>('km')
+  const [customInput, setCustomInput] = useState(() => String(location?.radius ?? 1))
+
+  const handleChipClick = (r: number) => {
+    setRadius(r)
+    setCustomInput(unit === 'km' ? String(r) : String(Math.round(r * 1000)))
+  }
+
+  const handleCustomInput = (val: string) => {
+    setCustomInput(val)
+    const num = parseFloat(val)
+    if (!val || isNaN(num) || num <= 0) return
+    setRadius(unit === 'km' ? num : num / 1000)
+  }
+
+  const handleUnitToggle = (next: 'm' | 'km') => {
+    if (next === unit) return
+    setUnit(next)
+    setCustomInput(next === 'km' ? String(radius) : String(Math.round(radius * 1000)))
+  }
+
   const searchRef = useRef<HTMLDivElement>(null)
 
   const { suggestions, showSuggestions, dispatchSug } = useAddressSuggestions(search, label)
@@ -69,7 +91,7 @@ export function LocationPicker({ onClose }: Props) {
     return () => document.removeEventListener('mousedown', handler)
   }, [dispatchSug])
 
-  const { handleSuggestionSelect, handleGeolocate } = useMapHandlers({ applyPoint, dispatchSug })
+  const { handleSuggestionSelect } = useMapHandlers({ applyPoint, dispatchSug })
 
   const handleSave = useCallback(() => {
     const loc: UserLocation = {
@@ -190,7 +212,7 @@ export function LocationPicker({ onClose }: Props) {
               {RADIUS_OPTIONS.map((r) => (
                 <button
                   key={r}
-                  onClick={() => setRadius(r)}
+                  onClick={() => handleChipClick(r)}
                   className={cn(
                     'px-2.5 py-1 rounded-lg text-xs border transition-colors cursor-pointer',
                     radius === r
@@ -202,16 +224,16 @@ export function LocationPicker({ onClose }: Props) {
                 </button>
               ))}
             </div>
+
+            <RadiusInput
+              unit={unit}
+              value={customInput}
+              onChange={handleCustomInput}
+              onUnitToggle={handleUnitToggle}
+            />
           </div>
 
           <div className="flex gap-2">
-            <button
-              onClick={handleGeolocate}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-white/10 text-sm text-nav-text/60 hover:text-nav-text hover:border-white/20 transition-colors cursor-pointer"
-            >
-              <Locate className="w-4 h-4" />
-              Моё место
-            </button>
             <button
               onClick={() => {
                 clearLocation()
