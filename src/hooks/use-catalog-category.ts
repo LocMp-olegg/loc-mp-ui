@@ -1,7 +1,8 @@
 import { useReducer, useEffect, useRef, useCallback } from 'react'
 import { fetchCategoryById } from '@/lib/catalog'
-import type { ProductFilter } from '@/lib/catalog'
+import type { ProductFilter, GeoFilter } from '@/lib/catalog'
 import type { Product } from '@/types/product'
+import { useUserLocation } from '@/contexts/location-context'
 
 interface CategoryInfo {
   id: string
@@ -57,13 +58,18 @@ export function useCatalogCategory(categoryId: string, filter: ProductFilter = {
   const [state, dispatch] = useReducer(reducer, INITIAL_STATE)
   const pageRef = useRef(1)
   const { sort, minPrice, maxPrice, isInStock } = filter
+  const { location } = useUserLocation()
+
+  const geo: GeoFilter | undefined = location
+    ? { lat: location.lat, lng: location.lng, radiusKm: location.radius }
+    : undefined
 
   useEffect(() => {
     let cancelled = false
     pageRef.current = 1
     dispatch({ type: 'fetching' })
 
-    fetchCategoryById(categoryId, 1, 20, { sort, minPrice, maxPrice, isInStock })
+    fetchCategoryById(categoryId, 1, 20, { sort, minPrice, maxPrice, isInStock }, geo)
       .then((data) => {
         if (!cancelled)
           dispatch({
@@ -85,13 +91,13 @@ export function useCatalogCategory(categoryId: string, filter: ProductFilter = {
     return () => {
       cancelled = true
     }
-  }, [categoryId, sort, minPrice, maxPrice, isInStock])
+  }, [categoryId, sort, minPrice, maxPrice, isInStock, location?.lat, location?.lng, location?.radius]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadMore = useCallback(() => {
     pageRef.current += 1
     dispatch({ type: 'fetching' })
 
-    fetchCategoryById(categoryId, pageRef.current, 20, { sort, minPrice, maxPrice, isInStock })
+    fetchCategoryById(categoryId, pageRef.current, 20, { sort, minPrice, maxPrice, isInStock }, geo)
       .then((data) =>
         dispatch({
           type: 'fetched',
@@ -107,7 +113,7 @@ export function useCatalogCategory(categoryId: string, filter: ProductFilter = {
           message: err instanceof Error ? err.message : 'Ошибка загрузки',
         }),
       )
-  }, [categoryId, sort, minPrice, maxPrice, isInStock])
+  }, [categoryId, sort, minPrice, maxPrice, isInStock, location?.lat, location?.lng, location?.radius]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const data = state.info ? { ...state.info, products: state.products } : null
 

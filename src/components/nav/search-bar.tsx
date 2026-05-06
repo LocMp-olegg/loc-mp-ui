@@ -5,6 +5,7 @@ import { fetchSearchSuggestions } from '@/lib/catalog'
 import type { Product } from '@/types/product'
 import { cn } from '@/lib/utils'
 import noImageUrl from '@/assets/no-image-available.jpg'
+import { useUserLocation } from '@/contexts/location-context'
 
 type SugState = { suggestions: Product[]; open: boolean }
 type SugAction = { type: 'set'; items: Product[] } | { type: 'clear' }
@@ -28,6 +29,7 @@ export function SearchBar({ onNavigate, className }: Props) {
   const navigate = useNavigate()
   const containerRef = useRef<HTMLDivElement>(null)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const { location } = useUserLocation()
 
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current)
@@ -35,9 +37,10 @@ export function SearchBar({ onNavigate, className }: Props) {
       dispatch({ type: 'clear' })
       return
     }
+    const geo = location ? { lat: location.lat, lng: location.lng, radiusKm: location.radius } : undefined
     debounceRef.current = setTimeout(async () => {
       try {
-        const results = await fetchSearchSuggestions(query.trim())
+        const results = await fetchSearchSuggestions(query.trim(), geo)
         dispatch({ type: 'set', items: results })
       } catch {
         dispatch({ type: 'clear' })
