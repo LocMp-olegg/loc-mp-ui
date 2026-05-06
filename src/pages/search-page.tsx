@@ -188,7 +188,7 @@ export function SearchPage() {
             </div>
           </div>
           <h3 className="text-lg font-semibold text-foreground mb-2">Ничего не нашли</h3>
-          <p className="text-muted-foreground text-sm max-w-xs break-all">
+          <p className="text-muted-foreground text-sm max-w-xs">
             По запросу <span className="text-foreground font-medium">«{query}»</span> товаров не
             найдено. Попробуйте другое слово или измените запрос.
           </p>

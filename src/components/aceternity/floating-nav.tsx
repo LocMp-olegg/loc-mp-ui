@@ -14,18 +14,34 @@ import {
   Settings,
   ChevronRight,
   Store,
+  Check,
+  Star,
+  Map,
 } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useCart } from '@/contexts/cart-context'
 import { useFavorites } from '@/contexts/favorites-context'
 import { useUserLocation } from '@/contexts/location-context'
 import { useAuth } from '@/contexts/auth-context'
+import { useAddresses } from '@/contexts/addresses-context'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { LocationPicker } from '@/components/location/location-picker'
 import { AddressDropdown } from '@/components/location/address-dropdown'
 import { SearchBar } from '@/components/nav/search-bar'
 import { useTheme } from '@/contexts/theme-context'
 import { cn } from '@/lib/utils'
+import type { UserAddressDto } from '@/api/identity'
+
+const RADIUS_PRESETS = [0.5, 1, 2, 3, 5]
+
+function fmtShort(addr: UserAddressDto): string {
+  const street = [addr.street, addr.houseNumber].filter(Boolean).join(', ')
+  return street || addr.city || 'Адрес'
+}
+
+function fmtRadius(km: number): string {
+  return km < 1 ? `${Math.round(km * 1000)} м` : `${km} км`
+}
 
 const THEME_ICONS = { light: Sun, dark: Moon, system: Monitor } as const
 const THEME_LABELS = { light: 'Светлая', dark: 'Тёмная', system: 'Системная' } as const
@@ -345,27 +361,30 @@ export function FloatingNav() {
               </div>
 
               <div className="overflow-hidden rounded-b-2xl">
-                <button
-                  onClick={() => {
-                    setPickerOpen(true)
-                    setMenuOpen(false)
-                  }}
-                  className="w-full flex items-center gap-3 px-4 py-3.5 text-sm text-nav-text/80 hover:bg-white/5 transition-colors cursor-pointer border-b border-white/8"
-                >
-                  <MapPin
-                    className={`w-5 h-5 shrink-0 ${location ? 'text-accent' : 'text-nav-text/50'}`}
+                {!initializing && isAuthenticated ? (
+                  <MobileAddressSection
+                    onClose={() => setMenuOpen(false)}
+                    onOpenPicker={() => setPickerOpen(true)}
                   />
-                  <span className="flex-1 text-left">
-                    {location ? location.label : 'Выбрать район'}
-                  </span>
-                  {location && (
-                    <span className="text-xs text-nav-text/40">
-                      {location.radius < 1
-                        ? `${Math.round(location.radius * 1000)} м`
-                        : `${location.radius} км`}
+                ) : (
+                  <button
+                    onClick={() => {
+                      setPickerOpen(true)
+                      setMenuOpen(false)
+                    }}
+                    className="w-full flex items-center gap-3 px-4 py-3.5 text-sm text-nav-text/80 hover:bg-white/5 transition-colors cursor-pointer border-b border-white/8"
+                  >
+                    <MapPin
+                      className={`w-5 h-5 shrink-0 ${location ? 'text-accent' : 'text-nav-text/50'}`}
+                    />
+                    <span className="flex-1 text-left">
+                      {location ? location.label : 'Выбрать район'}
                     </span>
-                  )}
-                </button>
+                    {location && (
+                      <span className="text-xs text-nav-text/40">{fmtRadius(location.radius)}</span>
+                    )}
+                  </button>
+                )}
 
                 <div className="flex flex-col py-1">
                   {!initializing && isAuthenticated ? (
@@ -434,6 +453,153 @@ export function FloatingNav() {
 
       <AnimatePresence>
         {pickerOpen && <LocationPicker onClose={() => setPickerOpen(false)} />}
+      </AnimatePresence>
+    </>
+  )
+}
+
+function MobileAddressSection({
+  onClose,
+  onOpenPicker,
+}: {
+  onClose: () => void
+  onOpenPicker: () => void
+}) {
+  const { addresses, loading } = useAddresses()
+  const { location, setLocation, clearLocation } = useUserLocation()
+  const [expanded, setExpanded] = useState(false)
+
+  const hasLocation = !!location
+
+  const handleSelect = (addr: UserAddressDto) => {
+    if (addr.latitude == null || addr.longitude == null) return
+    setLocation({
+      lat: addr.latitude,
+      lng: addr.longitude,
+      label: addr.title || fmtShort(addr),
+      radius: location?.radius ?? 1,
+    })
+  }
+
+  return (
+    <>
+      <button
+        onClick={() => setExpanded((o) => !o)}
+        className="w-full flex items-center gap-3 px-4 py-3.5 text-sm text-nav-text/80 hover:bg-white/5 transition-colors cursor-pointer border-b border-white/8"
+      >
+        <MapPin className={cn('w-5 h-5 shrink-0', hasLocation ? 'text-accent' : 'text-nav-text/50')} />
+        <span className="flex-1 text-left truncate">
+          {location ? location.label : 'Выбрать район'}
+        </span>
+        {hasLocation && location && (
+          <span className="text-xs text-nav-text/40 shrink-0">{fmtRadius(location.radius)}</span>
+        )}
+        <ChevronRight
+          className={cn(
+            'w-4 h-4 text-nav-text/40 shrink-0 transition-transform duration-150 rotate-90',
+            expanded && 'rotate-270',
+          )}
+        />
+      </button>
+
+      <AnimatePresence>
+        {expanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.15 }}
+            className="overflow-hidden border-b border-white/8"
+          >
+            {!loading && addresses.length > 0 && (
+              <div className="pt-1.5">
+                <p className="text-[10px] font-semibold text-nav-text/40 uppercase tracking-wider px-4 pb-1">
+                  Мои адреса
+                </p>
+                {addresses.map((addr) => {
+                  const isActive =
+                    addr.latitude === location?.lat && addr.longitude === location?.lng
+                  return (
+                    <button
+                      key={addr.id}
+                      onClick={() => handleSelect(addr)}
+                      disabled={addr.latitude == null}
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-left hover:bg-white/5 transition-colors cursor-pointer disabled:opacity-40"
+                    >
+                      <div className="w-4 shrink-0">
+                        {isActive ? (
+                          <Check className="w-3.5 h-3.5 text-accent" />
+                        ) : addr.isDefault ? (
+                          <Star className="w-3 h-3 text-nav-text/30 fill-current" />
+                        ) : null}
+                      </div>
+                      <div className="min-w-0">
+                        <p className={cn('text-sm truncate', isActive ? 'text-accent font-medium' : 'text-nav-text/80')}>
+                          {addr.title || 'Адрес'}
+                        </p>
+                        <p className="text-xs text-nav-text/45 truncate">
+                          {fmtShort(addr)}
+                          {addr.city ? ` · ${addr.city}` : ''}
+                        </p>
+                      </div>
+                    </button>
+                  )
+                })}
+              </div>
+            )}
+
+            {/* Radius chips */}
+            {hasLocation && location && (
+              <div className="px-4 py-3">
+                <p className="text-[10px] font-semibold text-nav-text/40 uppercase tracking-wider mb-2">
+                  Радиус поиска
+                </p>
+                <div className="flex gap-1.5">
+                  {RADIUS_PRESETS.map((r) => (
+                    <button
+                      key={r}
+                      onClick={() => setLocation({ ...location, radius: r })}
+                      className={cn(
+                        'flex-1 py-1.5 rounded-lg text-xs transition-colors cursor-pointer',
+                        location.radius === r
+                          ? 'bg-accent/20 text-accent font-semibold'
+                          : 'text-nav-text/55 hover:bg-white/8 hover:text-nav-text',
+                      )}
+                    >
+                      {fmtRadius(r)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Actions */}
+            {hasLocation && (
+              <button
+                onClick={clearLocation}
+                className="w-full flex items-center gap-3 px-4 py-3 text-sm text-nav-text/70 hover:bg-white/5 transition-colors cursor-pointer"
+              >
+                <MapPin className="w-4 h-4 shrink-0 text-nav-text/40" />
+                Весь каталог
+              </button>
+            )}
+            <button
+              onClick={() => { onOpenPicker(); onClose() }}
+              className="w-full flex items-center gap-3 px-4 py-3 text-sm text-nav-text/70 hover:bg-white/5 transition-colors cursor-pointer"
+            >
+              <Map className="w-4 h-4 shrink-0 text-nav-text/40" />
+              Выбрать на карте
+            </button>
+            <Link
+              to="/profile"
+              onClick={onClose}
+              className="w-full flex items-center gap-3 px-4 py-3 text-sm text-nav-text/70 hover:bg-white/5 transition-colors"
+            >
+              <MapPin className="w-4 h-4 shrink-0 text-nav-text/40" />
+              Управлять адресами
+            </Link>
+          </motion.div>
+        )}
       </AnimatePresence>
     </>
   )
