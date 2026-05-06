@@ -35,7 +35,7 @@ function reducer(state: State, action: Action): State {
     return {
       ...state,
       localAdded: state.localAdded.filter((t) => !action.initialTags.includes(t.name ?? '')),
-      deletedIds: new Set(), // parent reloaded → deleted tags are gone from server
+      deletedIds: new Set(),
     }
   }
   return state
@@ -67,12 +67,10 @@ export function ProductTagsSection({ productId, initialTags }: ProductTagsSectio
     dispatch({ type: 'sync', initialTags })
   }, [initialTags])
 
-  // Resolve initialTags names → TagDto via allTagsMap, skip deleted
   const resolvedInitial: TagDto[] = initialTags
     .map((name) => state.allTagsMap.get(name) ?? state.localAdded.find((t) => t.name === name))
     .filter((t): t is TagDto => t !== undefined && !state.deletedIds.has(t.id ?? ''))
 
-  // Newly added tags not yet in initialTags
   const pendingAdded = state.localAdded.filter((t) => !initialTags.includes(t.name ?? ''))
 
   const displayTags = [...resolvedInitial, ...pendingAdded]

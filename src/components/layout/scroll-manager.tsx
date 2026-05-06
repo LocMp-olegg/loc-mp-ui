@@ -1,7 +1,6 @@
 import { useEffect } from 'react'
 import { useLocation, useNavigationType } from 'react-router-dom'
 
-// Disable browser's native scroll restoration — we handle it ourselves.
 if (typeof window !== 'undefined') {
   window.history.scrollRestoration = 'manual'
 }

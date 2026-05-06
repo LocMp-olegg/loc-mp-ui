@@ -10,10 +10,16 @@ export function DatePickerField({
   value,
   onChange,
   variant = 'dark',
+  startMonth: startMonthProp,
+  endMonth: endMonthProp,
+  disabledDates,
 }: {
   value: string
   onChange: (iso: string) => void
   variant?: 'dark' | 'light'
+  startMonth?: Date
+  endMonth?: Date
+  disabledDates?: (date: Date) => boolean
 }) {
   const [open, setOpen] = useState(false)
   const today = React.useMemo(() => new Date(), [])
@@ -93,9 +99,9 @@ export function DatePickerField({
           month={month}
           onMonthChange={setMonth}
           captionLayout="dropdown"
-          startMonth={new Date(1924, 0)}
-          endMonth={new Date(today.getFullYear() - 1, 11)}
-          disabled={(date) => date >= today}
+          startMonth={startMonthProp ?? new Date(1924, 0)}
+          endMonth={endMonthProp ?? new Date(today.getFullYear() - 1, 11)}
+          disabled={disabledDates ?? ((date) => date >= today)}
           classNames={{ caption_label: 'hidden' }}
           onSelect={(day) => {
             const isoDate = day ? format(day, 'yyyy-MM-dd') : ''
