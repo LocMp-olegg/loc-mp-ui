@@ -1,4 +1,4 @@
-import { useReducer, useState, useEffect } from 'react'
+import { useReducer, useState, useEffect, useCallback } from 'react'
 import type { ChangeEvent, KeyboardEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ShopsService } from '@/api/catalog'
@@ -26,7 +26,8 @@ export function useShopForm(
   const navigate = useNavigate()
   const isEdit = !!shopId
 
-  const [form, dispatch] = useReducer(formReducer, INIT_FORM)
+  const [form, rawDispatch] = useReducer(formReducer, INIT_FORM)
+  const [isDirty, setIsDirty] = useState(false)
 
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
   const [touched, setTouched] = useState<TouchedFields>({})
@@ -45,17 +46,27 @@ export function useShopForm(
 
   useEffect(() => {
     if (!shop) return
-    dispatch({ type: 'init', shop })
+    rawDispatch({ type: 'init', shop })
     if (shop.latitude && shop.longitude) {
       reverseGeocode(shop.latitude, shop.longitude).then(setLocationLabel)
     }
   }, [shop])
 
+  // Wrapped dispatch: marks form dirty on every patch from the page
+  const dispatch = useCallback(
+    (action: FormAction) => {
+      rawDispatch(action)
+      if (action.type === 'patch') setIsDirty(true)
+    },
+    [rawDispatch],
+  )
+
   const handlePhoneChange = (e: ChangeEvent<HTMLInputElement>) => {
     const allDigits = e.target.value.replace(/\D/g, '')
     const digits = allDigits.startsWith('7') ? allDigits.slice(1) : allDigits
     const next = digits.slice(0, 10)
-    dispatch({ type: 'patch', patch: { phoneNumber: next } })
+    rawDispatch({ type: 'patch', patch: { phoneNumber: next } })
+    setIsDirty(true)
     if (touched.phoneNumber)
       setFieldErrors((prev) => ({
         ...prev,
@@ -66,12 +77,14 @@ export function useShopForm(
   const handlePhoneKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Backspace') {
       e.preventDefault()
-      dispatch({ type: 'patch', patch: { phoneNumber: form.phoneNumber.slice(0, -1) } })
+      rawDispatch({ type: 'patch', patch: { phoneNumber: form.phoneNumber.slice(0, -1) } })
+      setIsDirty(true)
     }
   }
 
   const handleInnChange = (e: ChangeEvent<HTMLInputElement>) => {
-    dispatch({ type: 'patch', patch: { inn: e.target.value } })
+    rawDispatch({ type: 'patch', patch: { inn: e.target.value } })
+    setIsDirty(true)
     if (touched.inn)
       setFieldErrors((prev) => ({
         ...prev,
@@ -92,7 +105,8 @@ export function useShopForm(
   }
 
   const handleEmailChange = (e: ChangeEvent<HTMLInputElement>) => {
-    dispatch({ type: 'patch', patch: { email: e.target.value } })
+    rawDispatch({ type: 'patch', patch: { email: e.target.value } })
+    setIsDirty(true)
     if (touched.email)
       setFieldErrors((prev) => ({
         ...prev,
@@ -130,13 +144,15 @@ export function useShopForm(
           requestBody: { ...payload, isActive: form.isActive },
         })
         setShop(updated)
+        setSaved(true)
+        setIsDirty(false)
+        setTimeout(() => setSaved(false), 2500)
       } else {
         const created = await ShopsService.postApiCatalogShops({ requestBody: payload })
+        setIsDirty(false)
         navigate(`/seller/shops/${created.id}/edit`, { replace: true })
         return
       }
-      setSaved(true)
-      setTimeout(() => setSaved(false), 2500)
     } catch {
       setError('Не удалось сохранить магазин')
     } finally {
@@ -169,6 +185,7 @@ export function useShopForm(
   return {
     form,
     dispatch,
+    isDirty,
     fieldErrors,
     setFieldErrors,
     touched,

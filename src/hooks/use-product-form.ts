@@ -1,4 +1,4 @@
-import { useReducer, useState, useEffect } from 'react'
+import { useReducer, useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ProductsService } from '@/api/catalog'
 import type { ProductDto } from '@/api/catalog'
@@ -21,7 +21,9 @@ export function useProductForm(
   const navigate = useNavigate()
   const isEdit = !!productId
 
-  const [form, dispatch] = useReducer(productFormReducer, INIT_PRODUCT_FORM)
+  const [form, rawDispatch] = useReducer(productFormReducer, INIT_PRODUCT_FORM)
+  const [isDirty, setIsDirty] = useState(false)
+
   const [fieldErrors, setFieldErrors] = useState<ProductFieldErrors>({})
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -34,8 +36,17 @@ export function useProductForm(
 
   useEffect(() => {
     if (!product) return
-    dispatch({ type: 'init', product })
+    rawDispatch({ type: 'init', product })
   }, [product])
+
+  // Wrapped dispatch: marks form dirty on every patch from the page
+  const dispatch = useCallback(
+    (action: ProductFormAction) => {
+      rawDispatch(action)
+      if (action.type === 'patch') setIsDirty(true)
+    },
+    [rawDispatch],
+  )
 
   const handleSubmit = async () => {
     if (saving) return
@@ -66,6 +77,7 @@ export function useProductForm(
         })
         setProduct(updated)
         setSaved(true)
+        setIsDirty(false)
         setTimeout(() => setSaved(false), 2500)
       } else {
         const created = await ProductsService.postApiCatalogProducts({
@@ -83,6 +95,7 @@ export function useProductForm(
             longitude: form.longitude,
           },
         })
+        setIsDirty(false)
         navigate(`/seller/products/${created.id}/edit`, { replace: true })
       }
     } catch {
@@ -123,6 +136,7 @@ export function useProductForm(
   return {
     form,
     dispatch,
+    isDirty,
     fieldErrors,
     setFieldErrors,
     saving,
