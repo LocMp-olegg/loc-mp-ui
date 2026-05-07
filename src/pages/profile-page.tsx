@@ -7,6 +7,7 @@ import { ProfileInfoForm } from '@/components/profile/profile-info-form'
 import { BecomeSellerCard } from '@/components/profile/become-seller-card'
 import { SellerStatusCard } from '@/components/profile/seller-status-card'
 import { ProfileSecuritySection } from '@/components/profile/profile-security-section'
+import { AddressSection } from '@/components/profile/address-section'
 
 function ProfileSkeleton() {
   return (
@@ -50,7 +51,7 @@ const EXTRA_ROLE_LABELS: Record<string, string> = {
 }
 
 export function ProfilePage() {
-  const { user, logout } = useAuth()
+  const { user, logout, refreshUser } = useAuth()
   const { profile, photoUrl, loading, error, updateProfile, uploadPhoto, deletePhoto, logoutAll } =
     useProfile()
 
@@ -153,15 +154,20 @@ export function ProfilePage() {
         <SellerStatusCard
           onDeactivate={async () => {
             await updateProfile({ isSeller: false })
+            await refreshUser()
           }}
         />
       ) : (
         <BecomeSellerCard
           onBecomeSeller={async () => {
             await updateProfile({ isSeller: true })
+            await refreshUser()
           }}
         />
       )}
+
+      {/* ── Addresses ── */}
+      <AddressSection />
 
       {/* ── Security ── */}
       <ProfileSecuritySection onLogoutAll={logoutAll} onLogout={logout} />

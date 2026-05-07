@@ -186,8 +186,16 @@ export async function fetchCategoryProducts(
   return (result.items ?? []).map(mapProduct)
 }
 
-export async function fetchSearchSuggestions(query: string): Promise<Product[]> {
-  const result = await ProductsService.getApiCatalogProductsSearch({ search: query, pageSize: 5 })
+export async function fetchSearchSuggestions(query: string, geo?: GeoFilter): Promise<Product[]> {
+  const result = geo
+    ? await ProductsService.getApiCatalogProductsNearby({
+        search: query,
+        lat: geo.lat,
+        lon: geo.lng,
+        radiusKm: geo.radiusKm,
+        pageSize: 5,
+      })
+    : await ProductsService.getApiCatalogProductsSearch({ search: query, pageSize: 5 })
   return (result.items ?? []).map(mapProduct)
 }
 
@@ -195,17 +203,30 @@ export async function fetchSearchResults(
   query: string,
   page = 1,
   filter: ProductFilter = {},
+  geo?: GeoFilter,
 ): Promise<{ products: Product[]; hasNextPage: boolean }> {
   const { sort, minPrice, maxPrice, isInStock } = filter
-  const result = await ProductsService.getApiCatalogProductsSearch({
-    search: query,
-    pageSize: 20,
-    page,
-    sort,
-    minPrice,
-    maxPrice,
-    isInStock,
-  })
+  const result = geo
+    ? await ProductsService.getApiCatalogProductsNearby({
+        search: query || undefined,
+        lat: geo.lat,
+        lon: geo.lng,
+        radiusKm: geo.radiusKm,
+        minPrice,
+        maxPrice,
+        isInStock,
+        page,
+        pageSize: 20,
+      })
+    : await ProductsService.getApiCatalogProductsSearch({
+        search: query,
+        pageSize: 20,
+        page,
+        sort,
+        minPrice,
+        maxPrice,
+        isInStock,
+      })
   return {
     products: (result.items ?? []).map(mapProduct),
     hasNextPage: result.hasNextPage ?? false,
@@ -325,19 +346,33 @@ export async function fetchCategoryById(
   page = 1,
   pageSize = 20,
   filter: ProductFilter = {},
+  geo?: GeoFilter,
 ): Promise<{ id: string; name: string; emoji: string; products: Product[]; hasNextPage: boolean }> {
   const { sort, minPrice, maxPrice, isInStock } = filter
+  const productsPromise = geo
+    ? ProductsService.getApiCatalogProductsNearby({
+        categoryId,
+        lat: geo.lat,
+        lon: geo.lng,
+        radiusKm: geo.radiusKm,
+        minPrice,
+        maxPrice,
+        isInStock,
+        page,
+        pageSize,
+      })
+    : ProductsService.getApiCatalogProductsSearch({
+        categoryId,
+        page,
+        pageSize,
+        sort,
+        minPrice,
+        maxPrice,
+        isInStock,
+      })
   const [catDto, productsResult] = await Promise.all([
     CategoriesService.getApiCatalogCategories({ id: categoryId }),
-    ProductsService.getApiCatalogProductsSearch({
-      categoryId,
-      page,
-      pageSize,
-      sort,
-      minPrice,
-      maxPrice,
-      isInStock,
-    }),
+    productsPromise,
   ])
 
   return {

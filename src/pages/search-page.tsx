@@ -8,6 +8,7 @@ import type { Product } from '@/types/product'
 import { pluralize } from '@/lib/utils'
 import { useFilterParams } from '@/hooks/use-filter-params'
 import { useScrollRestore } from '@/hooks/use-scroll-restore'
+import { useUserLocation } from '@/contexts/location-context'
 
 const SKELETON_COUNT = 10
 
@@ -55,6 +56,10 @@ export function SearchPage() {
 
   const pageRef = useRef(1)
   const { sort, minPrice, maxPrice, isInStock } = filter
+  const { location } = useUserLocation()
+  const geo = location
+    ? { lat: location.lat, lng: location.lng, radiusKm: location.radius }
+    : undefined
 
   useEffect(() => {
     pageRef.current = 1
@@ -67,7 +72,7 @@ export function SearchPage() {
     let cancelled = false
     dispatch({ type: 'loading' })
 
-    fetchSearchResults(query.trim(), 1, { sort, minPrice, maxPrice, isInStock })
+    fetchSearchResults(query.trim(), 1, { sort, minPrice, maxPrice, isInStock }, geo)
       .then((data) => {
         if (!cancelled)
           dispatch({
@@ -84,12 +89,12 @@ export function SearchPage() {
     return () => {
       cancelled = true
     }
-  }, [query, sort, minPrice, maxPrice, isInStock])
+  }, [query, sort, minPrice, maxPrice, isInStock, location?.lat, location?.lng, location?.radius]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadMore = () => {
     pageRef.current++
     dispatch({ type: 'loading' })
-    fetchSearchResults(query.trim(), pageRef.current, { sort, minPrice, maxPrice, isInStock })
+    fetchSearchResults(query.trim(), pageRef.current, { sort, minPrice, maxPrice, isInStock }, geo)
       .then((data) =>
         dispatch({
           type: 'loaded',
@@ -185,7 +190,7 @@ export function SearchPage() {
             </div>
           </div>
           <h3 className="text-lg font-semibold text-foreground mb-2">Ничего не нашли</h3>
-          <p className="text-muted-foreground text-sm max-w-xs break-all">
+          <p className="text-muted-foreground text-sm max-w-xs">
             По запросу <span className="text-foreground font-medium">«{query}»</span> товаров не
             найдено. Попробуйте другое слово или измените запрос.
           </p>

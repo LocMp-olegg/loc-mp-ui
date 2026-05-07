@@ -4,13 +4,14 @@ import { motion } from 'framer-motion'
 import { MapContainer, TileLayer, Marker, Circle } from 'react-leaflet'
 import { MOSCOW } from '@/lib/map-constants'
 import { MapClickHandler, MapRecenter } from '@/lib/map-utils'
-import { X, Locate, Search, MapPin } from 'lucide-react'
+import { X, Search, MapPin } from 'lucide-react'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { reverseGeocode } from '@/lib/geo'
 import { useAddressSuggestions } from '@/hooks/use-address-suggestions'
 import { useApplyPoint } from '@/hooks/use-apply-point'
 import { useMapHandlers } from '@/hooks/use-map-handlers'
+import { RadiusInput } from '@/components/ui/radius-input'
 import { cn } from '@/lib/utils'
 
 const markerIcon = L.divIcon({
@@ -125,7 +126,7 @@ export function ShopLocationModal({
     return () => document.removeEventListener('mousedown', handler)
   }, [dispatchSug])
 
-  const { handleSuggestionSelect, handleGeolocate } = useMapHandlers({ applyPoint, dispatchSug })
+  const { handleSuggestionSelect } = useMapHandlers({ applyPoint, dispatchSug })
 
   const handleSave = useCallback(() => {
     onSave(lat, lng, radius, label || `${lat.toFixed(4)}, ${lng.toFixed(4)}`)
@@ -267,44 +268,15 @@ export function ShopLocationModal({
               ))}
             </div>
 
-            {/* Custom radius input */}
-            <div className="flex items-center gap-2 mt-1">
-              <input
-                type="number"
-                min="0"
-                step={unit === 'km' ? '0.1' : '100'}
-                value={customInput}
-                onChange={(e) => handleCustomInput(e.target.value)}
-                placeholder={unit === 'km' ? 'напр. 1.5' : 'напр. 1500'}
-                className="flex-1 h-8 px-3 rounded-lg border border-white/10 bg-white/5 text-sm text-nav-text placeholder:text-nav-text/30 focus:outline-none focus:border-white/20 transition-colors input-no-spin"
-              />
-              <div className="flex rounded-lg border border-white/10 overflow-hidden shrink-0">
-                {(['m', 'km'] as const).map((u) => (
-                  <button
-                    key={u}
-                    onClick={() => handleUnitToggle(u)}
-                    className={cn(
-                      'px-3 h-8 text-xs transition-colors cursor-pointer',
-                      unit === u
-                        ? 'bg-primary text-primary-foreground'
-                        : 'text-nav-text/60 hover:text-nav-text hover:bg-white/5',
-                    )}
-                  >
-                    {u === 'm' ? 'м' : 'км'}
-                  </button>
-                ))}
-              </div>
-            </div>
+            <RadiusInput
+              unit={unit}
+              value={customInput}
+              onChange={handleCustomInput}
+              onUnitToggle={handleUnitToggle}
+            />
           </div>
 
           <div className="flex gap-2">
-            <button
-              onClick={handleGeolocate}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-white/10 text-sm text-nav-text/60 hover:text-nav-text hover:border-white/20 transition-colors cursor-pointer"
-            >
-              <Locate className="w-4 h-4" />
-              Моё место
-            </button>
             <button
               onClick={handleSave}
               disabled={loadingGeo}
