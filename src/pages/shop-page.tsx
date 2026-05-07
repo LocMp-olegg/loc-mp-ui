@@ -3,8 +3,12 @@ import { useParams, Link } from 'react-router-dom'
 import { AnimatePresence } from 'framer-motion'
 import {
   ArrowLeft,
+  Building2,
+  CalendarDays,
   Clock,
+  Mail,
   MapPin,
+  Phone,
   Truck,
   BadgeCheck,
   Store,
@@ -13,6 +17,7 @@ import {
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react'
+import { formatPhone } from '@/lib/auth-validation'
 import { useShopDetail } from '@/hooks/use-shop-detail'
 import { useShopFilteredProducts } from '@/hooks/use-shop-filtered-products'
 import { ProductCard } from '@/components/product/product-card'
@@ -157,6 +162,46 @@ function ShopContent({ id }: { id: string }) {
           {/* Description */}
           {shop.description && (
             <p className="mt-3 text-sm text-muted-foreground leading-relaxed">{shop.description}</p>
+          )}
+
+          {/* Contacts */}
+          {(shop.phone ?? shop.email ?? shop.inn ?? shop.createdAt) && (
+            <div className="mt-3 pt-3 border-t border-border/40 flex flex-wrap gap-x-5 gap-y-1.5 text-xs text-muted-foreground">
+              {shop.phone && (
+                <a
+                  href={`tel:+7${shop.phone}`}
+                  className="flex items-center gap-1.5 hover:text-primary transition-colors"
+                >
+                  <Phone className="w-3.5 h-3.5 shrink-0" />
+                  {formatPhone(shop.phone)}
+                </a>
+              )}
+              {shop.email && (
+                <a
+                  href={`mailto:${shop.email}`}
+                  className="flex items-center gap-1.5 hover:text-primary transition-colors"
+                >
+                  <Mail className="w-3.5 h-3.5 shrink-0" />
+                  {shop.email}
+                </a>
+              )}
+              {shop.inn && (
+                <span className="flex items-center gap-1.5">
+                  <Building2 className="w-3.5 h-3.5 shrink-0" />
+                  ИНН {shop.inn}
+                </span>
+              )}
+              {shop.createdAt && (
+                <span className="flex items-center gap-1.5">
+                  <CalendarDays className="w-3.5 h-3.5 shrink-0" />
+                  На платформе с{' '}
+                  {new Date(shop.createdAt).toLocaleDateString('ru-RU', {
+                    year: 'numeric',
+                    month: 'long',
+                  })}
+                </span>
+              )}
+            </div>
           )}
         </div>
       </div>

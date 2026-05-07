@@ -11,4 +11,8 @@ export interface ShopDetail {
   allowCourierDelivery: boolean
   isVerified: boolean
   photos: string[]
+  phone: string | null
+  email: string | null
+  inn: string | null
+  createdAt: string | null
 }

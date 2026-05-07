@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { AnimatePresence } from 'framer-motion'
-import { ArrowLeft, Star, Store, BadgeCheck, Clock, MapPin, Truck } from 'lucide-react'
+import { ArrowLeft, Phone, Star, Store, BadgeCheck, Clock, MapPin, Truck } from 'lucide-react'
+import { formatPhone } from '@/lib/auth-validation'
 import { useSellerDetail } from '@/hooks/use-seller-detail'
 import { ShopReviewsModal } from '@/components/shop/reviews-modal'
 import { PhotoLightbox } from '@/components/ui/photo-lightbox'
@@ -175,6 +176,20 @@ function SellerContent({ id }: { id: string }) {
                           Доставка
                         </span>
                       )}
+                      {(() => {
+                        const digits = shop.phoneNumber ? shop.phoneNumber.replace(/\D/g, '') : null
+                        const ten = digits && digits.length === 11 ? digits.slice(1) : digits
+                        return ten?.length === 10 ? (
+                          <a
+                            href={`tel:+7${ten}`}
+                            onClick={(e) => e.stopPropagation()}
+                            className="flex items-center gap-1 px-2 py-1 rounded-lg bg-muted/60 border border-border hover:text-primary transition-colors"
+                          >
+                            <Phone className="w-3 h-3 shrink-0" />
+                            {formatPhone(ten)}
+                          </a>
+                        ) : null
+                      })()}
                     </div>
                   </div>
                 </Link>

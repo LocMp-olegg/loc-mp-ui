@@ -302,6 +302,15 @@ export function mapProductDetail(dto: ProductDto): ProductDetail {
   }
 }
 
+function normalizePhone(raw: string | null | undefined): string | null {
+  if (!raw) return null
+  const digits = raw.replace(/\D/g, '')
+  if (digits.length === 11 && (digits.startsWith('7') || digits.startsWith('8'))) {
+    return digits.slice(1)
+  }
+  return digits.length === 10 ? digits : null
+}
+
 function mapShopDetail(dto: ShopDto): ShopDetail {
   const photos = (dto.photos ?? [])
     .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
@@ -322,6 +331,10 @@ function mapShopDetail(dto: ShopDto): ShopDetail {
     allowCourierDelivery: dto.allowCourierDelivery ?? false,
     isVerified: dto.isVerified ?? false,
     photos,
+    phone: normalizePhone(dto.phoneNumber),
+    email: dto.email ?? null,
+    inn: dto.inn ?? null,
+    createdAt: dto.createdAt ?? null,
   }
 }
 
