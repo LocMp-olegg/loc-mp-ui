@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo, useReducer } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { MapContainer, TileLayer, Marker } from 'react-leaflet'
@@ -8,14 +8,21 @@ import { X, Search, MapPin } from 'lucide-react'
 import { MOSCOW } from '@/lib/map-constants'
 import { MapClickHandler, MapRecenter } from '@/lib/map-utils'
 import { useAddressSuggestions } from '@/hooks/use-address-suggestions'
-import { reverseGeocodeStructured } from '@/lib/geo'
+import { useFieldSuggestions } from '@/hooks/use-field-suggestions'
+import {
+  reverseGeocodeStructured,
+  suggestAddress,
+  suggestCity,
+  suggestStreet,
+  suggestHouse,
+} from '@/lib/geo'
 import { cn } from '@/lib/utils'
 import type {
   UserAddressDto,
   CreateUserAddressRequest,
   UpdateUserAddressRequest,
 } from '@/api/identity'
-import type { GeoSuggestion } from '@/lib/geo'
+import type { GeoSuggestion, BoundedSuggestion } from '@/lib/geo'
 
 const markerIcon = L.divIcon({
   className: '',
@@ -29,6 +36,18 @@ interface FormErrors {
   city?: string
   street?: string
   houseNumber?: string
+  coordinates?: string
+}
+
+type GeoLookupStatus = 'idle' | 'loading' | 'notFound'
+
+function geoLookupReducer(
+  _: GeoLookupStatus,
+  action: 'start' | 'found' | 'fail' | 'reset',
+): GeoLookupStatus {
+  if (action === 'start') return 'loading'
+  if (action === 'found' || action === 'reset') return 'idle'
+  return 'notFound'
 }
 
 function validate(fields: {
@@ -36,6 +55,7 @@ function validate(fields: {
   city: string
   street: string
   houseNumber: string
+  lat: number | null
 }): FormErrors {
   const e: FormErrors = {}
   if (!fields.title.trim()) e.title = 'Обязательное поле'
@@ -46,7 +66,45 @@ function validate(fields: {
   else if (fields.street.length > 250) e.street = 'Максимум 250 символов'
   if (!fields.houseNumber.trim()) e.houseNumber = 'Обязательное поле'
   else if (fields.houseNumber.length > 20) e.houseNumber = 'Максимум 20 символов'
+  if (fields.lat === null)
+    e.coordinates = 'Укажите координаты: найдите адрес через поиск или кликните на карту'
   return e
+}
+
+function FieldSugDropdown({
+  open,
+  items,
+  onSelect,
+}: {
+  open: boolean
+  items: BoundedSuggestion[]
+  onSelect: (s: BoundedSuggestion) => void
+}) {
+  return (
+    <AnimatePresence>
+      {open && items.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: -4 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -4 }}
+          transition={{ duration: 0.12 }}
+          className="absolute top-full left-0 right-0 mt-1 z-50 rounded-xl overflow-hidden border border-border shadow-xl bg-card max-h-48 overflow-y-auto"
+        >
+          {items.map((s, i) => (
+            <button
+              key={i}
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => onSelect(s)}
+              className="w-full text-left px-3 py-2 text-sm text-foreground/80 hover:bg-muted transition-colors flex items-center gap-2 cursor-pointer"
+            >
+              <MapPin className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+              {s.label}
+            </button>
+          ))}
+        </motion.div>
+      )}
+    </AnimatePresence>
+  )
 }
 
 interface Props {
@@ -72,7 +130,20 @@ export function AddressFormModal({ initial, onClose, onSave }: Props) {
   const [saving, setSaving] = useState(false)
   const [loadingGeo, setLoadingGeo] = useState(false)
   const [submitted, setSubmitted] = useState(false)
-  const errors: FormErrors = submitted ? validate({ title, city, street, houseNumber }) : {}
+  const [geocodeLookup, dispatchGeocode] = useReducer(geoLookupReducer, 'idle')
+  const errors: FormErrors = submitted ? validate({ title, city, street, houseNumber, lat }) : {}
+
+  const [activeField, setActiveField] = useState<'city' | 'street' | 'house' | null>(null)
+  const cityQ = activeField === 'city' ? city : ''
+  const streetQ = activeField === 'street' ? [city, street].filter(Boolean).join(' ') : ''
+  const houseQ =
+    activeField === 'house' ? [city, street, houseNumber].filter(Boolean).join(' ') : ''
+  const cityFetcher = useCallback((q: string) => suggestCity(q), [])
+  const streetFetcher = useCallback((q: string) => suggestStreet(city, q), [city])
+  const houseFetcher = useCallback((q: string) => suggestHouse(city, street, q), [city, street])
+  const citySug = useFieldSuggestions(cityQ, cityFetcher)
+  const streetSug = useFieldSuggestions(streetQ, streetFetcher)
+  const houseSug = useFieldSuggestions(houseQ, houseFetcher)
   const [confirmClose, setConfirmClose] = useState(false)
 
   const isDirty = useMemo(() => {
@@ -117,7 +188,39 @@ export function AddressFormModal({ initial, onClose, onSave }: Props) {
     return () => document.removeEventListener('mousedown', handler)
   }, [dispatchSug])
 
+  useEffect(() => {
+    if (lat !== null) {
+      dispatchGeocode('reset')
+      return
+    }
+    if (!city.trim() || !street.trim() || !houseNumber.trim()) {
+      dispatchGeocode('reset')
+      return
+    }
+    dispatchGeocode('start')
+    let cancelled = false
+    const query = `${houseNumber.trim()}, ${street.trim()}, ${city.trim()}`
+    const timer = setTimeout(() => {
+      void suggestAddress(query).then((results) => {
+        if (cancelled) return
+        if (results.length > 0) {
+          setLat(results[0].lat)
+          setLng(results[0].lng)
+          setRecenter(true)
+          dispatchGeocode('found')
+        } else {
+          dispatchGeocode('fail')
+        }
+      })
+    }, 800)
+    return () => {
+      cancelled = true
+      clearTimeout(timer)
+    }
+  }, [city, street, houseNumber, lat])
+
   const applySuggestion = useCallback((s: GeoSuggestion) => {
+    setActiveField(null)
     setLat(s.lat)
     setLng(s.lng)
     setRecenter(true)
@@ -130,6 +233,44 @@ export function AddressFormModal({ initial, onClose, onSave }: Props) {
     setEntrance('')
     setFloor('')
   }, [])
+
+  const handleCitySelect = useCallback(
+    (s: BoundedSuggestion) => {
+      setActiveField(null)
+      citySug.close()
+      setCity(s.value)
+    },
+    [citySug],
+  )
+
+  const handleStreetSelect = useCallback(
+    (s: BoundedSuggestion) => {
+      setActiveField(null)
+      streetSug.close()
+      setStreet(s.value)
+      setLat(null)
+      setLng(null)
+    },
+    [streetSug],
+  )
+
+  const handleHouseSelect = useCallback(
+    (s: BoundedSuggestion) => {
+      setActiveField(null)
+      houseSug.close()
+      setHouseNumber(s.value)
+      if (s.city) setCity(s.city)
+      if (s.street) setStreet(s.street)
+      if (s.lat != null && s.lng != null) {
+        setLat(s.lat)
+        setLng(s.lng)
+        setRecenter(true)
+        setSearch(s.label)
+        setSearchLabel(s.label)
+      }
+    },
+    [houseSug],
+  )
 
   const handleSuggestionSelect = (s: GeoSuggestion) => {
     dispatchSug({ type: 'clear' })
@@ -151,7 +292,7 @@ export function AddressFormModal({ initial, onClose, onSave }: Props) {
 
   const handleSave = async () => {
     setSubmitted(true)
-    const errs = validate({ title, city, street, houseNumber })
+    const errs = validate({ title, city, street, houseNumber, lat })
     if (Object.keys(errs).length > 0) return
 
     setSaving(true)
@@ -272,14 +413,14 @@ export function AddressFormModal({ initial, onClose, onSave }: Props) {
               {recenter && lat !== null && lng !== null && <MapRecenter lat={lat} lng={lng} />}
               {lat !== null && lng !== null && <Marker position={[lat, lng]} icon={markerIcon} />}
             </MapContainer>
-            {loadingGeo && (
+            {(loadingGeo || geocodeLookup === 'loading') && (
               <div className="absolute inset-0 flex items-center justify-center bg-background/50 backdrop-blur-sm pointer-events-none">
                 <span className="text-xs text-muted-foreground animate-pulse">
-                  Определяю адрес...
+                  {geocodeLookup === 'loading' ? 'Определяем координаты...' : 'Определяю адрес...'}
                 </span>
               </div>
             )}
-            {lat === null && (
+            {lat === null && geocodeLookup === 'idle' && !loadingGeo && (
               <div className="absolute inset-0 flex items-center justify-center bg-background/30 pointer-events-none">
                 <span className="text-xs text-muted-foreground/70">
                   Найдите адрес или кликните на карту
@@ -287,6 +428,15 @@ export function AddressFormModal({ initial, onClose, onSave }: Props) {
               </div>
             )}
           </div>
+          {geocodeLookup === 'notFound' && (
+            <p className="text-xs text-destructive -mt-2">
+              Не удалось определить координаты. Найдите адрес через строку поиска или кликните на
+              карту.
+            </p>
+          )}
+          {submitted && errors.coordinates && geocodeLookup === 'idle' && (
+            <p className="text-xs text-destructive -mt-2">{errors.coordinates}</p>
+          )}
 
           {/* Название */}
           <div>
@@ -309,26 +459,44 @@ export function AddressFormModal({ initial, onClose, onSave }: Props) {
               <label className="block text-xs font-medium text-muted-foreground mb-1.5">
                 Город <span className="text-destructive">*</span>
               </label>
-              <input
-                type="text"
-                value={city}
-                onChange={(e) => setCity(e.target.value)}
-                placeholder=""
-                className={cn(field, errors.city ? fieldErr : fieldOk)}
-              />
+              <div className="relative">
+                <input
+                  type="text"
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
+                  onFocus={() => setActiveField('city')}
+                  onBlur={() => setActiveField(null)}
+                  placeholder=""
+                  className={cn(field, errors.city ? fieldErr : fieldOk)}
+                />
+                <FieldSugDropdown
+                  open={citySug.open}
+                  items={citySug.suggestions}
+                  onSelect={handleCitySelect}
+                />
+              </div>
               {errors.city && <p className="text-xs text-destructive mt-1">{errors.city}</p>}
             </div>
             <div>
               <label className="block text-xs font-medium text-muted-foreground mb-1.5">
                 Дом <span className="text-destructive">*</span>
               </label>
-              <input
-                type="text"
-                value={houseNumber}
-                onChange={(e) => setHouseNumber(e.target.value)}
-                placeholder=""
-                className={cn(field, errors.houseNumber ? fieldErr : fieldOk)}
-              />
+              <div className="relative">
+                <input
+                  type="text"
+                  value={houseNumber}
+                  onChange={(e) => setHouseNumber(e.target.value)}
+                  onFocus={() => setActiveField('house')}
+                  onBlur={() => setActiveField(null)}
+                  placeholder=""
+                  className={cn(field, errors.houseNumber ? fieldErr : fieldOk)}
+                />
+                <FieldSugDropdown
+                  open={houseSug.open}
+                  items={houseSug.suggestions}
+                  onSelect={handleHouseSelect}
+                />
+              </div>
               {errors.houseNumber && (
                 <p className="text-xs text-destructive mt-1">{errors.houseNumber}</p>
               )}
@@ -340,13 +508,22 @@ export function AddressFormModal({ initial, onClose, onSave }: Props) {
             <label className="block text-xs font-medium text-muted-foreground mb-1.5">
               Улица <span className="text-destructive">*</span>
             </label>
-            <input
-              type="text"
-              value={street}
-              onChange={(e) => setStreet(e.target.value)}
-              placeholder=""
-              className={cn(field, errors.street ? fieldErr : fieldOk)}
-            />
+            <div className="relative">
+              <input
+                type="text"
+                value={street}
+                onChange={(e) => setStreet(e.target.value)}
+                onFocus={() => setActiveField('street')}
+                onBlur={() => setActiveField(null)}
+                placeholder=""
+                className={cn(field, errors.street ? fieldErr : fieldOk)}
+              />
+              <FieldSugDropdown
+                open={streetSug.open}
+                items={streetSug.suggestions}
+                onSelect={handleStreetSelect}
+              />
+            </div>
             {errors.street && <p className="text-xs text-destructive mt-1">{errors.street}</p>}
           </div>
 
@@ -414,7 +591,7 @@ export function AddressFormModal({ initial, onClose, onSave }: Props) {
         <div className="px-5 py-4 border-t border-border shrink-0">
           <button
             onClick={() => void handleSave()}
-            disabled={saving || loadingGeo}
+            disabled={saving || loadingGeo || geocodeLookup === 'loading'}
             className="w-full py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50"
           >
             {saving ? 'Сохранение...' : isEdit ? 'Сохранить изменения' : 'Добавить адрес'}
