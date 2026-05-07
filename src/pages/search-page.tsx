@@ -1,7 +1,7 @@
-import { useEffect, useReducer, useRef } from 'react'
+import { useEffect, useMemo, useReducer, useRef } from 'react'
 import { useSearchParams, Link } from 'react-router-dom'
 import { PackageSearch, ArrowLeft, Loader2 } from 'lucide-react'
-import { fetchSearchResults } from '@/lib/catalog'
+import { fetchSearchResults, fetchTagResults } from '@/lib/catalog'
 import { ProductFiltersBar } from '@/components/catalog/product-filters-bar'
 import { ProductCard } from '@/components/product/product-card'
 import type { Product } from '@/types/product'
@@ -45,6 +45,7 @@ function reducer(state: State, action: Action): State {
 export function SearchPage() {
   const [searchParams] = useSearchParams()
   const query = searchParams.get('q') ?? ''
+  const tag = searchParams.get('tag') ?? ''
   const [filter, setFilter] = useFilterParams()
 
   const [{ products, loading, fetched, hasNextPage }, dispatch] = useReducer(reducer, {
@@ -57,14 +58,25 @@ export function SearchPage() {
   const pageRef = useRef(1)
   const { sort, minPrice, maxPrice, isInStock } = filter
   const { location } = useUserLocation()
-  const geo = location
-    ? { lat: location.lat, lng: location.lng, radiusKm: location.radius }
-    : undefined
+  const geo = useMemo(
+    () =>
+      location
+        ? {
+            lat: location.lat,
+            lng: location.lng,
+            radiusKm: location.radius,
+          }
+        : undefined,
+    [location],
+  )
+
+  const isTagSearch = Boolean(tag)
+  const activeQuery = isTagSearch ? tag : query
 
   useEffect(() => {
     pageRef.current = 1
 
-    if (!query.trim()) {
+    if (!activeQuery.trim()) {
       dispatch({ type: 'empty' })
       return
     }
@@ -72,7 +84,11 @@ export function SearchPage() {
     let cancelled = false
     dispatch({ type: 'loading' })
 
-    fetchSearchResults(query.trim(), 1, { sort, minPrice, maxPrice, isInStock }, geo)
+    const fetchFn = isTagSearch
+      ? fetchTagResults(tag, 1, { sort, minPrice, maxPrice, isInStock }, geo)
+      : fetchSearchResults(query.trim(), 1, { sort, minPrice, maxPrice, isInStock }, geo)
+
+    fetchFn
       .then((data) => {
         if (!cancelled)
           dispatch({
@@ -89,12 +105,20 @@ export function SearchPage() {
     return () => {
       cancelled = true
     }
-  }, [query, sort, minPrice, maxPrice, isInStock, location?.lat, location?.lng, location?.radius]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [activeQuery, isTagSearch, tag, query, sort, minPrice, maxPrice, isInStock, geo])
 
   const loadMore = () => {
     pageRef.current++
     dispatch({ type: 'loading' })
-    fetchSearchResults(query.trim(), pageRef.current, { sort, minPrice, maxPrice, isInStock }, geo)
+    const fetchFn = isTagSearch
+      ? fetchTagResults(tag, pageRef.current, { sort, minPrice, maxPrice, isInStock }, geo)
+      : fetchSearchResults(
+          query.trim(),
+          pageRef.current,
+          { sort, minPrice, maxPrice, isInStock },
+          geo,
+        )
+    fetchFn
       .then((data) =>
         dispatch({
           type: 'loaded',
@@ -108,7 +132,23 @@ export function SearchPage() {
 
   useScrollRestore(fetched && !loading)
 
-  const handleFilterReset = () => setFilter({ sort: filter.sort, isInStock: true })
+  const handleFilterReset = () => setFilter({ sort: filter.sort })
+
+  const pageTitle = isTagSearch ? (
+    <>
+      Товары по тегу <span className="text-primary">#{tag}</span>
+    </>
+  ) : query ? (
+    <>
+      Результаты по <span className="text-primary">«{query}»</span>
+    </>
+  ) : (
+    'Поиск'
+  )
+
+  const emptyText = isTagSearch
+    ? `По тегу #${tag} товаров не найдено.`
+    : `По запросу «${query}» товаров не найдено. Попробуйте другое слово или измените запрос.`
 
   return (
     <div className="max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-8">
@@ -122,15 +162,7 @@ export function SearchPage() {
 
       <div className="flex items-center justify-between flex-wrap gap-3 mb-6">
         <div className="min-w-0">
-          <h1 className="text-xl md:text-2xl font-bold text-foreground break-all">
-            {query ? (
-              <>
-                Результаты по <span className="text-primary">«{query}»</span>
-              </>
-            ) : (
-              'Поиск'
-            )}
-          </h1>
+          <h1 className="text-xl md:text-2xl font-bold text-foreground break-all">{pageTitle}</h1>
           {fetched && !loading && products.length > 0 && (
             <p className="text-sm text-muted-foreground mt-0.5">
               {products.length}
@@ -138,7 +170,7 @@ export function SearchPage() {
             </p>
           )}
         </div>
-        {query && (
+        {activeQuery && (
           <ProductFiltersBar filter={filter} onChange={setFilter} onReset={handleFilterReset} />
         )}
       </div>
@@ -179,21 +211,18 @@ export function SearchPage() {
         </div>
       )}
 
-      {!loading && fetched && products.length === 0 && query && (
+      {!loading && fetched && products.length === 0 && activeQuery && (
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <div className="relative mb-5">
             <div className="w-20 h-20 rounded-3xl bg-muted/60 border border-border flex items-center justify-center text-4xl">
-              🔍
+              {isTagSearch ? '#️⃣' : '🔍'}
             </div>
             <div className="absolute -bottom-2 -right-2 w-9 h-9 rounded-xl bg-muted border border-border flex items-center justify-center">
               <PackageSearch className="w-4 h-4 text-muted-foreground" />
             </div>
           </div>
           <h3 className="text-lg font-semibold text-foreground mb-2">Ничего не нашли</h3>
-          <p className="text-muted-foreground text-sm max-w-xs">
-            По запросу <span className="text-foreground font-medium">«{query}»</span> товаров не
-            найдено. Попробуйте другое слово или измените запрос.
-          </p>
+          <p className="text-muted-foreground text-sm max-w-xs">{emptyText}</p>
           <Link
             to="/"
             className="mt-6 px-5 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity"

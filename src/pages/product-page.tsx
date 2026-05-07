@@ -6,6 +6,7 @@ import { ProductActions } from '@/components/product/product-actions'
 import { ProductReviews } from '@/components/product/product-reviews'
 import { useProductDetail } from '@/hooks/use-product-detail'
 import { useProductReviews } from '@/hooks/use-product-reviews'
+import { useCatalogCategories } from '@/contexts/catalog-categories-context'
 
 function ProductSkeleton() {
   return (
@@ -29,6 +30,7 @@ export function ProductPage() {
   const { id } = useParams<{ id: string }>()
   const { product, rating, loading, error } = useProductDetail(id)
   const reviewsState = useProductReviews(id)
+  const { getCategoryInfo } = useCatalogCategories()
 
   if (loading) return <ProductSkeleton />
 
@@ -63,7 +65,10 @@ export function ProductPage() {
 
         {/* Info + Actions */}
         <div className="flex flex-col gap-5">
-          <ProductInfo product={product} categoryName={null} />
+          <ProductInfo
+            product={product}
+            categoryName={getCategoryInfo(product.categoryId)?.name ?? null}
+          />
           <ProductActions product={product} />
         </div>
       </div>

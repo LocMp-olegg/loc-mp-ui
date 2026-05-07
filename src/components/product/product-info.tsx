@@ -1,5 +1,5 @@
 import { Clock, FolderOpen, Store, Wrench } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { pluralize } from '@/lib/utils'
 import type { ProductDetail } from '@/types/product-detail'
 
@@ -9,18 +9,21 @@ interface Props {
 }
 
 export function ProductInfo({ product, categoryName }: Props) {
+  const navigate = useNavigate()
+
   return (
     <div className="flex flex-col gap-4">
       {/* Tags */}
-      {product.tags.length > 0 && (
+      {(product.tags?.length ?? 0) > 0 && (
         <div className="flex flex-wrap gap-1.5">
-          {product.tags.map((tag) => (
-            <span
+          {product.tags!.map((tag) => (
+            <button
               key={tag}
-              className="text-xs font-medium px-2.5 py-1 rounded-full bg-primary/10 text-primary border border-primary/20"
+              onClick={() => navigate(`/search?tag=${encodeURIComponent(tag)}`)}
+              className="text-xs font-medium px-2.5 py-1 rounded-full bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-colors cursor-pointer"
             >
               #{tag}
-            </span>
+            </button>
           ))}
         </div>
       )}

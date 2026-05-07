@@ -6,7 +6,6 @@ export interface ProductDetail extends Product {
   stockQuantity: number
   isMadeToOrder: boolean
   leadTimeDays: number | null
-  tags: string[]
 }
 
 export interface ReviewItem {

@@ -69,7 +69,7 @@ export function HomePage() {
   }
 
   const handleFilterReset = () => {
-    setFilterUrl({ sort: filter.sort, isInStock: true })
+    setFilterUrl({ sort: filter.sort })
     setLoadResults({})
   }
 
