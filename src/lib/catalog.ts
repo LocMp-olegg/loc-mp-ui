@@ -109,6 +109,35 @@ export function mapProduct(dto: ProductSummaryDto): Product {
   }
 }
 
+export function mapProductFromDto(dto: ProductDto): Product {
+  const sorted = [...(dto.photos ?? [])].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+  const images =
+    sorted.length > 0
+      ? sorted.map((p) => p.storageUrl ?? '').filter(Boolean)
+      : dto.mainPhotoUrl
+        ? [dto.mainPhotoUrl]
+        : [noImageUrl]
+
+  return {
+    id: dto.id ?? '',
+    name: dto.name ?? '',
+    price: dto.price ?? 0,
+    unit: dto.unit ?? 'шт',
+    shopId: dto.shopId ?? '',
+    shopName: dto.shopName ?? '',
+    categoryId: dto.categoryId ?? '',
+    images,
+    rating: dto.averageRating ?? 0,
+    reviewCount: dto.reviewCount ?? 0,
+    isAvailable:
+      (dto.isActive ?? false) && ((dto.stockQuantity ?? 0) > 0 || (dto.isMadeToOrder ?? false)),
+    stockQuantity: dto.stockQuantity ?? 0,
+    isMadeToOrder: dto.isMadeToOrder ?? false,
+    location: '',
+    tags: (dto.tags ?? []).filter(Boolean) as string[],
+  }
+}
+
 export interface RootCategory {
   id: string
   name: string
