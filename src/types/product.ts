@@ -13,6 +13,7 @@ export interface Product {
   stockQuantity: number
   isMadeToOrder: boolean
   location: string
+  tags?: string[]
 }
 
 export interface Category {

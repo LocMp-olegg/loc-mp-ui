@@ -1,5 +1,11 @@
 import noImageUrl from '@/assets/no-image-available.jpg'
-import { CategoriesService, ProductsService, ShopsService, SellersService } from '@/api/catalog'
+import {
+  CategoriesService,
+  ProductsService,
+  ShopsService,
+  SellersService,
+  TagsService,
+} from '@/api/catalog'
 import type {
   ProductDto,
   ProductSummaryDto,
@@ -7,6 +13,7 @@ import type {
   ShopDto,
   SellerDto,
   ProductSortBy,
+  TagDto,
 } from '@/api/catalog'
 import type { Product } from '@/types/product'
 import type { ProductDetail } from '@/types/product-detail'
@@ -98,6 +105,7 @@ export function mapProduct(dto: ProductSummaryDto): Product {
     stockQuantity: dto.stockQuantity ?? 0,
     isMadeToOrder: dto.isMadeToOrder ?? false,
     location: '',
+    tags: (dto.tags ?? []).filter(Boolean) as string[],
   }
 }
 
@@ -338,6 +346,46 @@ export async function fetchSellerWithShops(
 export async function fetchProductDetail(id: string): Promise<ProductDetail> {
   const dto = await ProductsService.getApiCatalogProducts({ id })
   return mapProductDetail(dto)
+}
+
+let _tagsCache: TagDto[] | null = null
+
+async function loadAllTags(): Promise<TagDto[]> {
+  if (!_tagsCache) {
+    _tagsCache = await TagsService.getApiCatalogTags()
+  }
+  return _tagsCache
+}
+
+export async function fetchTagSuggestions(query: string): Promise<TagDto[]> {
+  const tags = await loadAllTags()
+  const lower = query.toLowerCase()
+  return tags
+    .filter((t) => t.name?.toLowerCase().includes(lower) || t.slug?.toLowerCase().includes(lower))
+    .slice(0, 8)
+}
+
+export async function fetchTagResults(
+  tag: string,
+  page = 1,
+  filter: ProductFilter = {},
+  geo?: GeoFilter,
+): Promise<{ products: Product[]; hasNextPage: boolean }> {
+  const { sort, minPrice, maxPrice, isInStock } = filter
+  const result = await ProductsService.getApiCatalogProductsSearch({
+    tags: tag,
+    page,
+    pageSize: 20,
+    sort,
+    minPrice,
+    maxPrice,
+    isInStock,
+  })
+  void geo
+  return {
+    products: (result.items ?? []).map(mapProduct),
+    hasNextPage: result.hasNextPage ?? false,
+  }
 }
 
 /** Category page: full product list + category info. */

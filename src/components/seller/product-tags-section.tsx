@@ -145,7 +145,10 @@ export function ProductTagsSection({ productId, initialTags }: ProductTagsSectio
         <input
           type="text"
           value={input}
-          onChange={(e) => setInput(e.target.value)}
+          onChange={(e) => {
+            const sanitized = e.target.value.replace(/ /g, '-').replace(/[^\p{L}\p{N}.;-]/gu, '')
+            setInput(sanitized)
+          }}
           onKeyDown={(e) => {
             if (e.key === 'Enter') {
               e.preventDefault()

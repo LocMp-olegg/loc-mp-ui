@@ -13,7 +13,7 @@ function CategoryContent({ id }: { id: string }) {
 
   useScrollRestore(!!data && !loading)
 
-  const handleFilterReset = () => setFilter({ sort: filter.sort, isInStock: true })
+  const handleFilterReset = () => setFilter({ sort: filter.sort })
 
   if (!data && loading) {
     return (

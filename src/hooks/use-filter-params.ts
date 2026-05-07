@@ -5,8 +5,8 @@ import type { ProductSortBy } from '@/api/catalog'
 
 /**
  * Reads ProductFilter from URL search params.
- * isInStock defaults to true when the param is absent (default UX: show in-stock only).
- * inStock=false means user explicitly wants to see all products.
+ * isInStock defaults to undefined (show all) when the param is absent.
+ * inStock=true means user explicitly wants in-stock only.
  */
 export function filterFromParams(params: URLSearchParams): ProductFilter {
   const raw = params.get('inStock')
@@ -14,7 +14,7 @@ export function filterFromParams(params: URLSearchParams): ProductFilter {
     sort: (params.get('sort') as ProductSortBy) || undefined,
     minPrice: params.get('min') ? Number(params.get('min')) : undefined,
     maxPrice: params.get('max') ? Number(params.get('max')) : undefined,
-    isInStock: raw === 'false' ? undefined : true,
+    isInStock: raw === 'true' ? true : undefined,
   }
 }
 
@@ -27,7 +27,7 @@ export function filterToParams(filter: ProductFilter, base: URLSearchParams): UR
   else next.delete('min')
   if (filter.maxPrice !== undefined) next.set('max', String(filter.maxPrice))
   else next.delete('max')
-  if (filter.isInStock !== true) next.set('inStock', 'false')
+  if (filter.isInStock === true) next.set('inStock', 'true')
   else next.delete('inStock')
   return next
 }

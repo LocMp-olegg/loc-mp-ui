@@ -58,7 +58,7 @@ function ShopContent({ id }: { id: string }) {
   const [carouselApi, setCarouselApi] = useState<CarouselApi>()
   const { canScrollPrev, canScrollNext } = useCarouselProgress(carouselApi)
   const [viewMode, setViewMode] = useState<'categories' | 'grid'>('categories')
-  const [filter, setFilter] = useState<ShopProductFilter>({ sort: 'Newest', isInStock: true })
+  const [filter, setFilter] = useState<ShopProductFilter>({ sort: 'Newest' })
   const {
     products: filteredProducts,
     loading: filteredLoading,
