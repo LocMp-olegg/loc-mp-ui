@@ -74,10 +74,12 @@ export function ProductCard({ product, className }: Props) {
               {product.name}
             </p>
 
-            <div className="flex items-center gap-1 mt-1">
-              <Store className="w-3 h-3 text-muted-foreground shrink-0" />
-              <span className="text-xs text-muted-foreground truncate">{product.shopName}</span>
-            </div>
+            {product.shopName && (
+              <div className="flex items-center gap-1 mt-1">
+                <Store className="w-3 h-3 text-muted-foreground shrink-0" />
+                <span className="text-xs text-muted-foreground truncate">{product.shopName}</span>
+              </div>
+            )}
           </div>
 
           <div className="pointer-events-auto shrink-0">

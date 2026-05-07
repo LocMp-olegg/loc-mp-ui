@@ -14,11 +14,11 @@ interface ProductActions {
 }
 
 export function useProductActions(product: Product): ProductActions {
-  const { addToCart, updateQuantity, items } = useCart()
+  const { addToCart, removeItem, updateQuantity, getItemQuantity, getCartItemId } = useCart()
   const { toggleFavorite, isFavorite } = useFavorites()
   const { isAuthenticated, openAuthPrompt } = useAuth()
 
-  const quantity = items.find((item) => item.product.id === product.id)?.quantity ?? 0
+  const quantity = getItemQuantity(product.id)
 
   const onAdd = (e: React.MouseEvent): void => {
     e.preventDefault()
@@ -27,19 +27,27 @@ export function useProductActions(product: Product): ProductActions {
       openAuthPrompt()
       return
     }
-    if (product.isAvailable) addToCart(product)
+    if (product.isAvailable) void addToCart(product.id)
   }
 
   const onDecrement = (e: React.MouseEvent): void => {
     e.preventDefault()
     e.stopPropagation()
-    updateQuantity(product.id, quantity - 1)
+    const cartItemId = getCartItemId(product.id)
+    if (!cartItemId) return
+    if (quantity <= 1) {
+      void removeItem(cartItemId)
+    } else {
+      void updateQuantity(cartItemId, quantity - 1)
+    }
   }
 
   const onIncrement = (e: React.MouseEvent): void => {
     e.preventDefault()
     e.stopPropagation()
-    updateQuantity(product.id, quantity + 1)
+    const cartItemId = getCartItemId(product.id)
+    if (!cartItemId) return
+    void updateQuantity(cartItemId, quantity + 1)
   }
 
   const onToggleFavorite = (e: React.MouseEvent): void => {
