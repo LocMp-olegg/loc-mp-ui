@@ -171,10 +171,13 @@ export function OrderDetailPage() {
 
             <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap">
               {order.shopName && (
-                <span className="flex items-center gap-1">
+                <Link
+                  to={order.shopId ? `/shop/${order.shopId}` : '#'}
+                  className="flex items-center gap-1 hover:text-primary transition-colors"
+                >
                   <Package className="w-3.5 h-3.5 shrink-0" />
                   {order.shopName}
-                </span>
+                </Link>
               )}
               <span className="flex items-center gap-1">
                 {order.deliveryType === 'NeighborCourier' ? (

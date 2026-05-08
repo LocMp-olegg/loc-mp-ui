@@ -157,9 +157,18 @@ function CartGroup({
     >
       <div className="px-4 py-3 border-b border-border/40 flex items-center gap-2">
         <Store className="w-4 h-4 text-muted-foreground shrink-0" />
-        <span className="text-sm font-semibold text-foreground truncate">
-          {group.shopName ?? group.sellerName ?? 'Магазин'}
-        </span>
+        {group.shopId ? (
+          <Link
+            to={`/shop/${group.shopId}`}
+            className="text-sm font-semibold text-foreground truncate hover:text-primary transition-colors"
+          >
+            {group.shopName ?? group.sellerName ?? 'Магазин'}
+          </Link>
+        ) : (
+          <span className="text-sm font-semibold text-foreground truncate">
+            {group.shopName ?? group.sellerName ?? 'Магазин'}
+          </span>
+        )}
         <span className="ml-auto text-sm font-medium text-muted-foreground shrink-0">
           {(group.groupTotal ?? 0).toLocaleString('ru-RU')} ₽
         </span>
