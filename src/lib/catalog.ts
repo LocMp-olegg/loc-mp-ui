@@ -88,7 +88,17 @@ function mapImages(dto: ProductSummaryDto): string[] {
   return [noImageUrl]
 }
 
+export function isProductOrderable(
+  product: Pick<Product, 'isAvailable' | 'shopIsActive'>,
+): boolean {
+  return product.isAvailable && product.shopIsActive
+}
+
 export function mapProduct(dto: ProductSummaryDto): Product {
+  const isActive = dto.isActive ?? false
+  const shopIsActive = dto.shopIsActive ?? true
+  const stockQuantity = dto.stockQuantity ?? 0
+  const isMadeToOrder = dto.isMadeToOrder ?? false
   return {
     id: dto.id ?? '',
     name: dto.name ?? '',
@@ -100,10 +110,11 @@ export function mapProduct(dto: ProductSummaryDto): Product {
     images: mapImages(dto),
     rating: dto.averageRating ?? 0,
     reviewCount: dto.reviewCount ?? 0,
-    isAvailable:
-      (dto.isActive ?? false) && ((dto.stockQuantity ?? 0) > 0 || (dto.isMadeToOrder ?? false)),
-    stockQuantity: dto.stockQuantity ?? 0,
-    isMadeToOrder: dto.isMadeToOrder ?? false,
+    isActive,
+    shopIsActive,
+    isAvailable: isActive && (stockQuantity > 0 || isMadeToOrder),
+    stockQuantity,
+    isMadeToOrder,
     location: '',
     tags: (dto.tags ?? []).filter(Boolean) as string[],
   }
@@ -118,6 +129,10 @@ export function mapProductFromDto(dto: ProductDto): Product {
         ? [dto.mainPhotoUrl]
         : [noImageUrl]
 
+  const isActive = dto.isActive ?? false
+  const shopIsActive = dto.shopIsActive ?? true
+  const stockQuantity = dto.stockQuantity ?? 0
+  const isMadeToOrder = dto.isMadeToOrder ?? false
   return {
     id: dto.id ?? '',
     name: dto.name ?? '',
@@ -129,10 +144,11 @@ export function mapProductFromDto(dto: ProductDto): Product {
     images,
     rating: dto.averageRating ?? 0,
     reviewCount: dto.reviewCount ?? 0,
-    isAvailable:
-      (dto.isActive ?? false) && ((dto.stockQuantity ?? 0) > 0 || (dto.isMadeToOrder ?? false)),
-    stockQuantity: dto.stockQuantity ?? 0,
-    isMadeToOrder: dto.isMadeToOrder ?? false,
+    isActive,
+    shopIsActive,
+    isAvailable: isActive && (stockQuantity > 0 || isMadeToOrder),
+    stockQuantity,
+    isMadeToOrder,
     location: '',
     tags: (dto.tags ?? []).filter(Boolean) as string[],
   }
@@ -277,6 +293,8 @@ export function mapProductDetail(dto: ProductDto): ProductDetail {
     .filter(Boolean)
   const images = photos.length > 0 ? photos : dto.mainPhotoUrl ? [dto.mainPhotoUrl] : [noImageUrl]
 
+  const isActive = dto.isActive ?? false
+  const shopIsActive = dto.shopIsActive ?? true
   const stockQuantity = dto.stockQuantity ?? 0
   const isMadeToOrder = dto.isMadeToOrder ?? false
 
@@ -294,7 +312,9 @@ export function mapProductDetail(dto: ProductDto): ProductDetail {
     images,
     rating: dto.averageRating ?? 0,
     reviewCount: dto.reviewCount ?? 0,
-    isAvailable: (dto.isActive ?? false) && (stockQuantity > 0 || isMadeToOrder),
+    isActive,
+    shopIsActive,
+    isAvailable: isActive && (stockQuantity > 0 || isMadeToOrder),
     stockQuantity,
     isMadeToOrder,
     leadTimeDays: dto.leadTimeDays ?? null,

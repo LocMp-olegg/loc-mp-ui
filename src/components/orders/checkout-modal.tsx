@@ -112,6 +112,14 @@ function parseDeliveryRangeError(detail: string): DeliveryRangeError | null {
   return { distanceKm: parseFloat(m[1]), shopId: m[2], radiusKm: parseFloat(m[3]) }
 }
 
+const SHOP_INACTIVE_RE = /The shop for product '(.+?)' is temporarily inactive/i
+
+function parseShopInactiveError(detail: string): string | null {
+  const m = SHOP_INACTIVE_RE.exec(detail)
+  if (!m) return null
+  return `Магазин для товара «${m[1]}» временно не работает. Удалите товар из корзины или попробуйте позже.`
+}
+
 function addressToDelivery(
   addr: UserAddressDto,
   recipientName: string,
@@ -225,22 +233,27 @@ export function CheckoutModal({ groups, productInfoMap, onClose, onSuccess }: Ch
     } catch (e) {
       if (e instanceof ApiError && e.status === 409) {
         const detail: string = e.body?.detail ?? ''
-        const parsed = parseDeliveryRangeError(detail)
-        if (parsed) {
-          const idx = groups.findIndex((g) => g.shopId === parsed.shopId)
+        const rangeErr = parseDeliveryRangeError(detail)
+        if (rangeErr) {
+          const idx = groups.findIndex((g) => g.shopId === rangeErr.shopId)
           if (idx !== -1) {
             setGroupDeliveryErrors((prev) => {
               const next = [...prev]
               next[idx] =
-                `Адрес слишком далеко (${parsed.distanceKm} км). ` +
-                `Магазин доставляет только в радиусе ${parsed.radiusKm} км — выберите другой адрес или самовывоз.`
+                `Адрес слишком далеко (${rangeErr.distanceKm} км). ` +
+                `Магазин доставляет только в радиусе ${rangeErr.radiusKm} км — выберите другой адрес или самовывоз.`
               return next
             })
             setBusy(false)
             return
           }
         }
-        setError(detail || 'Не удалось оформить заказ — конфликт условий.')
+        const inactiveMsg = parseShopInactiveError(detail)
+        if (inactiveMsg) {
+          setError(inactiveMsg)
+        } else {
+          setError(detail || 'Не удалось оформить заказ — конфликт условий.')
+        }
       } else {
         setError('Не удалось оформить заказ. Попробуйте ещё раз.')
       }

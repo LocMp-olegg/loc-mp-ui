@@ -1,6 +1,15 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion, type Variants } from 'framer-motion'
-import { Loader2, Minus, Plus, ShoppingCart, Store, Trash2, ShoppingBag } from 'lucide-react'
+import {
+  Loader2,
+  Minus,
+  Plus,
+  ShoppingCart,
+  Store,
+  Trash2,
+  ShoppingBag,
+  AlertTriangle,
+} from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useCart } from '@/contexts/cart-context'
 import { ShimmerButton } from '@/components/aceternity/shimmer-button'
@@ -33,6 +42,31 @@ interface PendingDelete {
   productName: string
   quantity: number
   count: number
+}
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+function isItemOrderable(info: ProductDto | undefined): boolean {
+  if (!info) return true
+  return (
+    (info.isActive ?? false) &&
+    (info.shopIsActive ?? true) &&
+    ((info.isMadeToOrder ?? false) || (info.stockQuantity ?? 0) > 0)
+  )
+}
+
+function itemUnavailableReason(info: ProductDto | undefined): string | null {
+  if (!info) return null
+  if (!(info.shopIsActive ?? true)) return 'Магазин временно не работает'
+  if (!(info.isActive ?? false)) return 'Товар недоступен'
+  if (!(info.isMadeToOrder ?? false) && (info.stockQuantity ?? 0) === 0) return 'Нет в наличии'
+  return null
+}
+
+function isGroupOrderable(group: CartGroupDto, productInfoMap: ProductInfoMap): boolean {
+  return (group.items ?? []).every((item) =>
+    item.productId ? isItemOrderable(productInfoMap[item.productId]) : true,
+  )
 }
 
 // ── Cart item ────────────────────────────────────────────────────────────────
@@ -76,6 +110,12 @@ function CartItem({
             <span className="text-muted-foreground/55">в наличии: {productInfo.stockQuantity}</span>
           )}
         </p>
+        {itemUnavailableReason(productInfo) && (
+          <p className="text-xs text-destructive mt-0.5 flex items-center gap-1">
+            <AlertTriangle className="w-3 h-3 shrink-0" />
+            {itemUnavailableReason(productInfo)}
+          </p>
+        )}
       </div>
 
       <div className="flex items-center gap-1 shrink-0">
@@ -112,9 +152,10 @@ function CartItem({
 
       <button
         onClick={() => onBuyItem(item)}
+        disabled={!isItemOrderable(productInfo)}
         aria-label="Купить только этот товар"
-        title="Купить только этот товар"
-        className="w-7 h-7 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 flex items-center justify-center transition-colors cursor-pointer shrink-0"
+        title={itemUnavailableReason(productInfo) ?? 'Купить только этот товар'}
+        className="w-7 h-7 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 flex items-center justify-center transition-colors cursor-pointer shrink-0 disabled:opacity-30 disabled:cursor-default disabled:hover:bg-transparent disabled:hover:text-muted-foreground"
       >
         <ShoppingBag className="w-3.5 h-3.5" />
       </button>
@@ -150,6 +191,8 @@ function CartGroup({
     [group.items],
   )
 
+  const canOrder = useMemo(() => isGroupOrderable(group, productInfoMap), [group, productInfoMap])
+
   return (
     <div
       className="rounded-2xl border border-white/20 dark:border-white/8 shadow-sm overflow-hidden"
@@ -169,13 +212,20 @@ function CartGroup({
             {group.shopName ?? group.sellerName ?? 'Магазин'}
           </span>
         )}
+        {!canOrder && (
+          <span className="flex items-center gap-1 text-xs text-destructive shrink-0">
+            <AlertTriangle className="w-3 h-3" />
+            недоступно
+          </span>
+        )}
         <span className="ml-auto text-sm font-medium text-muted-foreground shrink-0">
           {(group.groupTotal ?? 0).toLocaleString('ru-RU')} ₽
         </span>
         <button
           onClick={() => onBuyGroup(group)}
-          title="Заказать товары из этого магазина"
-          className="ml-1 flex items-center gap-1 px-2.5 py-1 rounded-lg bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20 transition-colors cursor-pointer shrink-0"
+          disabled={!canOrder}
+          title={canOrder ? 'Заказать товары из этого магазина' : 'Есть недоступные товары'}
+          className="ml-1 flex items-center gap-1 px-2.5 py-1 rounded-lg bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20 transition-colors cursor-pointer shrink-0 disabled:opacity-40 disabled:cursor-default disabled:hover:bg-primary/10"
         >
           <ShoppingBag className="w-3 h-3" />
           Заказать
@@ -316,6 +366,35 @@ export function CartPage() {
     setCheckoutGroups(groups.map((g) => cartGroupToCheckoutGroup(g)))
   }, [groups])
 
+  const handleBuyAvailable = useCallback(() => {
+    const result = groups
+      .map((g) => {
+        const available = (g.items ?? []).filter((item) =>
+          item.productId ? isItemOrderable(productInfoMap[item.productId]) : true,
+        )
+        if (available.length === 0) return null
+        const isFullGroup = available.length === (g.items ?? []).length
+        return isFullGroup ? cartGroupToCheckoutGroup(g) : cartGroupToCheckoutGroup(g, available)
+      })
+      .filter((g): g is CheckoutGroup => g !== null)
+    setCheckoutGroups(result)
+  }, [groups, productInfoMap])
+
+  const hasUnavailableGroup = useMemo(
+    () => groups.some((g) => !isGroupOrderable(g, productInfoMap)),
+    [groups, productInfoMap],
+  )
+
+  const hasOrderableGroup = useMemo(
+    () =>
+      groups.some((g) =>
+        (g.items ?? []).some((item) =>
+          item.productId ? isItemOrderable(productInfoMap[item.productId]) : true,
+        ),
+      ),
+    [groups, productInfoMap],
+  )
+
   const handleCheckoutSuccess = useCallback(() => {
     setCheckoutGroups(null)
     void refreshCart()
@@ -400,13 +479,41 @@ export function CartPage() {
           <p className="text-lg font-bold text-foreground">
             {(cart?.totalAmount ?? 0).toLocaleString('ru-RU')} ₽
           </p>
+          {hasUnavailableGroup && (
+            <p className="text-xs text-destructive mt-0.5 flex items-center gap-1">
+              <AlertTriangle className="w-3 h-3 shrink-0" />
+              Есть недоступные товары
+            </p>
+          )}
         </div>
-        <ShimmerButton
-          onClick={handleBuyAll}
-          className="px-5 py-2.5 text-sm font-semibold cursor-pointer"
-        >
-          Оформить заказ
-        </ShimmerButton>
+        <div className="flex flex-col items-end gap-2">
+          {hasUnavailableGroup ? (
+            <>
+              <ShimmerButton
+                onClick={handleBuyAll}
+                disabled
+                className="px-5 py-2.5 text-sm font-semibold opacity-40 cursor-default"
+              >
+                Оформить заказ
+              </ShimmerButton>
+              {hasOrderableGroup && (
+                <button
+                  onClick={handleBuyAvailable}
+                  className="px-5 py-2 rounded-xl border border-primary text-primary text-sm font-semibold hover:bg-primary/8 transition-colors cursor-pointer"
+                >
+                  Оформить доступные
+                </button>
+              )}
+            </>
+          ) : (
+            <ShimmerButton
+              onClick={handleBuyAll}
+              className="px-5 py-2.5 text-sm font-semibold cursor-pointer"
+            >
+              Оформить заказ
+            </ShimmerButton>
+          )}
+        </div>
       </div>
 
       <UndoToast

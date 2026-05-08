@@ -9,6 +9,11 @@ export interface Product {
   images: string[]
   rating: number
   reviewCount: number
+  /** Product enabled/disabled by the seller manually */
+  isActive: boolean
+  /** Shop enabled/disabled by the seller */
+  shopIsActive: boolean
+  /** true when isActive && shopIsActive && (stockQuantity > 0 || isMadeToOrder) */
   isAvailable: boolean
   stockQuantity: number
   isMadeToOrder: boolean

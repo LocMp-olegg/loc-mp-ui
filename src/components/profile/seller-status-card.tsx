@@ -56,8 +56,8 @@ export function SellerStatusCard({ onDeactivate }: SellerStatusCardProps) {
             <div className="mt-4 p-3 rounded-xl bg-destructive/8 border border-destructive/20 flex gap-2.5">
               <AlertTriangle className="w-4 h-4 text-destructive shrink-0 mt-0.5" />
               <p className="text-xs text-destructive leading-relaxed">
-                Отключение статуса скроет ваши магазины и товары. Вы сможете повторно активировать
-                статус в любой момент.
+                Отключение статуса сделает ваши магазины неактивными и скроет ваши товары. Вы
+                сможете повторно активировать статус в любой момент.
               </p>
             </div>
           </motion.div>
