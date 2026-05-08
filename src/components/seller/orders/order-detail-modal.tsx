@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
+import { formatDateTime, shortOrderId } from '@/lib/format'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   X,
@@ -11,49 +12,14 @@ import {
   Clock,
   MessageSquare,
   Camera,
-  ChevronDown,
 } from 'lucide-react'
 import { OrderStatusBadge } from './order-status-badge'
 import { OrderPhotosSection } from './order-photos-section'
+import { DisputeBlock } from '@/components/orders/dispute-block'
+import { StatusHistory } from '@/components/orders/status-history'
 import { useOrderDetail } from '@/hooks/use-order-detail'
-import { formatPhone } from '@/lib/auth-validation'
+import { displayPhone } from '@/lib/format'
 import noImageUrl from '@/assets/no-image-available.jpg'
-import type { OrderStatus } from '@/api/orders'
-
-function formatDate(iso: string | undefined): string {
-  if (!iso) return ''
-  return new Date(iso).toLocaleString('ru-RU', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
-}
-
-function shortId(id: string | undefined): string {
-  if (!id) return '—'
-  return id.slice(-8).toUpperCase()
-}
-
-function displayPhone(phone: string | null | undefined): string {
-  if (!phone) return ''
-  const digits = phone.replace(/\D/g, '')
-  if (digits.length === 10) return formatPhone(digits)
-  if (digits.length === 11 && (digits[0] === '7' || digits[0] === '8'))
-    return formatPhone(digits.slice(1))
-  return phone
-}
-
-const STATUS_LABELS: Partial<Record<OrderStatus, string>> = {
-  Pending: 'Новый',
-  Confirmed: 'Подтверждён',
-  ReadyForPickup: 'Готов к выдаче',
-  InDelivery: 'Доставляется',
-  Completed: 'Завершён',
-  Cancelled: 'Отменён',
-  Disputed: 'Спор',
-}
 
 interface CancelFormProps {
   busy: boolean
@@ -157,11 +123,17 @@ export function OrderDetailModal({ orderId, onClose, onActionDone }: OrderDetail
     confirm,
     markReady,
     cancel,
+    openDispute,
     uploadPhotos,
     deletePhoto,
+    uploadDisputePhotos,
+    deleteDisputePhoto,
   } = useOrderDetail(orderId)
 
-  const [historyOpen, setHistoryOpen] = useState(false)
+  const canDispute =
+    order?.status === 'Confirmed' ||
+    order?.status === 'ReadyForPickup' ||
+    order?.status === 'InDelivery'
 
   const handleConfirm = async () => {
     const ok = await confirm()
@@ -209,7 +181,7 @@ export function OrderDetailModal({ orderId, onClose, onActionDone }: OrderDetail
             <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-border shrink-0">
               <div className="flex items-center gap-2">
                 <h2 className="text-sm font-semibold text-foreground">
-                  Заказ #{shortId(order?.id)}
+                  Заказ #{shortOrderId(order?.id)}
                 </h2>
                 {order?.status && <OrderStatusBadge status={order.status} />}
               </div>
@@ -236,7 +208,7 @@ export function OrderDetailModal({ orderId, onClose, onActionDone }: OrderDetail
                   <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap">
                     <span className="flex items-center gap-1">
                       <Clock className="w-3.5 h-3.5" />
-                      {formatDate(order.createdAt)}
+                      {formatDateTime(order.createdAt)}
                     </span>
                     {order.shopName && (
                       <span className="flex items-center gap-1 truncate">
@@ -371,55 +343,18 @@ export function OrderDetailModal({ orderId, onClose, onActionDone }: OrderDetail
                     />
                   </section>
 
+                  {/* Dispute */}
+                  <DisputeBlock
+                    dispute={order.dispute}
+                    canOpenDispute={canDispute}
+                    busy={actionBusy}
+                    onOpen={openDispute}
+                    onUploadPhoto={uploadDisputePhotos}
+                    onDeletePhoto={deleteDisputePhoto}
+                  />
+
                   {/* Status history */}
-                  {(order.statusHistory?.length ?? 0) > 0 && (
-                    <section>
-                      <button
-                        type="button"
-                        onClick={() => setHistoryOpen((o) => !o)}
-                        className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wide cursor-pointer hover:text-foreground transition-colors"
-                      >
-                        <Clock className="w-3.5 h-3.5" />
-                        История статусов
-                        <ChevronDown
-                          className={`w-3.5 h-3.5 transition-transform ${historyOpen ? 'rotate-180' : ''}`}
-                        />
-                      </button>
-                      <AnimatePresence>
-                        {historyOpen && (
-                          <motion.div
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: 'auto' }}
-                            exit={{ opacity: 0, height: 0 }}
-                            transition={{ duration: 0.15 }}
-                            className="overflow-hidden"
-                          >
-                            <div className="mt-2 space-y-1">
-                              {order.statusHistory?.map((h) => (
-                                <div
-                                  key={h.id}
-                                  className="flex items-center gap-2 text-xs text-muted-foreground"
-                                >
-                                  <span className="shrink-0 text-[11px] font-mono">
-                                    {formatDate(h.changedAt)}
-                                  </span>
-                                  <span className="text-foreground">
-                                    {STATUS_LABELS[h.fromStatus!] ?? h.fromStatus} →{' '}
-                                    {STATUS_LABELS[h.toStatus!] ?? h.toStatus}
-                                  </span>
-                                  {h.comment && (
-                                    <span className="truncate text-muted-foreground/70">
-                                      {h.comment}
-                                    </span>
-                                  )}
-                                </div>
-                              ))}
-                            </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </section>
-                  )}
+                  <StatusHistory history={order.statusHistory ?? []} dispute={order.dispute} />
 
                   {/* Action error */}
                   {actionError && <p className="text-xs text-destructive">{actionError}</p>}

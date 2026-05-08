@@ -1,6 +1,6 @@
 import { useReducer, useState, useEffect, useCallback } from 'react'
-import { OrdersService } from '@/api/orders'
-import type { OrderDto, OrderPhotoDto } from '@/api/orders'
+import { OrdersService, DisputesService } from '@/api/orders'
+import type { OrderDto, OrderPhotoDto, DisputePhotoDto, DisputeType } from '@/api/orders'
 
 const MAX_PER_REQUEST = 5
 const MAX_PHOTOS = 10
@@ -109,6 +109,27 @@ export function useOrderDetail(orderId: string | null) {
     [state.order, runAction, fetchOrder],
   )
 
+  const complete = useCallback(async () => {
+    if (!state.order?.id) return false
+    const id = state.order.id
+    const ok = await runAction(() => OrdersService.postApiOrdersOrdersComplete({ id }))
+    if (ok) void fetchOrder(id)
+    return ok
+  }, [state.order, runAction, fetchOrder])
+
+  const openDispute = useCallback(
+    async (disputeType: DisputeType, reason: string) => {
+      if (!state.order?.id) return false
+      const id = state.order.id
+      const ok = await runAction(() =>
+        DisputesService.postApiOrdersDisputesDispute({ id, requestBody: { disputeType, reason } }),
+      )
+      if (ok) void fetchOrder(id)
+      return ok
+    },
+    [state.order, runAction, fetchOrder],
+  )
+
   const assignCourier = useCallback(
     async (courierId?: string, courierName?: string, courierPhone?: string) => {
       if (!state.order?.id) return false
@@ -179,6 +200,78 @@ export function useOrderDetail(orderId: string | null) {
     [state.order],
   )
 
+  const uploadDisputePhotos = useCallback(
+    async (files: Blob[]): Promise<DisputePhotoDto[] | null> => {
+      const disputeId = state.order?.dispute?.id
+      if (!disputeId) return null
+      const existing = state.order?.dispute?.photos?.length ?? 0
+      const available = MAX_PHOTOS - existing
+      if (available <= 0) {
+        setActionError(`Достигнут лимит ${MAX_PHOTOS} фотографий`)
+        return null
+      }
+      const toUpload = files.slice(0, available)
+      setActionBusy(true)
+      setActionError(null)
+      try {
+        const all: DisputePhotoDto[] = []
+        for (let i = 0; i < toUpload.length; i += MAX_PER_REQUEST) {
+          const batch = toUpload.slice(i, i + MAX_PER_REQUEST)
+          const newPhotos = await DisputesService.postApiOrdersDisputesPhotos({
+            disputeId,
+            formData: { images: batch },
+          })
+          all.push(...newPhotos)
+        }
+        const prevDispute = state.order?.dispute
+        if (prevDispute) {
+          dispatch({
+            type: 'patch',
+            patch: {
+              dispute: {
+                ...prevDispute,
+                photos: [...(prevDispute.photos ?? []), ...all],
+              },
+            },
+          })
+        }
+        return all
+      } catch {
+        setActionError('Не удалось загрузить фото')
+        return null
+      } finally {
+        setActionBusy(false)
+      }
+    },
+    [state.order],
+  )
+
+  const deleteDisputePhoto = useCallback(
+    async (photoId: string) => {
+      const prevDispute = state.order?.dispute
+      if (!prevDispute) return
+      setActionBusy(true)
+      setActionError(null)
+      try {
+        await DisputesService.deleteApiOrdersDisputesPhotos({ photoId })
+        dispatch({
+          type: 'patch',
+          patch: {
+            dispute: {
+              ...prevDispute,
+              photos: (prevDispute.photos ?? []).filter((p) => p.id !== photoId),
+            },
+          },
+        })
+      } catch {
+        setActionError('Не удалось удалить фото')
+      } finally {
+        setActionBusy(false)
+      }
+    },
+    [state.order],
+  )
+
   return {
     order: state.order,
     loading: state.loading,
@@ -188,9 +281,13 @@ export function useOrderDetail(orderId: string | null) {
     reload,
     confirm,
     markReady,
+    complete,
     cancel,
+    openDispute,
     assignCourier,
     uploadPhotos,
     deletePhoto,
+    uploadDisputePhotos,
+    deleteDisputePhoto,
   }
 }

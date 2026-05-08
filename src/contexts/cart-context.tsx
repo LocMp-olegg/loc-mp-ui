@@ -59,6 +59,7 @@ interface CartContextType {
   addToCart: (productId: string, quantity?: number) => Promise<void>
   removeItem: (cartItemId: string) => Promise<void>
   updateQuantity: (cartItemId: string, quantity: number) => Promise<void>
+  refreshCart: () => Promise<void>
 }
 
 const CartContext = createContext<CartContextType | null>(null)
@@ -123,6 +124,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'update', cart: data })
   }
 
+  const refreshCart = async (): Promise<void> => {
+    dispatch({ type: 'loading' })
+    try {
+      const data = await CartsService.getApiOrdersCarts()
+      dispatch({ type: 'loaded', cart: data })
+    } catch {
+      dispatch({ type: 'error' })
+    }
+  }
+
   return (
     <CartContext.Provider
       value={{
@@ -134,6 +145,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         addToCart,
         removeItem,
         updateQuantity,
+        refreshCart,
       }}
     >
       {children}
