@@ -1,19 +1,26 @@
+import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { ArrowLeft, Loader2 } from 'lucide-react'
+import { ArrowLeft, Loader2, PackageSearch } from 'lucide-react'
 import { useCatalogCategory } from '@/hooks/use-catalog-category'
 import { ProductFiltersBar } from '@/components/catalog/product-filters-bar'
 import { ProductCard } from '@/components/product/product-card'
+import { LocationPicker } from '@/components/location/location-picker'
 import { pluralize } from '@/lib/utils'
 import { useFilterParams } from '@/hooks/use-filter-params'
 import { useScrollRestore } from '@/hooks/use-scroll-restore'
+import { useUserLocation } from '@/contexts/location-context'
 
 function CategoryContent({ id }: { id: string }) {
   const [filter, setFilter] = useFilterParams()
+  const [pickerOpen, setPickerOpen] = useState(false)
   const { data, loading, error, hasNextPage, loadMore } = useCatalogCategory(id, filter)
+  const { location } = useUserLocation()
 
   useScrollRestore(!!data && !loading)
 
   const handleFilterReset = () => setFilter({ sort: filter.sort })
+  const isFiltered =
+    filter.minPrice !== undefined || filter.maxPrice !== undefined || filter.isInStock === true
 
   if (!data && loading) {
     return (
@@ -73,10 +80,44 @@ function CategoryContent({ id }: { id: string }) {
       </div>
 
       {!loading && !data.products.length && (
-        <div className="py-20 text-center text-muted-foreground text-sm">
-          Нет товаров по выбранным фильтрам
+        <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
+          <div className="relative mb-5">
+            <div className="w-20 h-20 rounded-3xl bg-muted/60 border border-border flex items-center justify-center text-4xl">
+              {data.emoji}
+            </div>
+            <div className="absolute -bottom-2 -right-2 w-9 h-9 rounded-xl bg-muted border border-border flex items-center justify-center">
+              <PackageSearch className="w-4 h-4 text-muted-foreground" />
+            </div>
+          </div>
+          <h3 className="text-lg font-semibold text-foreground mb-2">Нет товаров поблизости</h3>
+          <p className="text-muted-foreground text-sm max-w-xs">
+            {isFiltered
+              ? `В категории «${data.name}» нет товаров по выбранным фильтрам`
+              : `В категории «${data.name}» пока нет товаров`}
+            {location
+              ? ` в радиусе ${location.radius < 1 ? `${Math.round(location.radius * 1000)} м` : `${location.radius} км`}.`
+              : '.'}{' '}
+            Попробуйте расширить радиус или выбрать другой район.
+          </p>
+          <div className="flex gap-2 mt-6">
+            {isFiltered && (
+              <button
+                onClick={handleFilterReset}
+                className="px-5 py-2 rounded-xl border border-border text-sm text-muted-foreground hover:text-foreground hover:border-primary/50 transition-colors cursor-pointer"
+              >
+                Сбросить фильтры
+              </button>
+            )}
+            <button
+              onClick={() => setPickerOpen(true)}
+              className="px-5 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity cursor-pointer"
+            >
+              Изменить район
+            </button>
+          </div>
         </div>
       )}
+      {pickerOpen && <LocationPicker onClose={() => setPickerOpen(false)} />}
 
       {hasNextPage && !loading && (
         <div className="flex justify-center mt-8">
