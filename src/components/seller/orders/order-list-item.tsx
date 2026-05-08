@@ -1,27 +1,12 @@
 import { Package, Truck, Store } from 'lucide-react'
 import { OrderStatusBadge } from './order-status-badge'
+import { formatDateTimeShort, shortOrderId } from '@/lib/format'
 import type { OrderSummaryDto } from '@/api/orders'
 import noImageUrl from '@/assets/no-image-available.jpg'
 
 interface OrderListItemProps {
   order: OrderSummaryDto
   onClick: () => void
-}
-
-function formatDate(iso: string | undefined): string {
-  if (!iso) return ''
-  return new Date(iso).toLocaleString('ru-RU', {
-    day: '2-digit',
-    month: '2-digit',
-    year: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
-}
-
-function shortId(id: string | undefined): string {
-  if (!id) return '—'
-  return id.slice(-8).toUpperCase()
 }
 
 export function OrderListItem({ order, onClick }: OrderListItemProps) {
@@ -47,7 +32,7 @@ export function OrderListItem({ order, onClick }: OrderListItemProps) {
       <div className="flex-1 min-w-0 space-y-0.5">
         {/* Row 1: ID + status + delivery */}
         <div className="flex items-center gap-1.5 flex-wrap">
-          <span className="text-xs font-mono text-muted-foreground">#{shortId(order.id)}</span>
+          <span className="text-xs font-mono text-muted-foreground">#{shortOrderId(order.id)}</span>
           <OrderStatusBadge status={order.status} />
           {order.deliveryType === 'NeighborCourier' ? (
             <span className="flex items-center gap-0.5 text-[11px] text-muted-foreground">
@@ -80,7 +65,7 @@ export function OrderListItem({ order, onClick }: OrderListItemProps) {
 
         {/* Row 4: date */}
         <span className="inline-flex items-center text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded-md">
-          {formatDate(order.createdAt)}
+          {formatDateTimeShort(order.createdAt)}
         </span>
       </div>
 

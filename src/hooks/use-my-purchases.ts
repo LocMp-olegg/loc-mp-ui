@@ -1,64 +1,33 @@
 import { useReducer, useEffect, useCallback, useState, useRef } from 'react'
 import { OrdersService } from '@/api/orders'
 import { orderListReducer, ORDER_LIST_INITIAL } from '@/lib/order-list-state'
-import type { OrderStatus, DeliveryType, OrderSortField } from '@/api/orders'
+import type { OrderStatus } from '@/api/orders'
 
-export interface MySalesFilters {
-  shopId?: string
-  statuses?: OrderStatus[]
-  from?: string
-  to?: string
-  deliveryType?: DeliveryType
-  sortBy?: OrderSortField
-  descending?: boolean
+export interface MyPurchasesFilters {
+  status?: OrderStatus
   pageSize?: number
 }
 
-export function useMySales({
-  shopId,
-  statuses,
-  from,
-  to,
-  deliveryType,
-  sortBy,
-  descending = true,
-  pageSize = 20,
-}: MySalesFilters) {
+export function useMyPurchases({ status, pageSize = 20 }: MyPurchasesFilters = {}) {
   const [state, dispatch] = useReducer(orderListReducer, ORDER_LIST_INITIAL)
   const [reloadKey, setReloadKey] = useState(0)
   const pageRef = useRef(1)
   const fetchingMoreRef = useRef(false)
 
-  const filtersRef = useRef({
-    shopId,
-    statuses,
-    from,
-    to,
-    deliveryType,
-    sortBy,
-    descending,
-    pageSize,
-  })
+  const filtersRef = useRef({ status, pageSize })
   useEffect(() => {
-    filtersRef.current = { shopId, statuses, from, to, deliveryType, sortBy, descending, pageSize }
+    filtersRef.current = { status, pageSize }
   })
 
-  const statusKey = statuses?.join(',') ?? ''
-  const filterKey = `${shopId}|${statusKey}|${from}|${to}|${deliveryType}|${sortBy}|${String(descending)}|${pageSize}`
+  const filterKey = `${status ?? ''}|${pageSize}`
 
   useEffect(() => {
     let cancelled = false
     pageRef.current = 1
     dispatch({ type: 'loading' })
     const f = filtersRef.current
-    OrdersService.getApiOrdersOrdersMySales({
-      shopId: f.shopId,
-      statuses: f.statuses,
-      from: f.from,
-      to: f.to,
-      deliveryType: f.deliveryType,
-      sortBy: f.sortBy,
-      descending: f.descending,
+    OrdersService.getApiOrdersOrdersMyPurchases({
+      status: f.status,
       page: 1,
       pageSize: f.pageSize,
     })
@@ -87,14 +56,8 @@ export function useMySales({
     pageRef.current = nextPage
     dispatch({ type: 'loading' })
     const f = filtersRef.current
-    OrdersService.getApiOrdersOrdersMySales({
-      shopId: f.shopId,
-      statuses: f.statuses,
-      from: f.from,
-      to: f.to,
-      deliveryType: f.deliveryType,
-      sortBy: f.sortBy,
-      descending: f.descending,
+    OrdersService.getApiOrdersOrdersMyPurchases({
+      status: f.status,
       page: nextPage,
       pageSize: f.pageSize,
     })

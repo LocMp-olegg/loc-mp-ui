@@ -11,12 +11,14 @@ import { SearchPage } from '@/pages/search-page'
 import { ShopPage } from '@/pages/shop-page'
 import { SellerPage } from '@/pages/seller-page'
 import { ProfilePage } from '@/pages/profile-page'
+import { OrdersPage } from '@/pages/orders-page'
+import { OrderDetailPage } from '@/pages/order-detail-page'
 import { RequireAuth } from '@/components/auth/require-auth'
 import { ShopsPage } from '@/pages/seller/shops-page'
 import { ShopEditPage } from '@/pages/seller/shop-edit-page'
 import { ProductsPage } from '@/pages/seller/products-page'
 import { ProductEditPage } from '@/pages/seller/product-edit-page'
-import { OrdersPage } from '@/pages/seller/orders-page'
+import { OrdersPage as SellerOrdersPage } from '@/pages/seller/orders-page'
 import { AnalyticsPage } from '@/pages/seller/analytics-page'
 
 export const router = createBrowserRouter([
@@ -54,6 +56,22 @@ export const router = createBrowserRouter([
           </RequireAuth>
         ),
       },
+      {
+        path: 'orders',
+        element: (
+          <RequireAuth>
+            <OrdersPage />
+          </RequireAuth>
+        ),
+      },
+      {
+        path: 'orders/:id',
+        element: (
+          <RequireAuth>
+            <OrderDetailPage />
+          </RequireAuth>
+        ),
+      },
       { path: 'login', element: <LoginPage /> },
     ],
   },
@@ -68,7 +86,7 @@ export const router = createBrowserRouter([
       { path: 'products', element: <ProductsPage /> },
       { path: 'products/new', element: <ProductEditPage /> },
       { path: 'products/:productId/edit', element: <ProductEditPage /> },
-      { path: 'orders', element: <OrdersPage /> },
+      { path: 'orders', element: <SellerOrdersPage /> },
       { path: 'analytics', element: <AnalyticsPage /> },
     ],
   },

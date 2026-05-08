@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion, type Variants } from 'framer-motion'
-import { Loader2, Minus, Plus, ShoppingCart, Store, Trash2 } from 'lucide-react'
+import { Loader2, Minus, Plus, ShoppingCart, Store, Trash2, ShoppingBag } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useCart } from '@/contexts/cart-context'
 import { ShimmerButton } from '@/components/aceternity/shimmer-button'
 import { UndoToast } from '@/components/ui/undo-toast'
+import { CheckoutModal, type CheckoutGroup } from '@/components/orders/checkout-modal'
 import { ProductsService } from '@/api/catalog'
 import type { CartGroupDto, CartItemDto } from '@/api/orders'
 import type { ProductDto } from '@/api/catalog'
@@ -40,10 +41,12 @@ function CartItem({
   item,
   productInfo,
   onRemove,
+  onBuyItem,
 }: {
   item: CartItemDto
   productInfo: ProductDto | undefined
   onRemove: (item: CartItemDto) => void
+  onBuyItem: (item: CartItemDto) => void
 }) {
   const { updateQuantity } = useCart()
   const qty = item.quantity ?? 0
@@ -108,6 +111,15 @@ function CartItem({
       </span>
 
       <button
+        onClick={() => onBuyItem(item)}
+        aria-label="Купить только этот товар"
+        title="Купить только этот товар"
+        className="w-7 h-7 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 flex items-center justify-center transition-colors cursor-pointer shrink-0"
+      >
+        <ShoppingBag className="w-3.5 h-3.5" />
+      </button>
+
+      <button
         onClick={() => onRemove(item)}
         aria-label="Удалить"
         className="w-7 h-7 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 flex items-center justify-center transition-colors cursor-pointer shrink-0"
@@ -124,10 +136,14 @@ function CartGroup({
   group,
   productInfoMap,
   onRemove,
+  onBuyItem,
+  onBuyGroup,
 }: {
   group: CartGroupDto
   productInfoMap: ProductInfoMap
   onRemove: (item: CartItemDto) => void
+  onBuyItem: (item: CartItemDto, group: CartGroupDto) => void
+  onBuyGroup: (group: CartGroupDto) => void
 }) {
   const items = useMemo(
     () => [...(group.items ?? [])].sort((a, b) => (a.id ?? '').localeCompare(b.id ?? '')),
@@ -147,6 +163,14 @@ function CartGroup({
         <span className="ml-auto text-sm font-medium text-muted-foreground shrink-0">
           {(group.groupTotal ?? 0).toLocaleString('ru-RU')} ₽
         </span>
+        <button
+          onClick={() => onBuyGroup(group)}
+          title="Заказать товары из этого магазина"
+          className="ml-1 flex items-center gap-1 px-2.5 py-1 rounded-lg bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20 transition-colors cursor-pointer shrink-0"
+        >
+          <ShoppingBag className="w-3 h-3" />
+          Заказать
+        </button>
       </div>
 
       <AnimatePresence initial={false}>
@@ -164,6 +188,7 @@ function CartGroup({
               item={item}
               productInfo={item.productId ? productInfoMap[item.productId] : undefined}
               onRemove={onRemove}
+              onBuyItem={(item) => onBuyItem(item, group)}
             />
           </motion.div>
         ))}
@@ -172,12 +197,27 @@ function CartGroup({
   )
 }
 
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+function cartGroupToCheckoutGroup(group: CartGroupDto, selectedItems?: CartItemDto[]): CheckoutGroup {
+  const items = selectedItems ?? group.items ?? []
+  return {
+    sellerId: group.sellerId!,
+    shopId: group.shopId,
+    shopName: group.shopName,
+    sellerName: group.sellerName,
+    items,
+    isFullGroup: !selectedItems,
+  }
+}
+
 // ── Cart page ────────────────────────────────────────────────────────────────
 
 export function CartPage() {
-  const { cart, isLoading, totalItems, removeItem, addToCart } = useCart()
+  const { cart, isLoading, totalItems, removeItem, addToCart, refreshCart } = useCart()
   const [productInfoMap, setProductInfoMap] = useState<ProductInfoMap>({})
   const [pendingDelete, setPendingDelete] = useState<PendingDelete | null>(null)
+  const [checkoutGroups, setCheckoutGroups] = useState<CheckoutGroup[] | null>(null)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const deleteCountRef = useRef(0)
 
@@ -252,6 +292,23 @@ export function CartPage() {
     setPendingDelete(null)
   }, [pendingDelete, addToCart])
 
+  const handleBuyItem = useCallback((item: CartItemDto, group: CartGroupDto) => {
+    setCheckoutGroups([cartGroupToCheckoutGroup(group, [item])])
+  }, [])
+
+  const handleBuyGroup = useCallback((group: CartGroupDto) => {
+    setCheckoutGroups([cartGroupToCheckoutGroup(group)])
+  }, [])
+
+  const handleBuyAll = useCallback(() => {
+    setCheckoutGroups(groups.map((g) => cartGroupToCheckoutGroup(g)))
+  }, [groups])
+
+  const handleCheckoutSuccess = useCallback(() => {
+    setCheckoutGroups(null)
+    void refreshCart()
+  }, [refreshCart])
+
   useEffect(() => {
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current)
@@ -307,7 +364,13 @@ export function CartPage() {
               transition={{ type: 'spring', stiffness: 420, damping: 32 }}
               layout
             >
-              <CartGroup group={group} productInfoMap={productInfoMap} onRemove={handleRemove} />
+              <CartGroup
+                group={group}
+                productInfoMap={productInfoMap}
+                onRemove={handleRemove}
+                onBuyItem={handleBuyItem}
+                onBuyGroup={handleBuyGroup}
+              />
             </motion.div>
           ))}
         </AnimatePresence>
@@ -326,7 +389,12 @@ export function CartPage() {
             {(cart?.totalAmount ?? 0).toLocaleString('ru-RU')} ₽
           </p>
         </div>
-        <ShimmerButton className="px-5 py-2.5 text-sm font-semibold">Оформить заказ</ShimmerButton>
+        <ShimmerButton
+          onClick={handleBuyAll}
+          className="px-5 py-2.5 text-sm font-semibold cursor-pointer"
+        >
+          Оформить заказ
+        </ShimmerButton>
       </div>
 
       <UndoToast
@@ -336,6 +404,17 @@ export function CartPage() {
         toastKey={pendingDelete?.count}
         duration={UNDO_DURATION}
       />
+
+      <AnimatePresence>
+        {checkoutGroups && (
+          <CheckoutModal
+            groups={checkoutGroups}
+            productInfoMap={productInfoMap}
+            onClose={() => setCheckoutGroups(null)}
+            onSuccess={handleCheckoutSuccess}
+          />
+        )}
+      </AnimatePresence>
     </div>
   )
 }

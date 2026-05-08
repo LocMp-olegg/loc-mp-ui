@@ -14,6 +14,7 @@ const STATUS_PILLS: { label: string; value: OrderStatus | '' }[] = [
   { label: 'Доставляются', value: 'InDelivery' },
   { label: 'Завершённые', value: 'Completed' },
   { label: 'Отменённые', value: 'Cancelled' },
+  { label: 'Спор', value: 'Disputed' },
 ]
 
 const DELIVERY_OPTIONS = [
