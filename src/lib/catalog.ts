@@ -335,6 +335,18 @@ function mapShopDetail(dto: ShopDto): ShopDetail {
     email: dto.email ?? null,
     inn: dto.inn ?? null,
     createdAt: dto.createdAt ?? null,
+    address: dto.address
+      ? {
+          city: dto.address.city ?? null,
+          street: dto.address.street ?? null,
+          houseNumber: dto.address.houseNumber ?? null,
+          apartment: dto.address.apartment ?? null,
+          entrance: dto.address.entrance ?? null,
+          floor: dto.address.floor ?? null,
+        }
+      : null,
+    latitude: dto.latitude ?? null,
+    longitude: dto.longitude ?? null,
   }
 }
 

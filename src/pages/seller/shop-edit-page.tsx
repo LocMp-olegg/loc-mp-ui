@@ -75,6 +75,7 @@ export function ShopEditPage() {
     touched,
     touch,
     formatPhone,
+    formReady,
     locationLabel,
     setLocationLabel,
     locationModalOpen,
@@ -97,7 +98,7 @@ export function ShopEditPage() {
 
   const blocker = useUnsavedGuard(isDirty)
 
-  if (isEdit && shopLoading) {
+  if (isEdit && (shopLoading || !formReady)) {
     return (
       <div className="max-w-2xl mx-auto px-4 py-8 space-y-4 animate-pulse">
         <div className="h-6 w-36 bg-muted rounded-xl" />
@@ -300,7 +301,7 @@ export function ShopEditPage() {
             </div>
           </div>
 
-          {/* Location */}
+          {/* Location + Address */}
           <div className={sectionClass}>
             <h2 className={sectionTitle}>
               <MapPin className="w-4 h-4 text-muted-foreground" />
@@ -308,8 +309,23 @@ export function ShopEditPage() {
             </h2>
 
             {form.latitude !== null && form.longitude !== null && (
-              <div className="mb-4 p-3 rounded-xl bg-muted/50 border border-border space-y-1">
-                {locationLabel && (
+              <div className="mb-4 p-3 rounded-xl bg-muted/50 border border-border space-y-1.5">
+                {(form.addressCity || form.addressStreet) && (
+                  <div className="flex items-start gap-1.5 text-sm text-foreground">
+                    <MapPin className="w-3.5 h-3.5 text-primary shrink-0 mt-0.5" />
+                    <span>
+                      {[
+                        form.addressCity,
+                        form.addressStreet && `ул. ${form.addressStreet}`,
+                        form.addressHouseNumber && `д. ${form.addressHouseNumber}`,
+                        form.addressApartment && `пом. ${form.addressApartment}`,
+                      ]
+                        .filter(Boolean)
+                        .join(', ')}
+                    </span>
+                  </div>
+                )}
+                {!form.addressCity && !form.addressStreet && locationLabel && (
                   <div className="flex items-center gap-1.5 text-sm text-foreground">
                     <MapPin className="w-3.5 h-3.5 text-primary shrink-0" />
                     <span className="truncate">{locationLabel}</span>
@@ -327,6 +343,15 @@ export function ShopEditPage() {
                         : `${form.serviceRadiusMeters} м`}
                     </span>
                   )}
+                  <a
+                    href={`https://yandex.ru/maps/?pt=${form.longitude},${form.latitude}&z=16&l=map`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-primary hover:underline flex items-center gap-1"
+                  >
+                    <Map className="w-3 h-3" />
+                    Показать на карте
+                  </a>
                 </div>
               </div>
             )}
@@ -345,11 +370,29 @@ export function ShopEditPage() {
                 initialLat={form.latitude}
                 initialLng={form.longitude}
                 initialRadiusMeters={form.serviceRadiusMeters}
+                initialAddress={{
+                  city: form.addressCity,
+                  street: form.addressStreet,
+                  houseNumber: form.addressHouseNumber,
+                  apartment: form.addressApartment,
+                  entrance: form.addressEntrance,
+                  floor: form.addressFloor,
+                }}
                 onClose={() => setLocationModalOpen(false)}
-                onSave={(lat, lng, radius, lbl) => {
+                onSave={(lat, lng, radius, lbl, address) => {
                   dispatch({
                     type: 'patch',
-                    patch: { latitude: lat, longitude: lng, serviceRadiusMeters: radius },
+                    patch: {
+                      latitude: lat,
+                      longitude: lng,
+                      serviceRadiusMeters: radius,
+                      addressCity: address.city,
+                      addressStreet: address.street,
+                      addressHouseNumber: address.houseNumber,
+                      addressApartment: address.apartment,
+                      addressEntrance: address.entrance,
+                      addressFloor: address.floor,
+                    },
                   })
                   setLocationLabel(lbl)
                   setLocationModalOpen(false)

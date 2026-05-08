@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, useMemo, useReducer } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { MapContainer, TileLayer, Marker } from 'react-leaflet'
@@ -8,21 +8,17 @@ import { X, Search, MapPin } from 'lucide-react'
 import { MOSCOW } from '@/lib/map-constants'
 import { MapClickHandler, MapRecenter } from '@/lib/map-utils'
 import { useAddressSuggestions } from '@/hooks/use-address-suggestions'
-import { useFieldSuggestions } from '@/hooks/use-field-suggestions'
-import {
-  reverseGeocodeStructured,
-  suggestAddress,
-  suggestCity,
-  suggestStreet,
-  suggestHouse,
-} from '@/lib/geo'
+import { useAddressFormFields } from '@/hooks/use-address-form-fields'
+import { useAutoGeocode } from '@/hooks/use-auto-geocode'
+import { reverseGeocodeStructured } from '@/lib/geo'
+import { FieldSugDropdown } from '@/components/ui/field-sug-dropdown'
 import { cn } from '@/lib/utils'
 import type {
   UserAddressDto,
   CreateUserAddressRequest,
   UpdateUserAddressRequest,
 } from '@/api/identity'
-import type { GeoSuggestion, BoundedSuggestion } from '@/lib/geo'
+import type { GeoSuggestion } from '@/lib/geo'
 
 const markerIcon = L.divIcon({
   className: '',
@@ -37,17 +33,6 @@ interface FormErrors {
   street?: string
   houseNumber?: string
   coordinates?: string
-}
-
-type GeoLookupStatus = 'idle' | 'loading' | 'notFound'
-
-function geoLookupReducer(
-  _: GeoLookupStatus,
-  action: 'start' | 'found' | 'fail' | 'reset',
-): GeoLookupStatus {
-  if (action === 'start') return 'loading'
-  if (action === 'found' || action === 'reset') return 'idle'
-  return 'notFound'
 }
 
 function validate(fields: {
@@ -71,42 +56,6 @@ function validate(fields: {
   return e
 }
 
-function FieldSugDropdown({
-  open,
-  items,
-  onSelect,
-}: {
-  open: boolean
-  items: BoundedSuggestion[]
-  onSelect: (s: BoundedSuggestion) => void
-}) {
-  return (
-    <AnimatePresence>
-      {open && items.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: -4 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -4 }}
-          transition={{ duration: 0.12 }}
-          className="absolute top-full left-0 right-0 mt-1 z-50 rounded-xl overflow-hidden border border-border shadow-xl bg-card max-h-48 overflow-y-auto"
-        >
-          {items.map((s, i) => (
-            <button
-              key={i}
-              onMouseDown={(e) => e.preventDefault()}
-              onClick={() => onSelect(s)}
-              className="w-full text-left px-3 py-2 text-sm text-foreground/80 hover:bg-muted transition-colors flex items-center gap-2 cursor-pointer"
-            >
-              <MapPin className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-              {s.label}
-            </button>
-          ))}
-        </motion.div>
-      )}
-    </AnimatePresence>
-  )
-}
-
 interface Props {
   initial?: UserAddressDto
   onClose: () => void
@@ -117,12 +66,6 @@ export function AddressFormModal({ initial, onClose, onSave }: Props) {
   const isEdit = !!initial
 
   const [title, setTitle] = useState(initial?.title ?? '')
-  const [city, setCity] = useState(initial?.city ?? '')
-  const [street, setStreet] = useState(initial?.street ?? '')
-  const [houseNumber, setHouseNumber] = useState(initial?.houseNumber ?? '')
-  const [apartment, setApartment] = useState(initial?.apartment ?? '')
-  const [entrance, setEntrance] = useState(initial?.entrance ?? '')
-  const [floor, setFloor] = useState(initial?.floor ?? '')
   const [lat, setLat] = useState<number | null>(initial?.latitude ?? null)
   const [lng, setLng] = useState<number | null>(initial?.longitude ?? null)
   const [isDefault, setIsDefault] = useState(initial?.isDefault ?? false)
@@ -130,21 +73,52 @@ export function AddressFormModal({ initial, onClose, onSave }: Props) {
   const [saving, setSaving] = useState(false)
   const [loadingGeo, setLoadingGeo] = useState(false)
   const [submitted, setSubmitted] = useState(false)
-  const [geocodeLookup, dispatchGeocode] = useReducer(geoLookupReducer, 'idle')
-  const errors: FormErrors = submitted ? validate({ title, city, street, houseNumber, lat }) : {}
-
-  const [activeField, setActiveField] = useState<'city' | 'street' | 'house' | null>(null)
-  const cityQ = activeField === 'city' ? city : ''
-  const streetQ = activeField === 'street' ? [city, street].filter(Boolean).join(' ') : ''
-  const houseQ =
-    activeField === 'house' ? [city, street, houseNumber].filter(Boolean).join(' ') : ''
-  const cityFetcher = useCallback((q: string) => suggestCity(q), [])
-  const streetFetcher = useCallback((q: string) => suggestStreet(city, q), [city])
-  const houseFetcher = useCallback((q: string) => suggestHouse(city, street, q), [city, street])
-  const citySug = useFieldSuggestions(cityQ, cityFetcher)
-  const streetSug = useFieldSuggestions(streetQ, streetFetcher)
-  const houseSug = useFieldSuggestions(houseQ, houseFetcher)
   const [confirmClose, setConfirmClose] = useState(false)
+
+  const {
+    city,
+    setCity,
+    street,
+    setStreet,
+    houseNumber,
+    setHouseNumber,
+    apartment,
+    setApartment,
+    entrance,
+    setEntrance,
+    floor,
+    setFloor,
+    setActiveField,
+    citySug,
+    streetSug,
+    houseSug,
+    applyGeoSuggestion: applyAddressFields,
+    handleCitySelect,
+    handleStreetSelect,
+    handleHouseSelect: handleHouseSelectBase,
+  } = useAddressFormFields({
+    initial: {
+      city: initial?.city ?? '',
+      street: initial?.street ?? '',
+      houseNumber: initial?.houseNumber ?? '',
+      apartment: initial?.apartment ?? '',
+      entrance: initial?.entrance ?? '',
+      floor: initial?.floor ?? '',
+    },
+    onCoordinatesReset: () => {
+      setLat(null)
+      setLng(null)
+    },
+    onHouseCoordinates: (hLat, hLng, hLabel) => {
+      setLat(hLat)
+      setLng(hLng)
+      setRecenter(true)
+      setSearch(hLabel)
+      setSearchLabel(hLabel)
+    },
+  })
+
+  const errors: FormErrors = submitted ? validate({ title, city, street, houseNumber, lat }) : {}
 
   const isDirty = useMemo(() => {
     if (!initial) {
@@ -188,89 +162,33 @@ export function AddressFormModal({ initial, onClose, onSave }: Props) {
     return () => document.removeEventListener('mousedown', handler)
   }, [dispatchSug])
 
-  useEffect(() => {
-    if (lat !== null) {
-      dispatchGeocode('reset')
-      return
-    }
-    if (!city.trim() || !street.trim() || !houseNumber.trim()) {
-      dispatchGeocode('reset')
-      return
-    }
-    dispatchGeocode('start')
-    let cancelled = false
-    const query = `${houseNumber.trim()}, ${street.trim()}, ${city.trim()}`
-    const timer = setTimeout(() => {
-      void suggestAddress(query).then((results) => {
-        if (cancelled) return
-        if (results.length > 0) {
-          setLat(results[0].lat)
-          setLng(results[0].lng)
-          setRecenter(true)
-          dispatchGeocode('found')
-        } else {
-          dispatchGeocode('fail')
-        }
-      })
-    }, 800)
-    return () => {
-      cancelled = true
-      clearTimeout(timer)
-    }
-  }, [city, street, houseNumber, lat])
-
-  const applySuggestion = useCallback((s: GeoSuggestion) => {
-    setActiveField(null)
-    setLat(s.lat)
-    setLng(s.lng)
+  const onGeoFound = useCallback((gLat: number, gLng: number) => {
+    setLat(gLat)
+    setLng(gLng)
     setRecenter(true)
-    setSearch(s.label)
-    setSearchLabel(s.label)
-    if (s.city) setCity(s.city)
-    if (s.street) setStreet(s.street)
-    if (s.houseNumber) setHouseNumber(s.houseNumber)
-    setApartment(s.apartment ?? '')
-    setEntrance('')
-    setFloor('')
   }, [])
+  const { geocodeLookup } = useAutoGeocode({
+    city,
+    street,
+    houseNumber,
+    hasCoordinates: lat !== null,
+    onFound: onGeoFound,
+  })
 
-  const handleCitySelect = useCallback(
-    (s: BoundedSuggestion) => {
+  const applySuggestion = useCallback(
+    (s: GeoSuggestion) => {
       setActiveField(null)
-      citySug.close()
-      setCity(s.value)
+      setLat(s.lat)
+      setLng(s.lng)
+      setRecenter(true)
+      setSearch(s.label)
+      setSearchLabel(s.label)
+      applyAddressFields(s)
     },
-    [citySug],
+    [applyAddressFields, setActiveField],
   )
 
-  const handleStreetSelect = useCallback(
-    (s: BoundedSuggestion) => {
-      setActiveField(null)
-      streetSug.close()
-      setStreet(s.value)
-      setLat(null)
-      setLng(null)
-    },
-    [streetSug],
-  )
-
-  const handleHouseSelect = useCallback(
-    (s: BoundedSuggestion) => {
-      setActiveField(null)
-      houseSug.close()
-      setHouseNumber(s.value)
-      if (s.city) setCity(s.city)
-      if (s.street) setStreet(s.street)
-      if (s.lat != null && s.lng != null) {
-        setLat(s.lat)
-        setLng(s.lng)
-        setRecenter(true)
-        setSearch(s.label)
-        setSearchLabel(s.label)
-      }
-    },
-    [houseSug],
-  )
+  const handleHouseSelect = handleHouseSelectBase
 
   const handleSuggestionSelect = (s: GeoSuggestion) => {
     dispatchSug({ type: 'clear' })
@@ -328,7 +246,7 @@ export function AddressFormModal({ initial, onClose, onSave }: Props) {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.2 }}
-      className="fixed inset-0 z-[300] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4"
+      className="fixed inset-0 z-300 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4"
       onClick={handleClose}
     >
       <motion.div

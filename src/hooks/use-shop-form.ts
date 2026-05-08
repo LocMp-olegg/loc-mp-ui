@@ -28,6 +28,7 @@ export function useShopForm(
 
   const [form, rawDispatch] = useReducer(formReducer, INIT_FORM)
   const [isDirty, setIsDirty] = useState(false)
+  const formReady = !shopId || form._ready
 
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
   const [touched, setTouched] = useState<TouchedFields>({})
@@ -125,6 +126,7 @@ export function useShopForm(
     setSaving(true)
     setError(null)
     setSaved(false)
+    const hasAddress = form.addressCity || form.addressStreet || form.addressHouseNumber
     const payload = {
       businessName: form.businessName || null,
       businessType: (form.businessType as BusinessType) || undefined,
@@ -136,6 +138,16 @@ export function useShopForm(
       serviceRadiusMeters: form.serviceRadiusMeters ?? null,
       latitude: form.latitude ?? null,
       longitude: form.longitude ?? null,
+      address: hasAddress
+        ? {
+            city: form.addressCity || null,
+            street: form.addressStreet || null,
+            houseNumber: form.addressHouseNumber || null,
+            apartment: form.addressApartment || null,
+            entrance: form.addressEntrance || null,
+            floor: form.addressFloor || null,
+          }
+        : undefined,
     }
     try {
       if (isEdit && shopId) {
@@ -186,6 +198,7 @@ export function useShopForm(
     form,
     dispatch,
     isDirty,
+    formReady,
     fieldErrors,
     setFieldErrors,
     touched,

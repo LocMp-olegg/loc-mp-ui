@@ -22,6 +22,7 @@ import { useShopDetail } from '@/hooks/use-shop-detail'
 import { useShopFilteredProducts } from '@/hooks/use-shop-filtered-products'
 import { ProductCard } from '@/components/product/product-card'
 import { ShopGalleryModal } from '@/components/shop/gallery-modal'
+import { ShopMapModal } from '@/components/shop/shop-map-modal'
 import { ShopProductSection } from '@/components/shop/shop-product-section'
 import { ShopProductFilters } from '@/components/shop/shop-product-filters'
 import { PhotoLightbox } from '@/components/ui/photo-lightbox'
@@ -59,6 +60,7 @@ function ShopContent({ id }: { id: string }) {
     useShopDetail(id)
   const [avatarLightbox, setAvatarLightbox] = useState(false)
   const [galleryOpen, setGalleryOpen] = useState(false)
+  const [mapOpen, setMapOpen] = useState(false)
   const [photoLightboxIndex, setPhotoLightboxIndex] = useState<number | null>(null)
   const [carouselApi, setCarouselApi] = useState<CarouselApi>()
   const { canScrollPrev, canScrollNext } = useCarouselProgress(carouselApi)
@@ -145,12 +147,21 @@ function ShopContent({ id }: { id: string }) {
                 {shop.workingHours}
               </span>
             )}
-            {shop.serviceRadiusKm !== null && (
-              <span className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-muted/60 border border-border">
-                <MapPin className="w-3.5 h-3.5 shrink-0" />
-                Обслуживает до {shop.serviceRadiusKm} км
-              </span>
-            )}
+            {shop.serviceRadiusKm !== null &&
+              (shop.latitude && shop.longitude ? (
+                <button
+                  onClick={() => setMapOpen(true)}
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-muted/60 border border-border hover:border-primary/50 hover:text-primary transition-colors cursor-pointer"
+                >
+                  <MapPin className="w-3.5 h-3.5 shrink-0" />
+                  Обслуживает до {shop.serviceRadiusKm} км
+                </button>
+              ) : (
+                <span className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-muted/60 border border-border">
+                  <MapPin className="w-3.5 h-3.5 shrink-0" />
+                  Обслуживает до {shop.serviceRadiusKm} км
+                </span>
+              ))}
             {shop.allowCourierDelivery && (
               <span className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-primary/10 text-primary border border-primary/20">
                 <Truck className="w-3.5 h-3.5 shrink-0" />
@@ -163,6 +174,41 @@ function ShopContent({ id }: { id: string }) {
           {shop.description && (
             <p className="mt-3 text-sm text-muted-foreground leading-relaxed">{shop.description}</p>
           )}
+
+          {/* Address */}
+          {shop.address &&
+            (shop.address.city || shop.address.street) &&
+            (() => {
+              const addrLine = [
+                shop.address.city,
+                shop.address.street && `ул. ${shop.address.street}`,
+                shop.address.houseNumber && `д. ${shop.address.houseNumber}`,
+                shop.address.apartment && `пом. ${shop.address.apartment}`,
+              ]
+                .filter(Boolean)
+                .join(', ')
+              const mapsUrl =
+                shop.latitude && shop.longitude
+                  ? `https://yandex.ru/maps/?pt=${shop.longitude},${shop.latitude}&z=16&l=map`
+                  : `https://yandex.ru/maps/?text=${encodeURIComponent(addrLine)}`
+              return (
+                <div className="mt-2 flex flex-wrap items-center gap-3">
+                  <span className="flex items-start gap-1.5 text-sm text-muted-foreground">
+                    <MapPin className="w-3.5 h-3.5 shrink-0 mt-0.5 text-primary" />
+                    <span>{addrLine}</span>
+                  </span>
+                  <a
+                    href={mapsUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-xs text-primary hover:underline shrink-0"
+                  >
+                    <MapPin className="w-3 h-3" />
+                    Показать на карте
+                  </a>
+                </div>
+              )
+            })()}
 
           {/* Contacts */}
           {(shop.phone ?? shop.email ?? shop.inn ?? shop.createdAt) && (
@@ -382,6 +428,28 @@ function ShopContent({ id }: { id: string }) {
       )}
 
       <AnimatePresence>
+        {mapOpen && shop.latitude && shop.longitude && (
+          <ShopMapModal
+            shopName={shop.name}
+            lat={shop.latitude}
+            lng={shop.longitude}
+            radiusMeters={
+              shop.serviceRadiusKm !== null ? Math.round(shop.serviceRadiusKm * 1000) : null
+            }
+            addressLine={
+              shop.address && (shop.address.city || shop.address.street)
+                ? [
+                    shop.address.city,
+                    shop.address.street && `ул. ${shop.address.street}`,
+                    shop.address.houseNumber && `д. ${shop.address.houseNumber}`,
+                  ]
+                    .filter(Boolean)
+                    .join(', ')
+                : null
+            }
+            onClose={() => setMapOpen(false)}
+          />
+        )}
         {avatarLightbox && (
           <PhotoLightbox
             photos={[avatarSrc]}

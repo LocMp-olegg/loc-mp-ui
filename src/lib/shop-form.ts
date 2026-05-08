@@ -11,6 +11,7 @@ export const BUSINESS_OPTIONS = [
 ]
 
 export type FormState = {
+  _ready: boolean
   businessName: string
   businessType: BusinessType | ''
   phoneNumber: string
@@ -22,6 +23,12 @@ export type FormState = {
   latitude: number | null
   longitude: number | null
   serviceRadiusMeters: number | null
+  addressCity: string
+  addressStreet: string
+  addressHouseNumber: string
+  addressApartment: string
+  addressEntrance: string
+  addressFloor: string
   allowCourier: boolean
   maxCourierMeters: string
   avatarUrl: string | null
@@ -29,6 +36,7 @@ export type FormState = {
 }
 
 export const INIT_FORM: FormState = {
+  _ready: false,
   businessName: '',
   businessType: '',
   phoneNumber: '',
@@ -40,6 +48,12 @@ export const INIT_FORM: FormState = {
   latitude: null,
   longitude: null,
   serviceRadiusMeters: null,
+  addressCity: '',
+  addressStreet: '',
+  addressHouseNumber: '',
+  addressApartment: '',
+  addressEntrance: '',
+  addressFloor: '',
   allowCourier: false,
   maxCourierMeters: '',
   avatarUrl: null,
@@ -56,6 +70,7 @@ export function formReducer(state: FormState, action: FormAction): FormState {
   if (action.type === 'init') {
     const rawPhone = (action.shop.phoneNumber ?? '').replace(/\D/g, '')
     return {
+      _ready: true,
       businessName: action.shop.businessName ?? '',
       businessType: VALID_BUSINESS_TYPES.includes(action.shop.businessType as string)
         ? (action.shop.businessType as BusinessType)
@@ -69,10 +84,16 @@ export function formReducer(state: FormState, action: FormAction): FormState {
       latitude: action.shop.latitude ?? null,
       longitude: action.shop.longitude ?? null,
       serviceRadiusMeters: action.shop.serviceRadiusMeters ?? null,
+      addressCity: action.shop.address?.city ?? '',
+      addressStreet: action.shop.address?.street ?? '',
+      addressHouseNumber: action.shop.address?.houseNumber ?? '',
+      addressApartment: action.shop.address?.apartment ?? '',
+      addressEntrance: action.shop.address?.entrance ?? '',
+      addressFloor: action.shop.address?.floor ?? '',
       allowCourier: action.shop.allowCourierDelivery ?? false,
       maxCourierMeters: action.shop.maxCourierDistanceMeters?.toString() ?? '',
-      avatarUrl: action.shop.avatarUrl ?? null,
-      photos: action.shop.photos ?? [],
+      avatarUrl: action.shop.avatarUrl ?? state.avatarUrl,
+      photos: action.shop.photos?.length ? action.shop.photos : state.photos,
     }
   }
   return { ...state, ...action.patch }
