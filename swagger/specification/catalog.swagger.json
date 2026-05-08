@@ -2410,6 +2410,9 @@
             "type": "number",
             "format": "double",
             "nullable": true
+          },
+          "address": {
+            "$ref": "#/components/schemas/ShopAddressRequest"
           }
         },
         "additionalProperties": false
@@ -2870,6 +2873,66 @@
         },
         "additionalProperties": false
       },
+      "ShopAddressDto": {
+        "type": "object",
+        "properties": {
+          "city": {
+            "type": "string",
+            "nullable": true
+          },
+          "street": {
+            "type": "string",
+            "nullable": true
+          },
+          "houseNumber": {
+            "type": "string",
+            "nullable": true
+          },
+          "apartment": {
+            "type": "string",
+            "nullable": true
+          },
+          "entrance": {
+            "type": "string",
+            "nullable": true
+          },
+          "floor": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ShopAddressRequest": {
+        "type": "object",
+        "properties": {
+          "city": {
+            "type": "string",
+            "nullable": true
+          },
+          "street": {
+            "type": "string",
+            "nullable": true
+          },
+          "houseNumber": {
+            "type": "string",
+            "nullable": true
+          },
+          "apartment": {
+            "type": "string",
+            "nullable": true
+          },
+          "entrance": {
+            "type": "string",
+            "nullable": true
+          },
+          "floor": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "ShopDto": {
         "type": "object",
         "properties": {
@@ -2922,6 +2985,9 @@
             "type": "number",
             "format": "double",
             "nullable": true
+          },
+          "address": {
+            "$ref": "#/components/schemas/ShopAddressDto"
           },
           "avatarUrl": {
             "type": "string",
@@ -3187,6 +3253,9 @@
           },
           "isActive": {
             "type": "boolean"
+          },
+          "address": {
+            "$ref": "#/components/schemas/ShopAddressRequest"
           }
         },
         "additionalProperties": false

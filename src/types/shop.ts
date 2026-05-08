@@ -1,3 +1,12 @@
+export interface ShopAddress {
+  city: string | null
+  street: string | null
+  houseNumber: string | null
+  apartment: string | null
+  entrance: string | null
+  floor: string | null
+}
+
 export interface ShopDetail {
   id: string
   sellerId: string
@@ -15,4 +24,7 @@ export interface ShopDetail {
   email: string | null
   inn: string | null
   createdAt: string | null
+  address: ShopAddress | null
+  latitude: number | null
+  longitude: number | null
 }
