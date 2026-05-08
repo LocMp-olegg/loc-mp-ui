@@ -152,7 +152,10 @@ export function PhotosSection({
   return (
     <div>
       <div
-        className={cn('rounded-xl transition-all duration-150', dragging && 'ring-2 ring-primary/50 bg-primary/5')}
+        className={cn(
+          'rounded-xl transition-all duration-150',
+          dragging && 'ring-2 ring-primary/50 bg-primary/5',
+        )}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
@@ -165,7 +168,11 @@ export function PhotosSection({
               onClick={() => setSelected(photo)}
               className="aspect-square rounded-xl overflow-hidden bg-muted border border-border hover:opacity-85 transition-opacity cursor-pointer"
             >
-              <img src={photo.storageUrl ?? noImageUrl} alt="" className="w-full h-full object-cover" />
+              <img
+                src={photo.storageUrl ?? noImageUrl}
+                alt=""
+                className="w-full h-full object-cover"
+              />
             </button>
           ))}
 
@@ -188,8 +195,8 @@ export function PhotosSection({
           )}
         </div>
 
-        {!readOnly && (
-          photos.length >= maxPhotos ? (
+        {!readOnly &&
+          (photos.length >= maxPhotos ? (
             <p className="text-xs text-muted-foreground text-center mt-2">
               Достигнут лимит {maxPhotos} фотографий
             </p>
@@ -197,8 +204,7 @@ export function PhotosSection({
             <p className="text-[11px] text-muted-foreground/60 mt-2">
               {photos.length} / {maxPhotos} · ещё можно {maxPhotos - photos.length} фото
             </p>
-          ) : null
-        )}
+          ) : null)}
       </div>
 
       <input

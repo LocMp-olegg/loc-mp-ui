@@ -41,9 +41,9 @@ const SORT_OPTIONS: { value: SortField | ''; label: string }[] = [
 function sortOrders(orders: OrderSummaryDto[], field: SortField | '', desc: boolean) {
   if (!field) return orders
   return [...orders].sort((a, b) => {
-    let diff = 0
+    let diff: number
     if (field === 'date') {
-      diff = (new Date(a.createdAt ?? 0).getTime()) - (new Date(b.createdAt ?? 0).getTime())
+      diff = new Date(a.createdAt ?? 0).getTime() - new Date(b.createdAt ?? 0).getTime()
     } else {
       diff = (a.totalAmount ?? 0) - (b.totalAmount ?? 0)
     }
@@ -180,7 +180,11 @@ export function OrdersPage() {
           )}
         >
           {sortBy ? (
-            descending ? <ArrowDown className="w-4 h-4" /> : <ArrowUp className="w-4 h-4" />
+            descending ? (
+              <ArrowDown className="w-4 h-4" />
+            ) : (
+              <ArrowUp className="w-4 h-4" />
+            )
           ) : (
             <ArrowUpDown className="w-4 h-4" />
           )}
@@ -191,7 +195,10 @@ export function OrdersPage() {
       {loading && orders.length === 0 ? (
         <div className="space-y-3">
           {[...Array(5)].map((_, i) => (
-            <div key={i} className="rounded-2xl border border-border bg-card/60 h-[76px] animate-pulse" />
+            <div
+              key={i}
+              className="rounded-2xl border border-border bg-card/60 h-[76px] animate-pulse"
+            />
           ))}
         </div>
       ) : error && orders.length === 0 ? (

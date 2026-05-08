@@ -23,7 +23,13 @@ import noImageUrl from '@/assets/no-image-available.jpg'
 
 // ── Cancel form ───────────────────────────────────────────────────────────────
 
-function CancelSection({ busy, onCancel }: { busy: boolean; onCancel: (comment?: string) => Promise<boolean> }) {
+function CancelSection({
+  busy,
+  onCancel,
+}: {
+  busy: boolean
+  onCancel: (comment?: string) => Promise<boolean>
+}) {
   const [confirming, setConfirming] = useState(false)
   const [comment, setComment] = useState('')
 
@@ -124,7 +130,8 @@ export function OrderDetailPage() {
   const status = order?.status
   const canCancel = status === 'Pending' || status === 'Confirmed'
   const canComplete = status === 'ReadyForPickup' || status === 'InDelivery'
-  const canDispute = status === 'Confirmed' || status === 'ReadyForPickup' || status === 'InDelivery'
+  const canDispute =
+    status === 'Confirmed' || status === 'ReadyForPickup' || status === 'InDelivery'
   const canReview = status === 'Completed'
 
   const itemCount = order?.items?.length ?? 0
@@ -164,7 +171,9 @@ export function OrderDetailPage() {
                 <p className="text-xs text-muted-foreground font-mono">
                   Заказ #{shortOrderId(order.id)}
                 </p>
-                <p className="text-xs text-muted-foreground mt-0.5">{formatDateTime(order.createdAt)}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {formatDateTime(order.createdAt)}
+                </p>
               </div>
               <OrderStatusBadge status={order.status} className="text-xs px-2 py-1 rounded-lg" />
             </div>
@@ -326,9 +335,7 @@ export function OrderDetailPage() {
           <StatusHistory history={order.statusHistory ?? []} dispute={order.dispute} />
 
           {/* Action error */}
-          {actionError && (
-            <p className="text-xs text-destructive text-center">{actionError}</p>
-          )}
+          {actionError && <p className="text-xs text-destructive text-center">{actionError}</p>}
 
           {/* Actions */}
           {(canComplete || canCancel || canReview) && (
@@ -352,9 +359,7 @@ export function OrderDetailPage() {
                 </button>
               )}
 
-              {canCancel && (
-                <CancelSection busy={actionBusy} onCancel={cancel} />
-              )}
+              {canCancel && <CancelSection busy={actionBusy} onCancel={cancel} />}
 
               {canReview && (
                 <Link

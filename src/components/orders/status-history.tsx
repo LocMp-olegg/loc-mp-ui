@@ -15,7 +15,8 @@ export function StatusHistory({ history, dispute }: StatusHistoryProps) {
   if (history.length === 0) return null
 
   return (
-    <div className="rounded-2xl border border-border overflow-hidden"
+    <div
+      className="rounded-2xl border border-border overflow-hidden"
       style={{ background: 'color-mix(in srgb, var(--card) 80%, transparent)' }}
     >
       <button
@@ -44,18 +45,12 @@ export function StatusHistory({ history, dispute }: StatusHistoryProps) {
                 const isLast = idx === history.length - 1
                 const toLabel = ORDER_STATUS_LABELS[h.toStatus!] ?? h.toStatus ?? '—'
 
-                // For Disputed transition → show dispute outcome if already resolved
-                // For Resolved/Closed → show outcome label
-                let outcomeNote: string | null = null
-                if ((h.toStatus === 'Resolved' || h.toStatus === 'Closed') && dispute?.outcome) {
-                  outcomeNote = DISPUTE_OUTCOME_LABELS[dispute.outcome]
-                }
+                const outcomeNote =
+                  isLast && dispute?.outcome ? DISPUTE_OUTCOME_LABELS[dispute.outcome] : null
 
                 return (
                   <div key={h.id} className="relative flex gap-3">
-                    {!isLast && (
-                      <div className="absolute left-[6px] top-4 bottom-0 w-px bg-border" />
-                    )}
+                    {!isLast && <div className="absolute left-1.5 top-4 bottom-0 w-px bg-border" />}
                     <div className="w-3.5 h-3.5 rounded-full border-2 border-primary bg-background shrink-0 mt-1 z-10" />
                     <div className="pb-3 min-w-0 flex-1">
                       <p className="text-xs font-medium text-foreground leading-snug">{toLabel}</p>

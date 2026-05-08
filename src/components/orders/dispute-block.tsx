@@ -15,7 +15,6 @@ const DISPUTE_STATUS_LABELS: Record<DisputeStatus, string> = {
   Closed: 'Закрыт',
 }
 
-
 const DISPUTE_TYPE_OPTIONS: { value: DisputeType; label: string }[] = [
   { value: 'NotDelivered', label: 'Товар не доставлен' },
   { value: 'WrongItem', label: 'Прислали не тот товар' },
@@ -48,14 +47,23 @@ function OpenDisputeForm({
   const [reasonError, setReasonError] = useState<string | null>(null)
 
   const handleSubmit = async () => {
-    if (!reason.trim()) { setReasonError('Опишите проблему'); return }
-    if (reason.length > REASON_MAX) { setReasonError(`Максимум ${REASON_MAX} символов`); return }
+    if (!reason.trim()) {
+      setReasonError('Опишите проблему')
+      return
+    }
+    if (reason.length > REASON_MAX) {
+      setReasonError(`Максимум ${REASON_MAX} символов`)
+      return
+    }
     setReasonError(null)
     const ok = await onOpen(disputeType, reason.trim())
     if (ok) setConfirming(false)
   }
 
-  const handleClose = () => { setConfirming(false); setReasonError(null) }
+  const handleClose = () => {
+    setConfirming(false)
+    setReasonError(null)
+  }
 
   return (
     <AnimatePresence mode="wait" initial={false}>
@@ -95,7 +103,10 @@ function OpenDisputeForm({
               </label>
               <textarea
                 value={reason}
-                onChange={(e) => { setReason(e.target.value); if (reasonError) setReasonError(null) }}
+                onChange={(e) => {
+                  setReason(e.target.value)
+                  if (reasonError) setReasonError(null)
+                }}
                 rows={3}
                 maxLength={REASON_MAX}
                 placeholder="Подробно опишите проблему..."
@@ -104,16 +115,16 @@ function OpenDisputeForm({
                 }`}
               />
               <div className="flex items-center justify-between mt-1">
-                {reasonError
-                  ? <p className="text-xs text-destructive">{reasonError}</p>
-                  : <span />}
-                <span className={`text-[11px] tabular-nums ${
-                  reason.length >= REASON_MAX
-                    ? 'text-destructive'
-                    : reason.length > REASON_MAX * 0.9
-                      ? 'text-amber-600 dark:text-amber-400'
-                      : 'text-muted-foreground/50'
-                }`}>
+                {reasonError ? <p className="text-xs text-destructive">{reasonError}</p> : <span />}
+                <span
+                  className={`text-[11px] tabular-nums ${
+                    reason.length >= REASON_MAX
+                      ? 'text-destructive'
+                      : reason.length > REASON_MAX * 0.9
+                        ? 'text-amber-600 dark:text-amber-400'
+                        : 'text-muted-foreground/50'
+                  }`}
+                >
                   {reason.length}/{REASON_MAX}
                 </span>
               </div>
@@ -233,7 +244,9 @@ export function DisputeBlock({
           busy={busy}
           modalTitle="Фото спора"
           readOnly={dispute.status !== 'Open' || dispute.initiatorId !== user?.id}
-          onUpload={async (files) => { await onUploadPhoto(files) }}
+          onUpload={async (files) => {
+            await onUploadPhoto(files)
+          }}
           onDelete={onDeletePhoto}
         />
       </div>

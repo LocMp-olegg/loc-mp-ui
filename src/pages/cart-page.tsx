@@ -208,7 +208,10 @@ function CartGroup({
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
-function cartGroupToCheckoutGroup(group: CartGroupDto, selectedItems?: CartItemDto[]): CheckoutGroup {
+function cartGroupToCheckoutGroup(
+  group: CartGroupDto,
+  selectedItems?: CartItemDto[],
+): CheckoutGroup {
   const items = selectedItems ?? group.items ?? []
   return {
     sellerId: group.sellerId!,

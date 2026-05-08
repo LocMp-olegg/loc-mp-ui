@@ -1,7 +1,18 @@
 import React, { useState, useReducer, useCallback, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Loader2, Store, Truck, MessageSquare, ShoppingBag, MapPin, Plus, Star, AlertTriangle } from 'lucide-react'
+import {
+  X,
+  Loader2,
+  Store,
+  Truck,
+  MessageSquare,
+  ShoppingBag,
+  MapPin,
+  Plus,
+  Star,
+  AlertTriangle,
+} from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { CartsService, ApiError } from '@/api/orders'
 import { useAddresses } from '@/contexts/addresses-context'
@@ -140,10 +151,8 @@ export function CheckoutModal({ groups, productInfoMap, onClose, onSuccess }: Ch
 
   const defaultAddr = addresses.find((a) => a.isDefault) ?? addresses[0]
 
-  const [groupForms, dispatchForms] = useReducer(
-    formsReducer,
-    groups,
-    (gs) => gs.map(() => defaultGroupForm(defaultAddr)),
+  const [groupForms, dispatchForms] = useReducer(formsReducer, groups, (gs) =>
+    gs.map(() => defaultGroupForm(defaultAddr)),
   )
   const [comment, setComment] = useState('')
   const [busy, setBusy] = useState(false)
@@ -353,10 +362,7 @@ export function CheckoutModal({ groups, productInfoMap, onClose, onSuccess }: Ch
       {createPortal(modal, document.body)}
       <AnimatePresence>
         {addingForIdx !== null && (
-          <AddressFormModal
-            onClose={() => setAddingForIdx(null)}
-            onSave={handleAddAddress}
-          />
+          <AddressFormModal onClose={() => setAddingForIdx(null)} onSave={handleAddAddress} />
         )}
       </AnimatePresence>
     </>
@@ -604,7 +610,9 @@ function AddressPicker({
 
   return (
     <div className="pt-1 space-y-1.5">
-      <p className={`text-xs font-medium flex items-center gap-1 mb-1 ${error ? 'text-destructive' : 'text-muted-foreground'}`}>
+      <p
+        className={`text-xs font-medium flex items-center gap-1 mb-1 ${error ? 'text-destructive' : 'text-muted-foreground'}`}
+      >
         <MapPin className="w-3.5 h-3.5" />
         Адрес доставки
         {error && <span className="font-normal">— {error}</span>}
@@ -653,9 +661,7 @@ function AddressPicker({
                       {formatAddressShort(addr)}
                     </p>
                   )}
-                  {addr.city && (
-                    <p className="text-[10px] text-muted-foreground/60">{addr.city}</p>
-                  )}
+                  {addr.city && <p className="text-[10px] text-muted-foreground/60">{addr.city}</p>}
                 </div>
               </button>
             )
