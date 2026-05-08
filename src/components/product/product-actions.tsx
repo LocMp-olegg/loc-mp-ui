@@ -1,8 +1,9 @@
-import { PackageCheck, PackageX } from 'lucide-react'
+import { PackageCheck, PackageX, AlertCircle } from 'lucide-react'
 import { FavoriteButton } from './favorite-button'
 import { CartControls } from './cart-controls'
 import { RatingBadge } from './rating-badge'
 import { useProductActions } from '@/hooks/use-product-actions'
+import { isProductOrderable } from '@/lib/catalog'
 import type { ProductDetail } from '@/types/product-detail'
 
 interface Props {
@@ -39,27 +40,39 @@ export function ProductActions({ product }: Props) {
         <span className="text-sm text-muted-foreground">/ {product.unit}</span>
       </div>
 
-      {/* Stock status */}
-      <div className="flex items-center gap-2 text-sm">
-        {product.isAvailable ? (
-          <>
-            <PackageCheck className="w-4 h-4 text-primary shrink-0" />
-            <span className="text-foreground">
-              {product.isMadeToOrder ? 'Под заказ' : `В наличии: ${product.stockQuantity}`}
-            </span>
-          </>
-        ) : (
-          <>
-            <PackageX className="w-4 h-4 text-muted-foreground shrink-0" />
-            <span className="text-muted-foreground">Нет в наличии</span>
-          </>
-        )}
-      </div>
+      {/* Shop / product status */}
+      {!product.shopIsActive ? (
+        <div className="flex items-center gap-2 text-sm">
+          <AlertCircle className="w-4 h-4 text-destructive shrink-0" />
+          <span className="text-destructive">Магазин временно недоступен</span>
+        </div>
+      ) : !product.isActive ? (
+        <div className="flex items-center gap-2 text-sm">
+          <PackageX className="w-4 h-4 text-muted-foreground shrink-0" />
+          <span className="text-muted-foreground">Товар недоступен</span>
+        </div>
+      ) : (
+        <div className="flex items-center gap-2 text-sm">
+          {product.isAvailable ? (
+            <>
+              <PackageCheck className="w-4 h-4 text-primary shrink-0" />
+              <span className="text-foreground">
+                {product.isMadeToOrder ? 'Под заказ' : `В наличии: ${product.stockQuantity}`}
+              </span>
+            </>
+          ) : (
+            <>
+              <PackageX className="w-4 h-4 text-muted-foreground shrink-0" />
+              <span className="text-muted-foreground">Нет в наличии</span>
+            </>
+          )}
+        </div>
+      )}
 
       {/* Cart */}
       <CartControls
         quantity={quantity}
-        isAvailable={product.isAvailable}
+        isAvailable={isProductOrderable(product)}
         maxQuantity={maxQuantity}
         onAdd={onAdd}
         onIncrement={onIncrement}

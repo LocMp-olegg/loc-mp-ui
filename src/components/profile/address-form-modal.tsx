@@ -371,31 +371,55 @@ export function AddressFormModal({ initial, onClose, onSave }: Props) {
             {errors.title && <p className="text-xs text-destructive mt-1">{errors.title}</p>}
           </div>
 
-          {/* Город + Дом */}
-          <div className="grid grid-cols-2 gap-3">
+          {/* Город */}
+          <div>
+            <label className="block text-xs font-medium text-muted-foreground mb-1.5">
+              Город <span className="text-destructive">*</span>
+            </label>
+            <div className="relative">
+              <input
+                type="text"
+                value={city}
+                onChange={(e) => setCity(e.target.value)}
+                onFocus={() => setActiveField('city')}
+                onBlur={() => setActiveField(null)}
+                placeholder=""
+                className={cn(field, errors.city ? fieldErr : fieldOk)}
+              />
+              <FieldSugDropdown
+                open={citySug.open}
+                items={citySug.suggestions}
+                onSelect={handleCitySelect}
+              />
+            </div>
+            {errors.city && <p className="text-xs text-destructive mt-1">{errors.city}</p>}
+          </div>
+
+          {/* Улица + Дом */}
+          <div className="grid grid-cols-[1fr_auto] gap-3">
             <div>
               <label className="block text-xs font-medium text-muted-foreground mb-1.5">
-                Город <span className="text-destructive">*</span>
+                Улица <span className="text-destructive">*</span>
               </label>
               <div className="relative">
                 <input
                   type="text"
-                  value={city}
-                  onChange={(e) => setCity(e.target.value)}
-                  onFocus={() => setActiveField('city')}
+                  value={street}
+                  onChange={(e) => setStreet(e.target.value)}
+                  onFocus={() => setActiveField('street')}
                   onBlur={() => setActiveField(null)}
                   placeholder=""
-                  className={cn(field, errors.city ? fieldErr : fieldOk)}
+                  className={cn(field, errors.street ? fieldErr : fieldOk)}
                 />
                 <FieldSugDropdown
-                  open={citySug.open}
-                  items={citySug.suggestions}
-                  onSelect={handleCitySelect}
+                  open={streetSug.open}
+                  items={streetSug.suggestions}
+                  onSelect={handleStreetSelect}
                 />
               </div>
-              {errors.city && <p className="text-xs text-destructive mt-1">{errors.city}</p>}
+              {errors.street && <p className="text-xs text-destructive mt-1">{errors.street}</p>}
             </div>
-            <div>
+            <div className="w-24">
               <label className="block text-xs font-medium text-muted-foreground mb-1.5">
                 Дом <span className="text-destructive">*</span>
               </label>
@@ -419,30 +443,6 @@ export function AddressFormModal({ initial, onClose, onSave }: Props) {
                 <p className="text-xs text-destructive mt-1">{errors.houseNumber}</p>
               )}
             </div>
-          </div>
-
-          {/* Улица */}
-          <div>
-            <label className="block text-xs font-medium text-muted-foreground mb-1.5">
-              Улица <span className="text-destructive">*</span>
-            </label>
-            <div className="relative">
-              <input
-                type="text"
-                value={street}
-                onChange={(e) => setStreet(e.target.value)}
-                onFocus={() => setActiveField('street')}
-                onBlur={() => setActiveField(null)}
-                placeholder=""
-                className={cn(field, errors.street ? fieldErr : fieldOk)}
-              />
-              <FieldSugDropdown
-                open={streetSug.open}
-                items={streetSug.suggestions}
-                onSelect={handleStreetSelect}
-              />
-            </div>
-            {errors.street && <p className="text-xs text-destructive mt-1">{errors.street}</p>}
           </div>
 
           {/* Квартира + Подъезд + Этаж */}
@@ -506,11 +506,17 @@ export function AddressFormModal({ initial, onClose, onSave }: Props) {
         </div>
 
         {/* Footer */}
-        <div className="px-5 py-4 border-t border-border shrink-0">
+        <div className="px-5 py-4 border-t border-border shrink-0 flex gap-2">
+          <button
+            onClick={handleClose}
+            className="flex-1 py-2.5 rounded-xl border border-border text-sm font-medium text-foreground hover:bg-muted transition-colors cursor-pointer"
+          >
+            Отменить
+          </button>
           <button
             onClick={() => void handleSave()}
-            disabled={saving || loadingGeo || geocodeLookup === 'loading'}
-            className="w-full py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50"
+            disabled={saving || loadingGeo || geocodeLookup === 'loading' || !isDirty}
+            className="flex-1 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50"
           >
             {saving ? 'Сохранение...' : isEdit ? 'Сохранить изменения' : 'Добавить адрес'}
           </button>

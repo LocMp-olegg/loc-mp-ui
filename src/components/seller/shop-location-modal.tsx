@@ -365,30 +365,53 @@ export function ShopLocationModal({
           <div className="px-5 pt-4 space-y-3">
             <p className="text-xs font-medium text-nav-text/50 uppercase tracking-wide">Адрес</p>
 
-            {/* Город + Дом */}
-            <div className="grid grid-cols-2 gap-3">
+            {/* Город */}
+            <div>
+              <label className="block text-xs text-nav-text/50 mb-1.5">
+                Город <span className="text-red-400">*</span>
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
+                  onFocus={() => setActiveField('city')}
+                  onBlur={() => setActiveField(null)}
+                  className={cn(fieldCls, errors.city ? fieldErr : fieldOk)}
+                />
+                <FieldSugDropdown
+                  open={citySug.open}
+                  items={citySug.suggestions}
+                  onSelect={handleCitySelect}
+                />
+              </div>
+              {errors.city && <p className="text-xs text-red-400/80 mt-1">{errors.city}</p>}
+            </div>
+
+            {/* Улица + Дом */}
+            <div className="grid grid-cols-[1fr_auto] gap-3">
               <div>
                 <label className="block text-xs text-nav-text/50 mb-1.5">
-                  Город <span className="text-red-400">*</span>
+                  Улица <span className="text-red-400">*</span>
                 </label>
                 <div className="relative">
                   <input
                     type="text"
-                    value={city}
-                    onChange={(e) => setCity(e.target.value)}
-                    onFocus={() => setActiveField('city')}
+                    value={street}
+                    onChange={(e) => setStreet(e.target.value)}
+                    onFocus={() => setActiveField('street')}
                     onBlur={() => setActiveField(null)}
-                    className={cn(fieldCls, errors.city ? fieldErr : fieldOk)}
+                    className={cn(fieldCls, errors.street ? fieldErr : fieldOk)}
                   />
                   <FieldSugDropdown
-                    open={citySug.open}
-                    items={citySug.suggestions}
-                    onSelect={handleCitySelect}
+                    open={streetSug.open}
+                    items={streetSug.suggestions}
+                    onSelect={handleStreetSelect}
                   />
                 </div>
-                {errors.city && <p className="text-xs text-red-400/80 mt-1">{errors.city}</p>}
+                {errors.street && <p className="text-xs text-red-400/80 mt-1">{errors.street}</p>}
               </div>
-              <div>
+              <div className="w-24">
                 <label className="block text-xs text-nav-text/50 mb-1.5">
                   Дом <span className="text-red-400">*</span>
                 </label>
@@ -411,29 +434,6 @@ export function ShopLocationModal({
                   <p className="text-xs text-red-400/80 mt-1">{errors.houseNumber}</p>
                 )}
               </div>
-            </div>
-
-            {/* Улица */}
-            <div>
-              <label className="block text-xs text-nav-text/50 mb-1.5">
-                Улица <span className="text-red-400">*</span>
-              </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  value={street}
-                  onChange={(e) => setStreet(e.target.value)}
-                  onFocus={() => setActiveField('street')}
-                  onBlur={() => setActiveField(null)}
-                  className={cn(fieldCls, errors.street ? fieldErr : fieldOk)}
-                />
-                <FieldSugDropdown
-                  open={streetSug.open}
-                  items={streetSug.suggestions}
-                  onSelect={handleStreetSelect}
-                />
-              </div>
-              {errors.street && <p className="text-xs text-red-400/80 mt-1">{errors.street}</p>}
             </div>
 
             {/* Помещение / Подъезд / Этаж */}

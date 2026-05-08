@@ -93,7 +93,9 @@ export function ShopEditPage() {
     handleEmailChange,
     handleSubmit,
     handleSaveCourier,
+    handleReset,
     isDirty,
+    isCourierDirty,
   } = useShopForm(shopId, shop, setShop)
 
   const blocker = useUnsavedGuard(isDirty)
@@ -403,26 +405,43 @@ export function ShopEditPage() {
 
           {/* Error + Save */}
           {error && <p className="text-xs text-destructive px-1">{error}</p>}
-          <motion.button
-            type="submit"
-            disabled={saving}
-            whileTap={{ scale: 0.97 }}
-            className="h-10 px-6 rounded-xl bg-primary text-primary-foreground text-sm font-medium flex items-center gap-2 hover:bg-primary/90 transition-colors cursor-pointer disabled:opacity-60"
-          >
-            {saving ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : saved ? (
-              <>
-                <Check className="w-4 h-4" />
-                Сохранено
-              </>
-            ) : (
-              <>
-                <Save className="w-4 h-4" />
-                {isEdit ? 'Сохранить' : 'Создать магазин'}
-              </>
-            )}
-          </motion.button>
+          <div className="flex items-center gap-2">
+            <AnimatePresence>
+              {isDirty && !saving && (
+                <motion.button
+                  type="button"
+                  onClick={handleReset}
+                  initial={{ opacity: 0, x: -8 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -8 }}
+                  transition={{ duration: 0.15 }}
+                  className="h-10 px-5 rounded-xl border border-border text-sm font-medium text-foreground hover:bg-muted transition-colors cursor-pointer"
+                >
+                  Отменить
+                </motion.button>
+              )}
+            </AnimatePresence>
+            <motion.button
+              type="submit"
+              disabled={saving || !isDirty}
+              whileTap={{ scale: 0.97 }}
+              className="h-10 px-6 rounded-xl bg-primary text-primary-foreground text-sm font-medium flex items-center gap-2 hover:bg-primary/90 transition-colors cursor-pointer disabled:opacity-60"
+            >
+              {saving ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : saved ? (
+                <>
+                  <Check className="w-4 h-4" />
+                  Сохранено
+                </>
+              ) : (
+                <>
+                  <Save className="w-4 h-4" />
+                  {isEdit ? 'Сохранить' : 'Создать магазин'}
+                </>
+              )}
+            </motion.button>
+          </div>
         </form>
 
         {/* Photo sections — only after creation */}
@@ -501,7 +520,7 @@ export function ShopEditPage() {
                 <motion.button
                   type="button"
                   onClick={() => void handleSaveCourier()}
-                  disabled={courierSaving}
+                  disabled={courierSaving || !isCourierDirty}
                   whileTap={{ scale: 0.97 }}
                   className="h-9 px-5 rounded-xl bg-primary text-primary-foreground text-sm font-medium flex items-center gap-2 hover:bg-primary/90 transition-colors cursor-pointer disabled:opacity-60"
                 >

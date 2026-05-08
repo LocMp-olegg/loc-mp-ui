@@ -1,12 +1,13 @@
 import { useState, useCallback } from 'react'
 import { motion } from 'framer-motion'
-import { Store } from 'lucide-react'
+import { Store, AlertCircle } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { CartControls } from './cart-controls'
 import { FavoriteButton } from './favorite-button'
 import { ProductImageSlider } from './product-image-slider'
 import { RatingBadge } from './rating-badge'
 import { useProductActions } from '@/hooks/use-product-actions'
+import { isProductOrderable } from '@/lib/catalog'
 import { cn } from '@/lib/utils'
 import type { Product } from '@/types/product'
 import * as React from 'react'
@@ -74,12 +75,24 @@ export function ProductCard({ product, className }: Props) {
               {product.name}
             </p>
 
-            {product.shopName && (
-              <div className="flex items-center gap-1 mt-1">
-                <Store className="w-3 h-3 text-muted-foreground shrink-0" />
-                <span className="text-xs text-muted-foreground truncate">{product.shopName}</span>
-              </div>
-            )}
+            <div className="flex items-center gap-1 mt-1 min-w-0">
+              {!product.shopIsActive ? (
+                <>
+                  <AlertCircle className="w-3 h-3 text-destructive shrink-0" />
+                  <span className="text-xs text-destructive truncate">Магазин не работает</span>
+                </>
+              ) : !product.isActive ? (
+                <>
+                  <AlertCircle className="w-3 h-3 text-muted-foreground shrink-0" />
+                  <span className="text-xs text-muted-foreground truncate">Товар недоступен</span>
+                </>
+              ) : (
+                <>
+                  <Store className="w-3 h-3 text-muted-foreground shrink-0" />
+                  <span className="text-xs text-muted-foreground truncate">{product.shopName}</span>
+                </>
+              )}
+            </div>
           </div>
 
           <div className="pointer-events-auto shrink-0">
@@ -102,7 +115,7 @@ export function ProductCard({ product, className }: Props) {
       <div className="relative z-20 px-4 pb-4 pointer-events-none">
         <CartControls
           quantity={quantity}
-          isAvailable={product.isAvailable}
+          isAvailable={isProductOrderable(product)}
           maxQuantity={product.isMadeToOrder ? undefined : product.stockQuantity}
           onAdd={onAdd}
           onIncrement={onIncrement}

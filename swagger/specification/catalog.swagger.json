@@ -2566,6 +2566,9 @@
           "isActive": {
             "type": "boolean"
           },
+          "shopIsActive": {
+            "type": "boolean"
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time"
@@ -2695,6 +2698,9 @@
             "format": "int32"
           },
           "isActive": {
+            "type": "boolean"
+          },
+          "shopIsActive": {
             "type": "boolean"
           },
           "latitude": {

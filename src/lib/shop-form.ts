@@ -63,10 +63,12 @@ export const INIT_FORM: FormState = {
 export type FormAction =
   | { type: 'init'; shop: ShopDto }
   | { type: 'patch'; patch: Partial<FormState> }
+  | { type: 'reset' }
 
 const VALID_BUSINESS_TYPES = ['Individual', 'SoleProprietor', 'SmallBusiness']
 
 export function formReducer(state: FormState, action: FormAction): FormState {
+  if (action.type === 'reset') return { ...INIT_FORM, _ready: state._ready }
   if (action.type === 'init') {
     const rawPhone = (action.shop.phoneNumber ?? '').replace(/\D/g, '')
     return {
