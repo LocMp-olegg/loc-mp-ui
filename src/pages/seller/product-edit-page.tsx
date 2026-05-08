@@ -90,6 +90,7 @@ export function ProductEditPage() {
     stockSaved,
     stockError,
     handleSubmit,
+    handleReset,
     handleAdjustStock,
   } = useProductForm(productId, product, setProduct)
 
@@ -330,21 +331,38 @@ export function ProductEditPage() {
           {/* Save button — inside the section */}
           <div className="mt-5 pt-4 border-t border-border">
             {error && <p className="text-xs text-destructive mb-3">{error}</p>}
-            <button
-              type="button"
-              onClick={() => void handleSubmit()}
-              disabled={saving}
-              className="inline-flex items-center gap-2 h-9 px-4 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-60 cursor-pointer"
-            >
-              {saving ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : saved ? (
-                <Check className="w-4 h-4" />
-              ) : (
-                <Save className="w-4 h-4" />
-              )}
-              {saved ? 'Сохранено' : 'Сохранить'}
-            </button>
+            <div className="flex items-center gap-2">
+              <AnimatePresence>
+                {isDirty && !saving && (
+                  <motion.button
+                    type="button"
+                    onClick={handleReset}
+                    initial={{ opacity: 0, x: -8 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -8 }}
+                    transition={{ duration: 0.15 }}
+                    className="inline-flex items-center h-9 px-4 rounded-xl border border-border text-sm font-medium text-foreground hover:bg-muted transition-colors cursor-pointer"
+                  >
+                    Отменить
+                  </motion.button>
+                )}
+              </AnimatePresence>
+              <button
+                type="button"
+                onClick={() => void handleSubmit()}
+                disabled={saving || !isDirty}
+                className="inline-flex items-center gap-2 h-9 px-4 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-60 cursor-pointer"
+              >
+                {saving ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : saved ? (
+                  <Check className="w-4 h-4" />
+                ) : (
+                  <Save className="w-4 h-4" />
+                )}
+                {saved ? 'Сохранено' : 'Сохранить'}
+              </button>
+            </div>
           </div>
         </div>
 

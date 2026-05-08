@@ -16,6 +16,8 @@ import {
   type TouchedFields,
 } from '@/lib/shop-form'
 
+const COURIER_KEYS = new Set<keyof FormState>(['allowCourier', 'maxCourierMeters'])
+
 export type { FormState, FormAction }
 
 export function useShopForm(
@@ -28,6 +30,7 @@ export function useShopForm(
 
   const [form, rawDispatch] = useReducer(formReducer, INIT_FORM)
   const [isDirty, setIsDirty] = useState(false)
+  const [isCourierDirty, setIsCourierDirty] = useState(false)
   const formReady = !shopId || form._ready
 
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
@@ -57,10 +60,33 @@ export function useShopForm(
   const dispatch = useCallback(
     (action: FormAction) => {
       rawDispatch(action)
-      if (action.type === 'patch') setIsDirty(true)
+      if (action.type === 'patch') {
+        const keys = Object.keys(action.patch) as (keyof FormState)[]
+        if (keys.every((k) => COURIER_KEYS.has(k))) {
+          setIsCourierDirty(true)
+        } else {
+          setIsDirty(true)
+        }
+      }
     },
     [rawDispatch],
   )
+
+  const handleReset = useCallback(() => {
+    if (shop) {
+      rawDispatch({ type: 'init', shop })
+      if (shop.latitude && shop.longitude) {
+        reverseGeocode(shop.latitude, shop.longitude).then(setLocationLabel)
+      }
+    } else {
+      rawDispatch({ type: 'reset' })
+    }
+    setIsDirty(false)
+    setIsCourierDirty(false)
+    setFieldErrors({})
+    setTouched({})
+    setError(null)
+  }, [shop, setLocationLabel])
 
   const handlePhoneChange = (e: ChangeEvent<HTMLInputElement>) => {
     const allDigits = e.target.value.replace(/\D/g, '')
@@ -186,6 +212,7 @@ export function useShopForm(
         },
       })
       setCourierSaved(true)
+      setIsCourierDirty(false)
       setTimeout(() => setCourierSaved(false), 2500)
     } catch {
       setCourierError('Не удалось сохранить настройки доставки')
@@ -198,6 +225,7 @@ export function useShopForm(
     form,
     dispatch,
     isDirty,
+    isCourierDirty,
     formReady,
     fieldErrors,
     setFieldErrors,
@@ -221,5 +249,6 @@ export function useShopForm(
     handleEmailChange,
     handleSubmit,
     handleSaveCourier,
+    handleReset,
   }
 }

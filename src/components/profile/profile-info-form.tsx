@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import * as React from 'react'
 import { Check, Loader2, Phone, X } from 'lucide-react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { DatePickerField } from '@/components/auth/date-picker-field'
 import { ProfileSelect } from '@/components/ui/profile-select'
 import { formatPhone, PHONE_RE } from '@/lib/auth-validation'
@@ -61,8 +61,19 @@ export function ProfileInfoForm({ profile, onSave }: ProfileInfoFormProps) {
     }
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleReset = () => {
+    setFirstName(profile.firstName ?? '')
+    setLastName(profile.lastName ?? '')
+    setGender(profile.gender ?? '')
+    setBirthDate(profile.birthDate ?? '')
+    setPhoneDigits(
+      (profile.phoneNumber ?? '').replace(/\D/g, '').replace(/^7/, '').slice(0, 10),
+    )
+    setPhoneTouched(false)
+    setError(null)
+  }
+
+  const handleSubmit = async () => {
     if (!isDirty || saving) return
     setPhoneTouched(true)
     if (phoneDigits.length > 0 && !PHONE_RE.test(phoneDigits)) return
@@ -87,7 +98,7 @@ export function ProfileInfoForm({ profile, onSave }: ProfileInfoFormProps) {
   }
 
   return (
-    <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
+    <form onSubmit={(e) => { e.preventDefault(); void handleSubmit() }} className="space-y-4">
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className={labelClass}>Имя</label>
@@ -158,23 +169,40 @@ export function ProfileInfoForm({ profile, onSave }: ProfileInfoFormProps) {
 
       {error && <p className="text-xs text-destructive">{error}</p>}
 
-      <motion.button
-        type="submit"
-        disabled={saving || !isDirty}
-        whileTap={{ scale: 0.97 }}
-        className="h-10 px-5 rounded-xl bg-primary text-primary-foreground text-sm font-medium flex items-center gap-2 hover:bg-primary/90 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        {saving ? (
-          <Loader2 className="w-4 h-4 animate-spin" />
-        ) : saved ? (
-          <>
-            <Check className="w-4 h-4" />
-            Сохранено
-          </>
-        ) : (
-          'Сохранить'
-        )}
-      </motion.button>
+      <div className="flex items-center gap-2">
+        <AnimatePresence>
+          {isDirty && !saving && (
+            <motion.button
+              type="button"
+              onClick={handleReset}
+              initial={{ opacity: 0, x: -8 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -8 }}
+              transition={{ duration: 0.15 }}
+              className="h-10 px-5 rounded-xl border border-border text-sm font-medium text-foreground hover:bg-muted transition-colors cursor-pointer"
+            >
+              Отменить
+            </motion.button>
+          )}
+        </AnimatePresence>
+        <motion.button
+          type="submit"
+          disabled={saving || !isDirty}
+          whileTap={{ scale: 0.97 }}
+          className="h-10 px-5 rounded-xl bg-primary text-primary-foreground text-sm font-medium flex items-center gap-2 hover:bg-primary/90 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {saving ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : saved ? (
+            <>
+              <Check className="w-4 h-4" />
+              Сохранено
+            </>
+          ) : (
+            'Сохранить'
+          )}
+        </motion.button>
+      </div>
     </form>
   )
 }

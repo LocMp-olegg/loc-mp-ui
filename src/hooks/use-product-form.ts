@@ -48,6 +48,17 @@ export function useProductForm(
     [rawDispatch],
   )
 
+  const handleReset = useCallback(() => {
+    if (product) {
+      rawDispatch({ type: 'init', product })
+    } else {
+      rawDispatch({ type: 'reset' })
+    }
+    setIsDirty(false)
+    setFieldErrors({})
+    setError(null)
+  }, [product])
+
   const handleSubmit = async () => {
     if (saving) return
     const errs = validateProductForm(form, isEdit)
@@ -148,6 +159,7 @@ export function useProductForm(
     stockSaved,
     stockError,
     handleSubmit,
+    handleReset,
     handleAdjustStock,
     isEdit,
   }

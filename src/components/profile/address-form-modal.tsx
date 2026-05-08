@@ -506,11 +506,17 @@ export function AddressFormModal({ initial, onClose, onSave }: Props) {
         </div>
 
         {/* Footer */}
-        <div className="px-5 py-4 border-t border-border shrink-0">
+        <div className="px-5 py-4 border-t border-border shrink-0 flex gap-2">
+          <button
+            onClick={handleClose}
+            className="flex-1 py-2.5 rounded-xl border border-border text-sm font-medium text-foreground hover:bg-muted transition-colors cursor-pointer"
+          >
+            Отменить
+          </button>
           <button
             onClick={() => void handleSave()}
-            disabled={saving || loadingGeo || geocodeLookup === 'loading'}
-            className="w-full py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50"
+            disabled={saving || loadingGeo || geocodeLookup === 'loading' || !isDirty}
+            className="flex-1 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50"
           >
             {saving ? 'Сохранение...' : isEdit ? 'Сохранить изменения' : 'Добавить адрес'}
           </button>

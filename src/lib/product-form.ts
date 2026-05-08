@@ -33,11 +33,13 @@ export const INIT_PRODUCT_FORM: ProductFormState = {
 export type ProductFormAction =
   | { type: 'init'; product: ProductDto }
   | { type: 'patch'; patch: Partial<ProductFormState> }
+  | { type: 'reset' }
 
 export function productFormReducer(
   state: ProductFormState,
   action: ProductFormAction,
 ): ProductFormState {
+  if (action.type === 'reset') return { ...INIT_PRODUCT_FORM }
   if (action.type === 'init') {
     return {
       shopId: action.product.shopId ?? '',
