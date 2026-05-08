@@ -1,5 +1,5 @@
 import { useParams, Link } from 'react-router-dom'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Pencil } from 'lucide-react'
 import { ProductGallery } from '@/components/product/product-gallery'
 import { ProductInfo } from '@/components/product/product-info'
 import { ProductActions } from '@/components/product/product-actions'
@@ -7,6 +7,8 @@ import { ProductReviews } from '@/components/product/product-reviews'
 import { useProductDetail } from '@/hooks/use-product-detail'
 import { useProductReviews } from '@/hooks/use-product-reviews'
 import { useCatalogCategories } from '@/contexts/catalog-categories-context'
+import { useAuth } from '@/contexts/auth-context'
+import { hasRole } from '@/lib/utils'
 
 function ProductSkeleton() {
   return (
@@ -31,6 +33,10 @@ export function ProductPage() {
   const { product, rating, loading, error } = useProductDetail(id)
   const reviewsState = useProductReviews(id)
   const { getCategoryInfo } = useCatalogCategories()
+  const { user } = useAuth()
+
+  const isOwner =
+    !!user && hasRole(user.role, 'Seller') && !!product && user.id === product.sellerId
 
   if (loading) return <ProductSkeleton />
 
@@ -47,14 +53,25 @@ export function ProductPage() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 md:px-6 py-6">
-      {/* Back */}
-      <Link
-        to={-1 as unknown as string}
-        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        Назад
-      </Link>
+      {/* Back + edit */}
+      <div className="flex items-center justify-between mb-6">
+        <Link
+          to={-1 as unknown as string}
+          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Назад
+        </Link>
+        {isOwner && (
+          <Link
+            to={`/seller/products/${product.id}/edit`}
+            className="inline-flex items-center gap-1.5 text-sm text-primary border border-primary/30 hover:border-primary/70 hover:bg-primary/5 px-3 py-1.5 rounded-lg transition-colors"
+          >
+            <Pencil className="w-3.5 h-3.5" />
+            Редактировать
+          </Link>
+        )}
+      </div>
 
       {/* Main grid */}
       <div className="grid md:grid-cols-2 gap-8 mb-10">

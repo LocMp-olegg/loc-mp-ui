@@ -8,6 +8,7 @@ import {
   Clock,
   Mail,
   MapPin,
+  Pencil,
   Phone,
   Truck,
   BadgeCheck,
@@ -18,6 +19,8 @@ import {
   ChevronRight,
 } from 'lucide-react'
 import { formatPhone } from '@/lib/auth-validation'
+import { useAuth } from '@/contexts/auth-context'
+import { hasRole } from '@/lib/utils'
 import { useShopDetail } from '@/hooks/use-shop-detail'
 import { useShopFilteredProducts } from '@/hooks/use-shop-filtered-products'
 import { ProductCard } from '@/components/product/product-card'
@@ -58,6 +61,7 @@ function ShopSkeleton() {
 function ShopContent({ id }: { id: string }) {
   const { shop, products, categoryGroups, rootCategoriesInShop, leafToRoot, loading, error } =
     useShopDetail(id)
+  const { user } = useAuth()
   const [avatarLightbox, setAvatarLightbox] = useState(false)
   const [galleryOpen, setGalleryOpen] = useState(false)
   const [mapOpen, setMapOpen] = useState(false)
@@ -87,17 +91,29 @@ function ShopContent({ id }: { id: string }) {
   }
 
   const avatarSrc = shop.avatarUrl ?? noImageUrl
+  const isOwner = !!user && hasRole(user.role, 'Seller') && user.id === shop.sellerId
 
   return (
     <div className="max-w-5xl mx-auto px-4 md:px-6 py-6">
-      {/* Back */}
-      <Link
-        to={-1 as unknown as string}
-        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        Назад
-      </Link>
+      {/* Back + edit */}
+      <div className="flex items-center justify-between mb-6">
+        <Link
+          to={-1 as unknown as string}
+          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Назад
+        </Link>
+        {isOwner && (
+          <Link
+            to={`/seller/shops/${shop.id}/edit`}
+            className="inline-flex items-center gap-1.5 text-sm text-primary border border-primary/30 hover:border-primary/70 hover:bg-primary/5 px-3 py-1.5 rounded-lg transition-colors"
+          >
+            <Pencil className="w-3.5 h-3.5" />
+            Редактировать
+          </Link>
+        )}
+      </div>
 
       {/* Shop header */}
       <div className="flex flex-col sm:flex-row gap-5 mb-8">

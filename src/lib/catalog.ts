@@ -282,6 +282,7 @@ export function mapProductDetail(dto: ProductDto): ProductDetail {
 
   return {
     id: dto.id ?? '',
+    sellerId: dto.sellerId ?? '',
     name: dto.name ?? '',
     description: dto.description ?? null,
     price: dto.price ?? 0,

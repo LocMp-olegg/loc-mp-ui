@@ -1,6 +1,7 @@
 import type { Product } from './product'
 
 export interface ProductDetail extends Product {
+  sellerId: string
   description: string | null
   sellerName: string | null
   stockQuantity: number

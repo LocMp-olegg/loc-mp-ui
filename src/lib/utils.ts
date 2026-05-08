@@ -5,6 +5,10 @@ export function cn(...inputs: ClassValue[]): string {
   return twMerge(clsx(inputs))
 }
 
+export function hasRole(role: string | string[], target: string): boolean {
+  return Array.isArray(role) ? role.includes(target) : role === target
+}
+
 export function pluralize(n: number, one: string, few: string, many: string): string {
   const mod10 = n % 10
   const mod100 = n % 100
