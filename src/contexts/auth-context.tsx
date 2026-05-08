@@ -30,6 +30,7 @@ interface AuthContextType {
   logout: () => void
   openAuthPrompt: () => void
   refreshUser: () => Promise<void>
+  updateRoles: (roles: string[]) => void
 }
 
 const AuthContext = createContext<AuthContextType | null>(null)
@@ -62,8 +63,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     let cancelled = false
     refreshAccessToken()
-      .then((token) => {
-        if (!cancelled) setUser(userFromToken(token))
+      .then(async (token) => {
+        if (cancelled) return
+        setUser(userFromToken(token))
+        // Sync roles from profile: refresh_token grant may return stale claims
+        try {
+          const res = await fetch('http://localhost:5000/api/identity/profile')
+          if (!cancelled && res.ok) {
+            const profile = (await res.json()) as { roles?: string[] | null }
+            if (!cancelled && Array.isArray(profile.roles) && profile.roles.length > 0) {
+              setUser((prev) => (prev ? { ...prev, role: profile.roles! } : null))
+            }
+          }
+        } catch {
+          // best-effort: JWT roles are good enough if profile sync fails
+        }
       })
       .catch(() => {
         if (!cancelled) clearTokens()
@@ -100,6 +114,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(userFromToken(token))
   }
 
+  const updateRoles = (roles: string[]) => {
+    setUser((prev) => (prev ? { ...prev, role: roles } : null))
+  }
+
   return (
     <AuthContext.Provider
       value={{
@@ -111,6 +129,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         logout,
         openAuthPrompt: () => setAuthPromptOpen(true),
         refreshUser,
+        updateRoles,
       }}
     >
       {children}

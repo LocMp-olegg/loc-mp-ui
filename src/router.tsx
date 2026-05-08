@@ -1,4 +1,5 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom'
+import { RootLayout } from '@/components/layout/root-layout'
 import { Layout } from '@/components/layout/layout'
 import { SellerLayout } from '@/components/layout/seller-layout'
 import { HomePage } from '@/pages/home-page'
@@ -23,71 +24,76 @@ import { AnalyticsPage } from '@/pages/seller/analytics-page'
 
 export const router = createBrowserRouter([
   {
-    path: '/',
-    element: <Layout />,
+    element: <RootLayout />,
     children: [
-      { index: true, element: <HomePage /> },
-      { path: 'product/:id', element: <ProductPage /> },
-      { path: 'category/:id', element: <CategoryPage /> },
-      { path: 'search', element: <SearchPage /> },
-      { path: 'shop/:id', element: <ShopPage /> },
-      { path: 'sellers/:id', element: <SellerPage /> },
       {
-        path: 'cart',
-        element: (
-          <RequireAuth>
-            <CartPage />
-          </RequireAuth>
-        ),
+        path: '/',
+        element: <Layout />,
+        children: [
+          { index: true, element: <HomePage /> },
+          { path: 'product/:id', element: <ProductPage /> },
+          { path: 'category/:id', element: <CategoryPage /> },
+          { path: 'search', element: <SearchPage /> },
+          { path: 'shop/:id', element: <ShopPage /> },
+          { path: 'sellers/:id', element: <SellerPage /> },
+          {
+            path: 'cart',
+            element: (
+              <RequireAuth>
+                <CartPage />
+              </RequireAuth>
+            ),
+          },
+          {
+            path: 'favorites',
+            element: (
+              <RequireAuth>
+                <FavoritesPage />
+              </RequireAuth>
+            ),
+          },
+          {
+            path: 'profile',
+            element: (
+              <RequireAuth>
+                <ProfilePage />
+              </RequireAuth>
+            ),
+          },
+          {
+            path: 'orders',
+            element: (
+              <RequireAuth>
+                <OrdersPage />
+              </RequireAuth>
+            ),
+          },
+          {
+            path: 'orders/:id',
+            element: (
+              <RequireAuth>
+                <OrderDetailPage />
+              </RequireAuth>
+            ),
+          },
+          { path: 'login', element: <LoginPage /> },
+        ],
       },
       {
-        path: 'favorites',
-        element: (
-          <RequireAuth>
-            <FavoritesPage />
-          </RequireAuth>
-        ),
+        path: '/seller',
+        element: <SellerLayout />,
+        children: [
+          { index: true, element: <Navigate to="/seller/shops" replace /> },
+          { path: 'shops', element: <ShopsPage /> },
+          { path: 'shops/new', element: <ShopEditPage /> },
+          { path: 'shops/:shopId/edit', element: <ShopEditPage /> },
+          { path: 'products', element: <ProductsPage /> },
+          { path: 'products/new', element: <ProductEditPage /> },
+          { path: 'products/:productId/edit', element: <ProductEditPage /> },
+          { path: 'orders', element: <SellerOrdersPage /> },
+          { path: 'analytics', element: <AnalyticsPage /> },
+        ],
       },
-      {
-        path: 'profile',
-        element: (
-          <RequireAuth>
-            <ProfilePage />
-          </RequireAuth>
-        ),
-      },
-      {
-        path: 'orders',
-        element: (
-          <RequireAuth>
-            <OrdersPage />
-          </RequireAuth>
-        ),
-      },
-      {
-        path: 'orders/:id',
-        element: (
-          <RequireAuth>
-            <OrderDetailPage />
-          </RequireAuth>
-        ),
-      },
-      { path: 'login', element: <LoginPage /> },
-    ],
-  },
-  {
-    path: '/seller',
-    element: <SellerLayout />,
-    children: [
-      { index: true, element: <Navigate to="/seller/shops" replace /> },
-      { path: 'shops', element: <ShopsPage /> },
-      { path: 'shops/new', element: <ShopEditPage /> },
-      { path: 'shops/:shopId/edit', element: <ShopEditPage /> },
-      { path: 'products', element: <ProductsPage /> },
-      { path: 'products/new', element: <ProductEditPage /> },
-      { path: 'products/:productId/edit', element: <ProductEditPage /> },
-      { path: 'orders', element: <SellerOrdersPage /> },
-      { path: 'analytics', element: <AnalyticsPage /> },
     ],
   },
 ])

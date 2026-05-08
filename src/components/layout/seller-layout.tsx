@@ -1,6 +1,6 @@
 import { Outlet, NavLink, useLocation, Link } from 'react-router-dom'
 import { Store, Package, ShoppingBag, BarChart2, ArrowLeft, ExternalLink } from 'lucide-react'
-import { AuthProvider, useAuth } from '@/contexts/auth-context'
+import { useAuth } from '@/contexts/auth-context'
 import { LandscapeBackground } from './landscape-background'
 import { RequireSeller } from '@/components/auth/require-seller'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
@@ -196,10 +196,8 @@ function SellerLayoutInner() {
 
 export function SellerLayout() {
   return (
-    <AuthProvider>
-      <RequireSeller>
-        <SellerLayoutInner />
-      </RequireSeller>
-    </AuthProvider>
+    <RequireSeller>
+      <SellerLayoutInner />
+    </RequireSeller>
   )
 }
