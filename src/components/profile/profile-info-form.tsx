@@ -66,9 +66,7 @@ export function ProfileInfoForm({ profile, onSave }: ProfileInfoFormProps) {
     setLastName(profile.lastName ?? '')
     setGender(profile.gender ?? '')
     setBirthDate(profile.birthDate ?? '')
-    setPhoneDigits(
-      (profile.phoneNumber ?? '').replace(/\D/g, '').replace(/^7/, '').slice(0, 10),
-    )
+    setPhoneDigits((profile.phoneNumber ?? '').replace(/\D/g, '').replace(/^7/, '').slice(0, 10))
     setPhoneTouched(false)
     setError(null)
   }
@@ -98,7 +96,13 @@ export function ProfileInfoForm({ profile, onSave }: ProfileInfoFormProps) {
   }
 
   return (
-    <form onSubmit={(e) => { e.preventDefault(); void handleSubmit() }} className="space-y-4">
+    <form
+      onSubmit={(e) => {
+        e.preventDefault()
+        void handleSubmit()
+      }}
+      className="space-y-4"
+    >
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className={labelClass}>Имя</label>
