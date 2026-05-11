@@ -6,8 +6,9 @@ import { ChevronLeft } from 'lucide-react'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { LoginForm } from '@/components/auth/login-form'
 import { RegisterForm } from '@/components/auth/register-form'
+import { ForgotPasswordForm } from '@/components/auth/forgot-password-form'
 
-type Tab = 'login' | 'register'
+type Tab = 'login' | 'register' | 'forgot'
 
 function useIsDesktop() {
   const [isDesktop, setIsDesktop] = useState(() => window.innerWidth >= 768)
@@ -21,6 +22,7 @@ function useIsDesktop() {
 }
 
 function TabSwitcher({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
+  if (tab === 'forgot') return null
   return (
     <div className="flex p-1 rounded-xl bg-white/6 border border-white/10">
       {(['login', 'register'] as const).map((t) => (
@@ -53,7 +55,7 @@ export function LoginPage() {
   if (isAuthenticated) return <Navigate to={from} replace />
 
   const handleSetTab = (t: Tab) => {
-    sessionStorage.setItem('auth-tab', t)
+    if (t !== 'forgot') sessionStorage.setItem('auth-tab', t)
     setTab(t)
   }
 
@@ -67,9 +69,14 @@ export function LoginPage() {
         transition={{ duration: 0.18 }}
       >
         {tab === 'login' ? (
-          <LoginForm onSwitch={() => handleSetTab('register')} />
-        ) : (
+          <LoginForm
+            onSwitch={() => handleSetTab('register')}
+            onForgot={() => handleSetTab('forgot')}
+          />
+        ) : tab === 'register' ? (
           <RegisterForm onSwitch={() => handleSetTab('login')} />
+        ) : (
+          <ForgotPasswordForm onBack={() => handleSetTab('login')} />
         )}
       </motion.div>
     </AnimatePresence>
