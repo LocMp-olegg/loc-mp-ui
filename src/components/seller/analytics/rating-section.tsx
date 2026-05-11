@@ -72,7 +72,7 @@ export function RatingSection() {
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div className="flex items-center gap-2">
           <Star className="w-4 h-4 text-primary" />
-          <h2 className="text-sm font-semibold text-foreground">История рейтинга</h2>
+          <h2 className="text-sm font-semibold text-foreground">История рейтинга продавца</h2>
         </div>
         <div className="flex gap-1">
           {DAYS_OPTIONS.map((opt) => (

@@ -16,6 +16,7 @@ import { ProfilePage } from '@/pages/profile-page'
 import { OrdersPage } from '@/pages/orders-page'
 import { OrderDetailPage } from '@/pages/order-detail-page'
 import { ReviewNewPage } from '@/pages/review-new-page'
+import { ReviewDetailPage } from '@/pages/review-detail-page'
 import { MyReviewsPage } from '@/pages/my-reviews-page'
 import { RequireAuth } from '@/components/auth/require-auth'
 import { ShopsPage } from '@/pages/seller/shops-page'
@@ -87,6 +88,7 @@ export const router = createBrowserRouter([
               </RequireAuth>
             ),
           },
+          { path: 'reviews/:id', element: <ReviewDetailPage /> },
           {
             path: 'my-reviews',
             element: (
