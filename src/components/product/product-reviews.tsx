@@ -13,6 +13,8 @@ interface Props {
   filterStar: number | null
   hasNextPage: boolean
   loading: boolean
+  canRespond?: boolean
+  currentUserId?: string
   setSort: (s: ReviewSortBy) => void
   setFilterStar: (r: number | null) => void
   loadMore: () => void
@@ -26,17 +28,27 @@ export function ProductReviews({
   filterStar,
   hasNextPage,
   loading,
+  canRespond,
+  currentUserId,
   setSort,
   setFilterStar,
   loadMore,
   reset,
 }: Props) {
-  const reviewCount = aggregate?.reviewCount ?? 0
+  const reviewCount = aggregate?.reviewCount ?? null
 
-  if (reviewCount === 0) {
+  if (aggregate !== null && reviewCount === 0 && !loading) {
     return (
       <div className="rounded-2xl border border-border bg-card/40 px-6 py-10 text-center">
         <p className="text-muted-foreground text-sm">Отзывов пока нет</p>
+      </div>
+    )
+  }
+
+  if (reviews.length === 0 && loading) {
+    return (
+      <div className="flex justify-center py-8">
+        <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
       </div>
     )
   }
@@ -53,7 +65,7 @@ export function ProductReviews({
         reset={reset}
       />
 
-      {filterStar !== null && reviews.length > 0 && (
+      {filterStar !== null && reviews.length > 0 && reviewCount !== null && (
         <p className="text-xs text-muted-foreground -mt-2">
           {`Показано ${reviews.length} из ${reviewCount} ${pluralize(reviewCount, 'отзыва', 'отзывов', 'отзывов')}`}
         </p>
@@ -61,12 +73,19 @@ export function ProductReviews({
 
       {reviews.length === 0 ? (
         <div className="rounded-2xl border border-border bg-card/40 px-6 py-8 text-center">
-          <p className="text-muted-foreground text-sm">Нет отзывов с таким рейтингом</p>
+          <p className="text-muted-foreground text-sm">
+            {filterStar !== null ? 'Нет отзывов с таким рейтингом' : 'Отзывов пока нет'}
+          </p>
         </div>
       ) : (
         <div className="flex flex-col gap-3">
           {reviews.map((review) => (
-            <ReviewCard key={review.id} review={review} />
+            <ReviewCard
+              key={review.id}
+              review={review}
+              canRespond={canRespond}
+              currentUserId={currentUserId}
+            />
           ))}
         </div>
       )}
@@ -82,8 +101,8 @@ export function ProductReviews({
         </button>
       )}
 
-      {loading && reviews.length === 0 && (
-        <div className="flex justify-center py-4">
+      {loading && reviews.length > 0 && (
+        <div className="flex justify-center py-2">
           <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
         </div>
       )}

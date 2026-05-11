@@ -127,7 +127,12 @@ export function ProductPage() {
             </Link>
           )}
         </div>
-        <ProductReviews aggregate={rating} {...reviewsState} />
+        <ProductReviews
+          aggregate={rating}
+          {...reviewsState}
+          canRespond={isOwner}
+          currentUserId={user?.id}
+        />
       </section>
     </div>
   )

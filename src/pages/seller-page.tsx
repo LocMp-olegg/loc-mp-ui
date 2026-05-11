@@ -4,6 +4,7 @@ import { AnimatePresence } from 'framer-motion'
 import { ArrowLeft, Phone, Star, Store, BadgeCheck, Clock, MapPin, Truck } from 'lucide-react'
 import { formatPhone } from '@/lib/auth-validation'
 import { useSellerDetail } from '@/hooks/use-seller-detail'
+import { useAuth } from '@/contexts/auth-context'
 import { ShopReviewsModal } from '@/components/shop/reviews-modal'
 import { PhotoLightbox } from '@/components/ui/photo-lightbox'
 import { pluralize } from '@/lib/utils'
@@ -38,6 +39,7 @@ function SellerSkeleton() {
 
 function SellerContent({ id }: { id: string }) {
   const { seller, shops, rating, loading, error } = useSellerDetail(id)
+  const { user } = useAuth()
   const [reviewsOpen, setReviewsOpen] = useState(false)
   const [avatarLightbox, setAvatarLightbox] = useState(false)
 
@@ -58,6 +60,7 @@ function SellerContent({ id }: { id: string }) {
   const avgRating = rating?.averageRating ?? seller.averageRating ?? 0
   const avatarSrc = seller.avatarUrl ?? noImageUrl
   const displayName = seller.displayName ?? 'Продавец'
+  const isSelf = !!user && user.id === id
 
   return (
     <div className="max-w-3xl mx-auto px-4 md:px-6 py-6">
@@ -213,6 +216,8 @@ function SellerContent({ id }: { id: string }) {
             shopName={displayName}
             aggregate={rating}
             title="Отзывы о продавце"
+            canRespond={isSelf}
+            currentUserId={user?.id}
             onClose={() => setReviewsOpen(false)}
           />
         )}
