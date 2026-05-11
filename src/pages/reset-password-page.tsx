@@ -175,7 +175,11 @@ export function ResetPasswordPage() {
           <FieldError msg={confirmError} />
         </div>
 
-        <ShimmerButton type="submit" disabled={loading} className="w-full h-11 text-sm font-semibold">
+        <ShimmerButton
+          type="submit"
+          disabled={loading}
+          className="w-full h-11 text-sm font-semibold"
+        >
           {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Сохранить пароль'}
         </ShimmerButton>
       </form>
@@ -195,9 +199,7 @@ export function ResetPasswordPage() {
     </div>
   )
 
-  const title = (
-    <h1 className="text-base font-semibold text-nav-text mb-4">Сброс пароля</h1>
-  )
+  const title = <h1 className="text-base font-semibold text-nav-text mb-4">Сброс пароля</h1>
 
   if (!isDesktop) {
     return (

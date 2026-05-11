@@ -47,9 +47,7 @@ export function ForgotPasswordForm({ onBack }: { onBack: () => void }) {
             Если аккаунт с адресом <strong>{email}</strong> существует — письмо со ссылкой
             отправлено.
           </p>
-          <p className="text-xs text-nav-text/55">
-            Проверьте папку «Спам», если письмо не пришло.
-          </p>
+          <p className="text-xs text-nav-text/55">Проверьте папку «Спам», если письмо не пришло.</p>
         </div>
         <button
           type="button"
