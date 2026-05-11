@@ -10,7 +10,7 @@ import * as React from 'react'
 
 const LOGIN_SESSION_KEY = 'login-form-draft'
 
-export function LoginForm({ onSwitch }: { onSwitch: () => void }) {
+export function LoginForm({ onSwitch, onForgot }: { onSwitch: () => void; onForgot: () => void }) {
   const { login } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
@@ -133,16 +133,25 @@ export function LoginForm({ onSwitch }: { onSwitch: () => void }) {
         {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Войти'}
       </ShimmerButton>
 
-      <p className="text-center text-sm text-nav-text/80">
-        Нет аккаунта?{' '}
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-nav-text/80">
+          Нет аккаунта?{' '}
+          <button
+            type="button"
+            onClick={onSwitch}
+            className="text-primary hover:underline font-medium cursor-pointer"
+          >
+            Зарегистрироваться
+          </button>
+        </p>
         <button
           type="button"
-          onClick={onSwitch}
-          className="text-primary hover:underline font-medium cursor-pointer"
+          onClick={onForgot}
+          className="text-xs text-nav-text/55 hover:text-nav-text/90 transition-colors cursor-pointer shrink-0"
         >
-          Зарегистрироваться
+          Забыли пароль?
         </button>
-      </p>
+      </div>
     </form>
   )
 }

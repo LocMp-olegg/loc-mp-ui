@@ -8,6 +8,7 @@ import { FavoritesPage } from '@/pages/favorites-page'
 import { ProductPage } from '@/pages/product-page'
 import { CategoryPage } from '@/pages/category-page'
 import { LoginPage } from '@/pages/login-page'
+import { ResetPasswordPage } from '@/pages/reset-password-page'
 import { SearchPage } from '@/pages/search-page'
 import { ShopPage } from '@/pages/shop-page'
 import { SellerPage } from '@/pages/seller-page'
@@ -77,6 +78,7 @@ export const router = createBrowserRouter([
             ),
           },
           { path: 'login', element: <LoginPage /> },
+          { path: 'reset-password', element: <ResetPasswordPage /> },
         ],
       },
       {

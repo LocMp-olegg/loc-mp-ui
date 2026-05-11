@@ -8,7 +8,8 @@ import { FavoritesProvider } from '@/contexts/favorites-context'
 
 export function Layout() {
   const location = useLocation()
-  const isLogin = location.pathname === '/login'
+  const isLogin =
+    location.pathname === '/login' || location.pathname === '/reset-password'
 
   return (
     <CartProvider>
