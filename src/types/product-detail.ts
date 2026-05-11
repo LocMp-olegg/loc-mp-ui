@@ -16,5 +16,10 @@ export interface ReviewItem {
   comment: string | null
   createdAt: string
   photos: string[]
-  response: { comment: string; createdAt: string } | null
+  response: {
+    id: string
+    comment: string
+    createdAt: string
+    authorId: string
+  } | null
 }

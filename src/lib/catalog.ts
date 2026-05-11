@@ -368,6 +368,8 @@ function mapShopDetail(dto: ShopDto): ShopDetail {
       : null,
     latitude: dto.latitude ?? null,
     longitude: dto.longitude ?? null,
+    averageRating: dto.averageRating ?? null,
+    reviewCount: dto.reviewCount ?? 0,
   }
 }
 

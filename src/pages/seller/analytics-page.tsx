@@ -4,6 +4,7 @@ import { TopProductsSection } from '@/components/seller/analytics/top-products-s
 import { RatingSection } from '@/components/seller/analytics/rating-section'
 import { ProductRatingsSection } from '@/components/seller/analytics/product-ratings-section'
 import { StockAlertsSection } from '@/components/seller/analytics/stock-alerts-section'
+import { SellerReviewsSection } from '@/components/seller/analytics/seller-reviews-section'
 
 export function AnalyticsPage() {
   return (
@@ -15,6 +16,7 @@ export function AnalyticsPage() {
       <SalesSection />
       <TopProductsSection />
       <RatingSection />
+      <SellerReviewsSection />
       <ProductRatingsSection />
       <StockAlertsSection />
     </div>

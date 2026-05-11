@@ -10,6 +10,7 @@ import {
   MapPin,
   Pencil,
   Phone,
+  Star,
   Truck,
   BadgeCheck,
   Store,
@@ -143,6 +144,17 @@ function ShopContent({ id }: { id: string }) {
               </span>
             )}
           </div>
+
+          {/* Rating */}
+          {shop.averageRating !== null && shop.reviewCount > 0 && (
+            <div className="flex items-center gap-1.5 mb-1">
+              <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
+              <span className="font-semibold text-foreground">{shop.averageRating.toFixed(1)}</span>
+              <span className="text-sm text-muted-foreground">
+                · {shop.reviewCount} {pluralize(shop.reviewCount, 'отзыв', 'отзыва', 'отзывов')}
+              </span>
+            </div>
+          )}
 
           {/* Seller name */}
           {shop.sellerDisplayName && (

@@ -1,13 +1,8 @@
 import { createPortal } from 'react-dom'
-
 import { motion } from 'framer-motion'
-
 import { X, MessageSquare } from 'lucide-react'
-
 import { ProductReviews } from '@/components/product/product-reviews'
-
 import { useShopReviews } from '@/hooks/use-shop-reviews'
-
 import type { RatingAggregateDto } from '@/api/reviews'
 
 interface Props {
@@ -16,9 +11,19 @@ interface Props {
   aggregate: RatingAggregateDto | null
   onClose: () => void
   title?: string
+  canRespond?: boolean
+  currentUserId?: string
 }
 
-export function ShopReviewsModal({ sellerId, shopName, aggregate, onClose, title }: Props) {
+export function ShopReviewsModal({
+  sellerId,
+  shopName,
+  aggregate,
+  onClose,
+  title,
+  canRespond,
+  currentUserId,
+}: Props) {
   const reviewsState = useShopReviews(sellerId)
 
   return createPortal(
@@ -46,7 +51,6 @@ export function ShopReviewsModal({ sellerId, shopName, aggregate, onClose, title
               <h2 className="font-semibold text-foreground leading-tight">
                 {title ?? 'Отзывы о магазине'}
               </h2>
-
               <p className="text-xs text-muted-foreground mt-0.5">{shopName}</p>
             </div>
           </div>
@@ -58,11 +62,15 @@ export function ShopReviewsModal({ sellerId, shopName, aggregate, onClose, title
           </button>
         </div>
         <div className="overflow-y-auto overflow-x-hidden px-5 py-5">
-          <ProductReviews aggregate={aggregate} {...reviewsState} />
+          <ProductReviews
+            aggregate={aggregate}
+            {...reviewsState}
+            canRespond={canRespond}
+            currentUserId={currentUserId}
+          />
         </div>
       </motion.div>
     </motion.div>,
-
     document.body,
   )
 }

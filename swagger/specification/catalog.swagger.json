@@ -3007,6 +3007,14 @@
             "format": "int32",
             "nullable": true
           },
+          "averageRating": {
+            "type": "number",
+            "format": "double"
+          },
+          "reviewCount": {
+            "type": "integer",
+            "format": "int32"
+          },
           "isVerified": {
             "type": "boolean"
           },

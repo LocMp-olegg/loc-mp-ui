@@ -1,5 +1,6 @@
+import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { ArrowLeft, Pencil } from 'lucide-react'
+import { ArrowLeft, Pencil, PenLine } from 'lucide-react'
 import { ProductGallery } from '@/components/product/product-gallery'
 import { ProductInfo } from '@/components/product/product-info'
 import { ProductActions } from '@/components/product/product-actions'
@@ -9,6 +10,7 @@ import { useProductReviews } from '@/hooks/use-product-reviews'
 import { useCatalogCategories } from '@/contexts/catalog-categories-context'
 import { useAuth } from '@/contexts/auth-context'
 import { hasRole } from '@/lib/utils'
+import { ReviewsService } from '@/api/reviews'
 
 function ProductSkeleton() {
   return (
@@ -37,6 +39,27 @@ export function ProductPage() {
 
   const isOwner =
     !!user && hasRole(user.role, 'Seller') && !!product && user.id === product.sellerId
+
+  const [pendingOrderId, setPendingOrderId] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!user || !id) return
+    let cancelled = false
+    ReviewsService.getApiReviewsReviewsAllowed({ page: 1, pageSize: 100 })
+      .then((data) => {
+        if (cancelled) return
+        const match = (data.items ?? []).find(
+          (s) => s.subjectType === 'Product' && s.subjectId === id,
+        )
+        setPendingOrderId(match?.orderId ?? null)
+      })
+      .catch(() => {
+        /* ignore */
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [user, id])
 
   if (loading) return <ProductSkeleton />
 
@@ -92,8 +115,24 @@ export function ProductPage() {
 
       {/* Reviews */}
       <section>
-        <h2 className="text-xl font-bold text-foreground mb-4">Отзывы</h2>
-        <ProductReviews aggregate={rating} {...reviewsState} />
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-bold text-foreground">Отзывы</h2>
+          {pendingOrderId && (
+            <Link
+              to={`/reviews/new?orderId=${pendingOrderId}`}
+              className="inline-flex items-center gap-1.5 text-sm text-primary border border-primary/30 hover:border-primary/70 hover:bg-primary/5 px-3 py-1.5 rounded-lg transition-colors"
+            >
+              <PenLine className="w-3.5 h-3.5" />
+              Оценить товар
+            </Link>
+          )}
+        </div>
+        <ProductReviews
+          aggregate={rating}
+          {...reviewsState}
+          canRespond={isOwner}
+          currentUserId={user?.id}
+        />
       </section>
     </div>
   )

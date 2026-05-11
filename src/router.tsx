@@ -15,6 +15,9 @@ import { SellerPage } from '@/pages/seller-page'
 import { ProfilePage } from '@/pages/profile-page'
 import { OrdersPage } from '@/pages/orders-page'
 import { OrderDetailPage } from '@/pages/order-detail-page'
+import { ReviewNewPage } from '@/pages/review-new-page'
+import { ReviewDetailPage } from '@/pages/review-detail-page'
+import { MyReviewsPage } from '@/pages/my-reviews-page'
 import { RequireAuth } from '@/components/auth/require-auth'
 import { ShopsPage } from '@/pages/seller/shops-page'
 import { ShopEditPage } from '@/pages/seller/shop-edit-page'
@@ -74,6 +77,23 @@ export const router = createBrowserRouter([
             element: (
               <RequireAuth>
                 <OrderDetailPage />
+              </RequireAuth>
+            ),
+          },
+          {
+            path: 'reviews/new',
+            element: (
+              <RequireAuth>
+                <ReviewNewPage />
+              </RequireAuth>
+            ),
+          },
+          { path: 'reviews/:id', element: <ReviewDetailPage /> },
+          {
+            path: 'my-reviews',
+            element: (
+              <RequireAuth>
+                <MyReviewsPage />
               </RequireAuth>
             ),
           },

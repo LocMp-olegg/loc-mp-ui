@@ -4,6 +4,7 @@ import { AnimatePresence } from 'framer-motion'
 import { ArrowLeft, Phone, Star, Store, BadgeCheck, Clock, MapPin, Truck } from 'lucide-react'
 import { formatPhone } from '@/lib/auth-validation'
 import { useSellerDetail } from '@/hooks/use-seller-detail'
+import { useAuth } from '@/contexts/auth-context'
 import { ShopReviewsModal } from '@/components/shop/reviews-modal'
 import { PhotoLightbox } from '@/components/ui/photo-lightbox'
 import { pluralize } from '@/lib/utils'
@@ -38,6 +39,7 @@ function SellerSkeleton() {
 
 function SellerContent({ id }: { id: string }) {
   const { seller, shops, rating, loading, error } = useSellerDetail(id)
+  const { user } = useAuth()
   const [reviewsOpen, setReviewsOpen] = useState(false)
   const [avatarLightbox, setAvatarLightbox] = useState(false)
 
@@ -58,6 +60,7 @@ function SellerContent({ id }: { id: string }) {
   const avgRating = rating?.averageRating ?? seller.averageRating ?? 0
   const avatarSrc = seller.avatarUrl ?? noImageUrl
   const displayName = seller.displayName ?? 'Продавец'
+  const isSelf = !!user && user.id === id
 
   return (
     <div className="max-w-3xl mx-auto px-4 md:px-6 py-6">
@@ -151,6 +154,21 @@ function SellerContent({ id }: { id: string }) {
                       )}
                     </div>
 
+                    {(shop.averageRating ?? 0) > 0 && (
+                      <div className="flex items-center gap-1 mb-1">
+                        <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                        <span className="text-xs font-medium text-foreground">
+                          {(shop.averageRating ?? 0).toFixed(1)}
+                        </span>
+                        {(shop.reviewCount ?? 0) > 0 && (
+                          <span className="text-xs text-muted-foreground">
+                            · {shop.reviewCount}{' '}
+                            {pluralize(shop.reviewCount ?? 0, 'отзыв', 'отзыва', 'отзывов')}
+                          </span>
+                        )}
+                      </div>
+                    )}
+
                     {shop.description && (
                       <p className="text-xs text-muted-foreground line-clamp-1 mb-1.5">
                         {shop.description}
@@ -213,6 +231,8 @@ function SellerContent({ id }: { id: string }) {
             shopName={displayName}
             aggregate={rating}
             title="Отзывы о продавце"
+            canRespond={isSelf}
+            currentUserId={user?.id}
             onClose={() => setReviewsOpen(false)}
           />
         )}

@@ -13,7 +13,12 @@ function mapReview(dto: ReviewSummaryDto): ReviewItem {
     createdAt: dto.createdAt ?? '',
     photos: (dto.photos ?? []).map((p) => p.storageUrl ?? '').filter(Boolean),
     response: dto.response
-      ? { comment: dto.response.comment ?? '', createdAt: dto.response.createdAt ?? '' }
+      ? {
+          id: dto.response.id ?? '',
+          comment: dto.response.comment ?? '',
+          createdAt: dto.response.createdAt ?? '',
+          authorId: dto.response.authorId ?? '',
+        }
       : null,
   }
 }

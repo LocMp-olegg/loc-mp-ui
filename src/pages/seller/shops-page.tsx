@@ -1,7 +1,18 @@
 import { Link } from 'react-router-dom'
-import { Store, Plus, BadgeCheck, Clock, MapPin, Truck, Pencil, ChevronRight } from 'lucide-react'
+import {
+  Store,
+  Plus,
+  BadgeCheck,
+  Clock,
+  MapPin,
+  Truck,
+  Pencil,
+  ChevronRight,
+  Star,
+} from 'lucide-react'
 import { motion } from 'framer-motion'
 import { useMyShops } from '@/hooks/use-my-shops'
+import { pluralize } from '@/lib/utils'
 import type { ShopDto } from '@/api/catalog'
 import noImageUrl from '@/assets/no-image-available.jpg'
 
@@ -67,6 +78,21 @@ function ShopCard({ shop }: { shop: ShopDto }) {
               <span className="text-xs text-muted-foreground">
                 {BUSINESS_LABELS[shop.businessType]}
               </span>
+            )}
+
+            {(shop.averageRating ?? 0) > 0 && (
+              <div className="flex items-center gap-1 mt-1">
+                <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                <span className="text-xs font-medium text-foreground">
+                  {(shop.averageRating ?? 0).toFixed(1)}
+                </span>
+                {(shop.reviewCount ?? 0) > 0 && (
+                  <span className="text-xs text-muted-foreground">
+                    · {shop.reviewCount}{' '}
+                    {pluralize(shop.reviewCount ?? 0, 'отзыв', 'отзыва', 'отзывов')}
+                  </span>
+                )}
+              </div>
             )}
 
             <div className="flex flex-wrap gap-1.5 mt-2">

@@ -8,6 +8,8 @@ import type {
   StockAlertDto,
   PeriodType,
 } from '@/api/analytics'
+import { fetchSellerRating } from '@/lib/reviews'
+import type { RatingAggregateDto } from '@/api/reviews'
 
 // ── Sales ─────────────────────────────────────────────────────────────────────
 
@@ -235,4 +237,48 @@ export function useStockAlerts(onlyUnacknowledged: boolean) {
   }, [])
 
   return { ...state, acknowledge }
+}
+
+// ── Seller Rating Aggregate ───────────────────────────────────────────────────
+
+type SellerRatingState = {
+  data: RatingAggregateDto | null
+  loading: boolean
+  error: string | null
+}
+type SellerRatingAction =
+  | { type: 'loading' }
+  | { type: 'success'; data: RatingAggregateDto }
+  | { type: 'error' }
+
+function sellerRatingReducer(s: SellerRatingState, a: SellerRatingAction): SellerRatingState {
+  if (a.type === 'loading') return { ...s, loading: true, error: null }
+  if (a.type === 'success') return { data: a.data, loading: false, error: null }
+  return { ...s, loading: false, error: 'Не удалось загрузить рейтинг' }
+}
+
+export function useSellerRatingAggregate(sellerId: string | undefined) {
+  const [state, dispatch] = useReducer(sellerRatingReducer, {
+    data: null,
+    loading: true,
+    error: null,
+  })
+
+  useEffect(() => {
+    if (!sellerId) return
+    let cancelled = false
+    dispatch({ type: 'loading' })
+    fetchSellerRating(sellerId)
+      .then((data) => {
+        if (!cancelled) dispatch({ type: 'success', data })
+      })
+      .catch(() => {
+        if (!cancelled) dispatch({ type: 'error' })
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [sellerId])
+
+  return state
 }
