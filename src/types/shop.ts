@@ -27,4 +27,6 @@ export interface ShopDetail {
   address: ShopAddress | null
   latitude: number | null
   longitude: number | null
+  averageRating: number | null
+  reviewCount: number
 }

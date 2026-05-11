@@ -154,6 +154,21 @@ function SellerContent({ id }: { id: string }) {
                       )}
                     </div>
 
+                    {(shop.averageRating ?? 0) > 0 && (
+                      <div className="flex items-center gap-1 mb-1">
+                        <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                        <span className="text-xs font-medium text-foreground">
+                          {(shop.averageRating ?? 0).toFixed(1)}
+                        </span>
+                        {(shop.reviewCount ?? 0) > 0 && (
+                          <span className="text-xs text-muted-foreground">
+                            · {shop.reviewCount}{' '}
+                            {pluralize(shop.reviewCount ?? 0, 'отзыв', 'отзыва', 'отзывов')}
+                          </span>
+                        )}
+                      </div>
+                    )}
+
                     {shop.description && (
                       <p className="text-xs text-muted-foreground line-clamp-1 mb-1.5">
                         {shop.description}
