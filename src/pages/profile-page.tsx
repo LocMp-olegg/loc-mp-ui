@@ -1,4 +1,14 @@
-import { BadgeCheck, Calendar, Mail, AtSign, User, ChevronLeft } from 'lucide-react'
+import {
+  BadgeCheck,
+  Calendar,
+  Mail,
+  AtSign,
+  User,
+  ChevronLeft,
+  ShoppingBag,
+  MessageSquare,
+  ChevronRight,
+} from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '@/contexts/auth-context'
 import { useProfile } from '@/hooks/use-profile'
@@ -138,6 +148,26 @@ export function ProfilePage() {
             <span>С нами с {registeredDate}</span>
           </div>
         </div>
+      </div>
+
+      {/* ── Activity links ── */}
+      <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden">
+        <Link
+          to="/orders"
+          className="flex items-center gap-3 px-5 py-3.5 hover:bg-muted/50 transition-colors border-b border-border/50"
+        >
+          <ShoppingBag className="w-4 h-4 text-muted-foreground shrink-0" />
+          <span className="flex-1 text-sm text-foreground">Мои заказы</span>
+          <ChevronRight className="w-4 h-4 text-muted-foreground" />
+        </Link>
+        <Link
+          to="/my-reviews"
+          className="flex items-center gap-3 px-5 py-3.5 hover:bg-muted/50 transition-colors"
+        >
+          <MessageSquare className="w-4 h-4 text-muted-foreground shrink-0" />
+          <span className="flex-1 text-sm text-foreground">Мои отзывы</span>
+          <ChevronRight className="w-4 h-4 text-muted-foreground" />
+        </Link>
       </div>
 
       {/* ── Personal info ── */}

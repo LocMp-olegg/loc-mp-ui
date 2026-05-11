@@ -805,6 +805,10 @@
           "comment": {
             "type": "string",
             "nullable": true
+          },
+          "subjectName": {
+            "type": "string",
+            "nullable": true
           }
         },
         "additionalProperties": false
@@ -831,6 +835,10 @@
           "subjectId": {
             "type": "string",
             "format": "uuid"
+          },
+          "subjectName": {
+            "type": "string",
+            "nullable": true
           },
           "allowedAt": {
             "type": "string",
@@ -1082,6 +1090,10 @@
           "subjectId": {
             "type": "string",
             "format": "uuid"
+          },
+          "subjectName": {
+            "type": "string",
+            "nullable": true
           },
           "rating": {
             "type": "integer",

@@ -18,6 +18,7 @@ import {
   Star,
   Map,
   Package,
+  MessageSquare,
 } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useCart } from '@/contexts/cart-context'
@@ -94,6 +95,14 @@ function ProfileDropdown({ open, onClose }: { open: boolean; onClose: () => void
           >
             <Package className="w-4 h-4 shrink-0" />
             Мои заказы
+          </Link>
+          <Link
+            to="/my-reviews"
+            onClick={onClose}
+            className="w-full flex items-center gap-2.5 px-4 py-3 text-sm text-nav-text/80 hover:bg-white/8 hover:text-nav-text transition-colors cursor-pointer"
+          >
+            <MessageSquare className="w-4 h-4 shrink-0" />
+            Мои отзывы
           </Link>
           <Link
             to="/profile"
@@ -673,6 +682,14 @@ function MobileProfileSection({ onClose }: { onClose: () => void }) {
             >
               <Package className="w-4 h-4 shrink-0" />
               Мои заказы
+            </Link>
+            <Link
+              to="/my-reviews"
+              onClick={onClose}
+              className="w-full flex items-center gap-3 px-4 py-3 pl-12 text-sm text-nav-text/80 hover:bg-white/5 transition-colors"
+            >
+              <MessageSquare className="w-4 h-4 shrink-0" />
+              Мои отзывы
             </Link>
             <Link
               to="/profile"
