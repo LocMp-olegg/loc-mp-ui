@@ -19,6 +19,7 @@ import {
   Map,
   Package,
   MessageSquare,
+  Bell,
 } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useCart } from '@/contexts/cart-context'
@@ -30,6 +31,7 @@ import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { LocationPicker } from '@/components/location/location-picker'
 import { AddressDropdown } from '@/components/location/address-dropdown'
 import { SearchBar } from '@/components/nav/search-bar'
+import { NotificationBell } from '@/components/notifications/notification-bell'
 import { useTheme } from '@/contexts/theme-context'
 import { cn } from '@/lib/utils'
 import type { UserAddressDto } from '@/api/identity'
@@ -187,6 +189,7 @@ export function FloatingNav() {
             </span>
           )}
         </Link>
+        <NotificationBell iconClassName="text-nav-text/70" />
         <div ref={profileRef} className="relative">
           <button
             onClick={() => setProfileOpen((o) => !o)}
@@ -434,6 +437,15 @@ export function FloatingNav() {
                           )}
                         </div>
                         <span className="text-sm">Корзина</span>
+                      </Link>
+
+                      <Link
+                        to="/notifications"
+                        onClick={() => setMenuOpen(false)}
+                        className="flex items-center gap-3 px-4 py-3 text-nav-text/80 hover:bg-white/5 transition-colors"
+                      >
+                        <Bell className="w-5 h-5 text-nav-text/70 shrink-0" />
+                        <span className="text-sm">Уведомления</span>
                       </Link>
 
                       <MobileProfileSection onClose={() => setMenuOpen(false)} />

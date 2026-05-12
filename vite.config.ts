@@ -10,4 +10,13 @@ export default defineConfig({
       '@': path.resolve(__dirname, 'src'),
     },
   },
+  server: {
+    proxy: {
+      '/hubs': {
+        target: 'http://localhost:5005',
+        ws: true,
+        changeOrigin: true,
+      },
+    },
+  },
 })
