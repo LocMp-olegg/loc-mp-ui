@@ -18,6 +18,7 @@ import { OrderDetailPage } from '@/pages/order-detail-page'
 import { ReviewNewPage } from '@/pages/review-new-page'
 import { ReviewDetailPage } from '@/pages/review-detail-page'
 import { MyReviewsPage } from '@/pages/my-reviews-page'
+import { NotificationsPage } from '@/pages/notifications-page'
 import { RequireAuth } from '@/components/auth/require-auth'
 import { ShopsPage } from '@/pages/seller/shops-page'
 import { ShopEditPage } from '@/pages/seller/shop-edit-page'
@@ -94,6 +95,14 @@ export const router = createBrowserRouter([
             element: (
               <RequireAuth>
                 <MyReviewsPage />
+              </RequireAuth>
+            ),
+          },
+          {
+            path: 'notifications',
+            element: (
+              <RequireAuth>
+                <NotificationsPage />
               </RequireAuth>
             ),
           },
