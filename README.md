@@ -22,6 +22,7 @@
 | Кроппер фото | react-easy-crop |
 | Примитивы UI | @radix-ui/react-popover, @radix-ui/react-slot |
 | Иконки | lucide-react |
+| Real-time | @microsoft/signalr (WebSocket) |
 
 ---
 
@@ -71,28 +72,29 @@ npm run generate:api  # генерация src/api/ из swagger/specification/
 
 ```
 src/
-├── api/          # Автогенерат (openapi-typescript-codegen) — не трогать вручную
-├── components/   # UI-компоненты (без бизнес-логики)
-│   ├── aceternity/   # floating-nav, shimmer-button
-│   ├── auth/         # формы входа/регистрации, guards, вспомогательные компоненты
-│   ├── catalog/      # секции каталога, фильтры
-│   ├── layout/       # RootLayout, Layout, SellerLayout, LandscapeBackground
-│   ├── location/     # LocationPicker, AddressDropdown
-│   ├── nav/          # SearchBar
-│   ├── orders/       # CheckoutModal, DisputeBlock, StatusHistory
-│   ├── product/      # ProductCard, Gallery, Reviews, CartControls, FavoriteButton
-│   ├── profile/      # Avatar, PhotoEditor, формы профиля, адреса
-│   ├── seller/       # формы магазина/товара, аналитика, заказы продавца
-│   ├── shop/         # ShopProductSection, галерея, карта, отзывы
-│   └── ui/           # кнопки, бейджи, карусель, select, toast, lightbox и др.
-├── contexts/     # Глобальное состояние (Auth, Cart, Favorites, Theme, Location, ...)
-├── hooks/        # 31 хук — каталог, детали, профиль, формы, геолокация, UI
-├── lib/          # Утилиты без React-состояния (auth, catalog, format, geo, ...)
-├── pages/        # 18 страниц: 12 покупательских + 6 панели продавца
-├── types/        # Типы: Product, ProductDetail, ShopDetail, ReviewItem
-├── router.tsx    # Дерево маршрутов
-├── main.tsx      # Точка входа
-└── index.css     # CSS-переменные + Tailwind tokens
+├── api/              # Автогенерат (openapi-typescript-codegen) — не трогать вручную
+├── components/       # UI-компоненты (без бизнес-логики)
+│   ├── aceternity/       # floating-nav, shimmer-button
+│   ├── auth/             # формы входа/регистрации, guards, вспомогательные компоненты
+│   ├── catalog/          # секции каталога, фильтры
+│   ├── layout/           # RootLayout, Layout, SellerLayout, LandscapeBackground
+│   ├── location/         # LocationPicker, AddressDropdown
+│   ├── nav/              # SearchBar
+│   ├── notifications/    # NotificationBell (дропдаун + SignalR toast)
+│   ├── orders/           # CheckoutModal, DisputeBlock, StatusHistory
+│   ├── product/          # ProductCard, Gallery, Reviews, CartControls, FavoriteButton
+│   ├── profile/          # Avatar, PhotoEditor, формы профиля, адреса
+│   ├── seller/           # формы магазина/товара, аналитика, заказы продавца
+│   ├── shop/             # ShopProductSection, галерея, карта, отзывы
+│   └── ui/               # кнопки, бейджи, карусель, select, toast, lightbox и др.
+├── contexts/         # Глобальное состояние (Auth, Cart, Favorites, Theme, Location, ...)
+├── hooks/            # 38 хуков — каталог, детали, профиль, отзывы, уведомления, формы, геолокация, UI
+├── lib/              # Утилиты без React-состояния (auth, catalog, format, geo, notifications, ...)
+├── pages/            # 23 страницы: 17 покупательских + 6 панели продавца
+├── types/            # Типы: Product, ProductDetail, ShopDetail, ReviewItem
+├── router.tsx        # Дерево маршрутов
+├── main.tsx          # Точка входа
+└── index.css         # CSS-переменные + Tailwind tokens
 ```
 
 ---
@@ -101,7 +103,7 @@ src/
 
 | Роль | Доступ |
 |---|---|
-| `User` | каталог, корзина, заказы, избранное, профиль |
+| `User` | каталог, корзина, заказы, избранное, профиль, отзывы, уведомления |
 | `Seller` | всё выше + панель продавца (`/seller/*`) |
 | `Courier` | зарезервировано |
 | `Admin` | зарезервировано |
@@ -114,10 +116,43 @@ src/
 - **Геолокация** — фильтрация товаров по радиусу (PostGIS на бэкенде), Leaflet-карта для выбора точки
 - **Корзина** — хранится на бэкенде (TTL 24ч), групповой checkout по продавцам
 - **Частичный checkout** — «Оформить доступные» при недоступных товарах в корзине
+- **Отзывы** — написание отзыва после завершения заказа (товар + продавец + курьер), галерея фото, ответы продавца
+- **Уведомления** — real-time через SignalR WebSocket + fallback-поллинг; дропдаун в навбаре с toast, полная страница с настройками
 - **Панель продавца** — управление магазинами, товарами, заказами, аналитика (recharts)
 - **Фото** — кроп и загрузка аватара (react-easy-crop → WebP), lightbox для галерей
 - **Тёмная тема** — light / dark / system, CSS custom properties
 - **Адреса** — CRUD сохранённых адресов, геокодирование, автодополнение
+- **Сброс пароля** — по email-токену, с индикатором сложности пароля
+
+---
+
+## Страницы
+
+| Путь | Страница |
+|---|---|
+| `/` | Каталог (секции по категориям) |
+| `/product/:id` | Детальная страница товара |
+| `/category/:id` | Товары категории с фильтрами |
+| `/search` | Поиск по запросу или тегу |
+| `/shop/:id` | Страница магазина |
+| `/sellers/:id` | Профиль продавца |
+| `/login` | Вход / регистрация |
+| `/reset-password` | Сброс пароля по email-ссылке |
+| `/cart` | Корзина |
+| `/favorites` | Избранное |
+| `/profile` | Профиль пользователя |
+| `/orders` | История заказов |
+| `/orders/:id` | Детали заказа |
+| `/reviews/new` | Форма отзыва (`?orderId=`) |
+| `/reviews/:id` | Детальная страница отзыва |
+| `/my-reviews` | Мои отзывы + ожидающие оценки |
+| `/notifications` | Уведомления + настройки |
+| `/seller/shops` | Магазины продавца |
+| `/seller/shops/:id/edit` | Редактирование магазина |
+| `/seller/products` | Товары продавца |
+| `/seller/products/:id/edit` | Редактирование товара |
+| `/seller/orders` | Входящие заказы продавца |
+| `/seller/analytics` | Аналитика продаж |
 
 ---
 
@@ -127,6 +162,16 @@ src/
 - Access token хранится **в памяти** (не в localStorage)
 - Refresh token — в `localStorage`
 - `installFetchInterceptor()` автоматически добавляет Bearer и обновляет токен на 401
+
+---
+
+## Уведомления (SignalR)
+
+`NotificationBell` в навбаре подключается к хабу `/hubs/notifications` (SignalR WebSocket).
+
+- Событие `notification_received` → refetch последних уведомлений + показ toast
+- Поллинг счётчика непрочитанных каждые 60с (резерв при потере соединения)
+- Автореконнект: 0 / 2s / 5s / 10s / 30s
 
 ---
 
@@ -160,5 +205,3 @@ CORS разрешён для `http://localhost:5173`.
 - Prettier: без точек с запятой, одинарные кавычки, printWidth 100
 - CVA-варианты — в отдельных `*-variants.ts` файлах
 - Цвета — только через CSS custom properties, не хардкодить hex в TSX
-
-Подробнее об архитектурных решениях — в [CLAUDE.md](./CLAUDE.md).
