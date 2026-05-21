@@ -30,7 +30,6 @@ interface AuthContextType {
   logout: () => void
   openAuthPrompt: () => void
   refreshUser: () => Promise<void>
-  updateRoles: (roles: string[]) => void
 }
 
 const AuthContext = createContext<AuthContextType | null>(null)
@@ -112,10 +111,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const refreshUser = async () => {
     const token = await refreshAccessToken()
     setUser(userFromToken(token))
-  }
-
-  const updateRoles = (roles: string[]) => {
-    setUser((prev) => (prev ? { ...prev, role: roles } : null))
+    try {
+      const res = await fetch('http://localhost:5000/api/identity/profile')
+      if (res.ok) {
+        const profile = (await res.json()) as { roles?: string[] | null }
+        if (Array.isArray(profile.roles) && profile.roles.length > 0) {
+          setUser((prev) => (prev ? { ...prev, role: profile.roles! } : null))
+        }
+      }
+    } catch {
+      // !
+    }
   }
 
   return (
@@ -129,7 +135,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         logout,
         openAuthPrompt: () => setAuthPromptOpen(true),
         refreshUser,
-        updateRoles,
       }}
     >
       {children}
