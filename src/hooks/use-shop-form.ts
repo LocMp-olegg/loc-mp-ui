@@ -1,4 +1,5 @@
 import { useReducer, useState, useEffect, useCallback } from 'react'
+import { flushSync } from 'react-dom'
 import type { ChangeEvent, KeyboardEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ShopsService } from '@/api/catalog'
@@ -187,7 +188,7 @@ export function useShopForm(
         setTimeout(() => setSaved(false), 2500)
       } else {
         const created = await ShopsService.postApiCatalogShops({ requestBody: payload })
-        setIsDirty(false)
+        flushSync(() => setIsDirty(false))
         navigate(`/seller/shops/${created.id}/edit`, { replace: true })
         return
       }
