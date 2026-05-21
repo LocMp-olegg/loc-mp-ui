@@ -82,8 +82,9 @@ function CartItem({
   onRemove: (item: CartItemDto) => void
   onBuyItem: (item: CartItemDto) => void
 }) {
-  const { updateQuantity } = useCart()
-  const qty = item.quantity ?? 0
+  const { updateQuantity, getItemQuantity } = useCart()
+  const qty = getItemQuantity(item.productId ?? '')
+  const subtotal = (item.price ?? 0) * qty
   const maxQty = productInfo?.isMadeToOrder ? Infinity : (productInfo?.stockQuantity ?? Infinity)
   const atMax = qty >= maxQty
 
@@ -147,7 +148,7 @@ function CartItem({
       </div>
 
       <span className="text-sm font-bold text-foreground shrink-0 min-w-14 text-right">
-        {(item.subtotal ?? 0).toLocaleString('ru-RU')} ₽
+        {subtotal.toLocaleString('ru-RU')} ₽
       </span>
 
       <button

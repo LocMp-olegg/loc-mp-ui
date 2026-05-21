@@ -1,4 +1,12 @@
-import { createContext, useContext, useReducer, useEffect, type ReactNode } from 'react'
+import {
+  createContext,
+  useContext,
+  useReducer,
+  useEffect,
+  useState,
+  useRef,
+  type ReactNode,
+} from 'react'
 import type { CartDto } from '@/api/orders'
 import { CartsService } from '@/api/orders'
 import { useAuth } from '@/contexts/auth-context'
@@ -71,6 +79,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
     isLoading: false,
   })
 
+  // Optimistic quantities: cartItemId → pending qty (shown while debounce is active)
+  const [pendingQuantities, setPendingQuantities] = useState<Record<string, number>>({})
+  // Ref holds the same data for reading inside async callbacks (avoids stale closures)
+  const pendingValuesRef = useRef<Record<string, number>>({})
+  const timersRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
+
   useEffect(() => {
     if (initializing) return
     if (!isAuthenticated) {
@@ -92,10 +106,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, [isAuthenticated, initializing])
 
   const allItems = cart?.groups?.flatMap((g) => g.items ?? []) ?? []
-  const totalItems = allItems.reduce((sum, item) => sum + (item.quantity ?? 0), 0)
+  const totalItems = allItems.reduce((sum, item) => {
+    const qty = pendingQuantities[item.id ?? ''] ?? item.quantity ?? 0
+    return sum + qty
+  }, 0)
 
-  const getItemQuantity = (productId: string): number =>
-    allItems.find((i) => i.productId === productId)?.quantity ?? 0
+  const getItemQuantity = (productId: string): number => {
+    const item = allItems.find((i) => i.productId === productId)
+    if (!item) return 0
+    return pendingQuantities[item.id ?? ''] ?? item.quantity ?? 0
+  }
 
   const getCartItemId = (productId: string): string | undefined =>
     allItems.find((i) => i.productId === productId)?.id
@@ -108,20 +128,51 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }
 
   const removeItem = async (cartItemId: string): Promise<void> => {
+    // Cancel any pending debounced update for this item
+    if (timersRef.current[cartItemId]) {
+      clearTimeout(timersRef.current[cartItemId])
+      delete timersRef.current[cartItemId]
+    }
+    delete pendingValuesRef.current[cartItemId]
+    setPendingQuantities((prev) => {
+      const next = { ...prev }
+      delete next[cartItemId]
+      return next
+    })
     dispatch({ type: 'remove_optimistic', cartItemId })
     await CartsService.deleteApiOrdersCartsItems({ cartItemId })
   }
 
-  const updateQuantity = async (cartItemId: string, quantity: number): Promise<void> => {
-    if (quantity <= 0) {
-      await removeItem(cartItemId)
-      return
-    }
-    const data = await CartsService.putApiOrdersCartsItems({
-      cartItemId,
-      requestBody: { quantity },
-    })
-    dispatch({ type: 'update', cart: data })
+  const updateQuantity = (cartItemId: string, quantity: number): Promise<void> => {
+    if (quantity <= 0) return removeItem(cartItemId)
+
+    // Show new quantity immediately
+    pendingValuesRef.current[cartItemId] = quantity
+    setPendingQuantities((prev) => ({ ...prev, [cartItemId]: quantity }))
+
+    // Debounce: reset timer on every click, fire one request after 500ms of quiet
+    if (timersRef.current[cartItemId]) clearTimeout(timersRef.current[cartItemId])
+    timersRef.current[cartItemId] = setTimeout(() => {
+      delete timersRef.current[cartItemId]
+      const finalQty = pendingValuesRef.current[cartItemId]
+      if (finalQty === undefined) return
+      delete pendingValuesRef.current[cartItemId]
+      setPendingQuantities((prev) => {
+        const next = { ...prev }
+        delete next[cartItemId]
+        return next
+      })
+      CartsService.putApiOrdersCartsItems({ cartItemId, requestBody: { quantity: finalQty } })
+        .then((data) => dispatch({ type: 'update', cart: data }))
+        .catch(() => {
+          // Rollback: re-fetch authoritative state from server
+          CartsService.getApiOrdersCarts()
+            .then((data) => dispatch({ type: 'loaded', cart: data }))
+            .catch(() => {})
+        })
+    }, 500)
+
+    return Promise.resolve()
   }
 
   const refreshCart = async (): Promise<void> => {
