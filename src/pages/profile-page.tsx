@@ -61,7 +61,7 @@ const EXTRA_ROLE_LABELS: Record<string, string> = {
 }
 
 export function ProfilePage() {
-  const { user, logout, updateRoles } = useAuth()
+  const { user, logout, refreshUser } = useAuth()
   const { profile, photoUrl, loading, error, updateProfile, uploadPhoto, deletePhoto, logoutAll } =
     useProfile()
 
@@ -184,16 +184,14 @@ export function ProfilePage() {
         <SellerStatusCard
           onDeactivate={async () => {
             await updateProfile({ isSeller: false })
-            const current = Array.isArray(user?.role) ? user.role : user?.role ? [user.role] : []
-            updateRoles(current.filter((r) => r !== 'Seller'))
+            await refreshUser()
           }}
         />
       ) : (
         <BecomeSellerCard
           onBecomeSeller={async () => {
             await updateProfile({ isSeller: true })
-            const current = Array.isArray(user?.role) ? user.role : user?.role ? [user.role] : []
-            updateRoles([...new Set([...current, 'Seller'])])
+            await refreshUser()
           }}
         />
       )}

@@ -1,4 +1,5 @@
 import { useReducer, useState, useEffect, useCallback } from 'react'
+import { flushSync } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 import { ProductsService } from '@/api/catalog'
 import type { ProductDto } from '@/api/catalog'
@@ -106,7 +107,7 @@ export function useProductForm(
             longitude: form.longitude,
           },
         })
-        setIsDirty(false)
+        flushSync(() => setIsDirty(false))
         navigate(`/seller/products/${created.id}/edit`, { replace: true })
       }
     } catch {
