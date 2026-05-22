@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import { MapContainer, TileLayer, Marker, Circle } from 'react-leaflet'
 import { MOSCOW } from '@/lib/map-constants'
 import { MapClickHandler, MapRecenter } from '@/lib/map-utils'
+import { ShopMarkers, MIN_ZOOM } from '@/components/shop/shop-markers'
 import { X, Search, MapPin } from 'lucide-react'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
@@ -178,6 +179,8 @@ export function LocationPicker({ onClose }: Props) {
           <MapContainer
             center={[lat, lng]}
             zoom={13}
+            minZoom={MIN_ZOOM}
+            maxZoom={18}
             style={{ height: '100%', width: '100%' }}
             zoomControl={true}
           >
@@ -187,6 +190,7 @@ export function LocationPicker({ onClose }: Props) {
             />
             <MapClickHandler onMapClick={(a, b) => void applyPoint(a, b)} />
             {recenter && <MapRecenter lat={lat} lng={lng} />}
+            <ShopMarkers />
             <Marker position={[lat, lng]} icon={markerIcon} />
             <Circle
               center={[lat, lng]}

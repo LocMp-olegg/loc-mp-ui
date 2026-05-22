@@ -183,6 +183,22 @@
   animation: shimmer 2.2s ease-in-out infinite;
 }
 
+/* ── Leaflet shop popup ──────────────────────────────────────── */
+.shop-popup .leaflet-popup-content-wrapper {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  padding: 0;
+  overflow: hidden;
+}
+.shop-popup .leaflet-popup-content {
+  margin: 0;
+}
+.shop-popup .leaflet-popup-tip-container {
+  display: none;
+}
+
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus {
