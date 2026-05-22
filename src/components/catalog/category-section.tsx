@@ -41,7 +41,7 @@ export function CategorySection({ category, onLoadComplete, filterKey, filter }:
     >
       <div className="flex items-center justify-between mb-3 md:mb-4 px-4 md:px-5 pt-4 md:pt-5">
         <Link to={`/category/${category.id}`} className="flex items-center gap-2.5 min-w-0 group">
-          <span className="text-xl md:text-2xl leading-none shrink-0">{category.emoji}</span>
+          <category.icon className="w-5 h-5 md:w-6 md:h-6 shrink-0 text-foreground" />
           <div className="flex flex-col min-w-0">
             <h2 className="text-base md:text-xl font-bold text-foreground leading-tight group-hover:text-primary transition-colors truncate">
               {category.name}

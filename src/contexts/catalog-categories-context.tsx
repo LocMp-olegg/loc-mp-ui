@@ -1,9 +1,10 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react'
 import { fetchCatalogStructure } from '@/lib/catalog'
+import type { LucideIcon } from 'lucide-react'
 
 interface CategoryInfo {
   name: string
-  emoji: string
+  icon: LucideIcon
 }
 
 interface CatalogCategoriesContextValue {
@@ -23,9 +24,9 @@ export function CatalogCategoriesProvider({ children }: { children: ReactNode })
       .then((structure) => {
         if (cancelled) return
         const m = new Map<string, CategoryInfo>()
-        for (const c of structure.leafCategories) m.set(c.id, { name: c.name, emoji: c.emoji })
+        for (const c of structure.leafCategories) m.set(c.id, { name: c.name, icon: c.icon })
         for (const c of structure.rootCategories) {
-          if (!m.has(c.id)) m.set(c.id, { name: c.name, emoji: c.emoji })
+          if (!m.has(c.id)) m.set(c.id, { name: c.name, icon: c.icon })
         }
         setMap(m)
       })

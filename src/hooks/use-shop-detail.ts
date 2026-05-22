@@ -2,11 +2,12 @@ import { useEffect, useReducer, useState } from 'react'
 import { fetchShopDetail, fetchShopProducts, fetchCatalogStructure } from '@/lib/catalog'
 import type { ShopDetail } from '@/types/shop'
 import type { Product } from '@/types/product'
+import type { LucideIcon } from 'lucide-react'
 
 export interface CategoryGroup {
   id: string
   name: string
-  emoji: string
+  icon: LucideIcon
   rootCategoryId: string
   products: Product[]
 }
@@ -14,7 +15,7 @@ export interface CategoryGroup {
 export interface RootCategoryInfo {
   id: string
   name: string
-  emoji: string
+  icon: LucideIcon
 }
 
 interface State {
@@ -76,7 +77,7 @@ function reducer(state: State, action: Action): State {
 
 function groupByCategory(
   products: Product[],
-  leafCategories: Array<{ id: string; name: string; emoji: string; rootCategoryId: string }>,
+  leafCategories: Array<{ id: string; name: string; icon: LucideIcon; rootCategoryId: string }>,
 ): CategoryGroup[] {
   const map = new Map<string, CategoryGroup>()
   for (const cat of leafCategories) {

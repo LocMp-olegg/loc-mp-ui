@@ -3,11 +3,12 @@ import { fetchCategoryById } from '@/lib/catalog'
 import type { ProductFilter, GeoFilter } from '@/lib/catalog'
 import type { Product } from '@/types/product'
 import { useUserLocation } from '@/contexts/location-context'
+import type { LucideIcon } from 'lucide-react'
 
 interface CategoryInfo {
   id: string
   name: string
-  emoji: string
+  icon: LucideIcon
 }
 
 interface State {
@@ -73,7 +74,7 @@ export function useCatalogCategory(categoryId: string, filter: ProductFilter = {
         if (!cancelled)
           dispatch({
             type: 'fetched',
-            info: { id: data.id, name: data.name, emoji: data.emoji },
+            info: { id: data.id, name: data.name, icon: data.icon },
             products: data.products,
             hasNextPage: data.hasNextPage,
             append: false,
@@ -103,7 +104,7 @@ export function useCatalogCategory(categoryId: string, filter: ProductFilter = {
       .then((data) =>
         dispatch({
           type: 'fetched',
-          info: { id: data.id, name: data.name, emoji: data.emoji },
+          info: { id: data.id, name: data.name, icon: data.icon },
           products: data.products,
           hasNextPage: data.hasNextPage,
           append: true,

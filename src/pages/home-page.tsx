@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react'
-import { PackageSearch } from 'lucide-react'
+import { PackageSearch, MapPin, Store } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import { AnimatePresence } from 'framer-motion'
 import { useSearchParams } from 'react-router-dom'
 import { useCatalogHome } from '@/hooks/use-catalog-home'
@@ -73,7 +74,7 @@ export function HomePage() {
     setLoadResults({})
   }
 
-  const filterPill = (id: string, emoji: string, label: string) => (
+  const filterPill = (id: string, Icon: LucideIcon, label: string) => (
     <button
       key={id}
       onClick={() => handleRootChange(id)}
@@ -83,15 +84,15 @@ export function HomePage() {
           : 'bg-card border border-border text-muted-foreground hover:border-primary/50 hover:text-primary hover:bg-muted shadow-sm'
       }`}
     >
-      <span>{emoji}</span> {label}
+      <Icon className="w-4 h-4" /> {label}
     </button>
   )
 
   return (
     <div className="max-w-7xl mx-auto py-4 md:py-6">
       <div className="px-4 md:px-6 mb-4 md:mb-5">
-        <h1 className="text-xl md:text-2xl font-bold text-foreground mb-0.5">
-          Товары рядом с вами 📍
+        <h1 className="text-xl md:text-2xl font-bold text-foreground mb-0.5 flex items-center gap-2">
+          Товары рядом с вами <MapPin className="w-5 h-5 text-primary" />
         </h1>
         <p className="text-muted-foreground text-sm">Товары из вашего района</p>
       </div>
@@ -105,8 +106,8 @@ export function HomePage() {
       ) : !error && data ? (
         <div className="px-4 md:px-6 pb-3 mb-2 flex flex-col gap-2">
           <div className="flex gap-2 overflow-x-auto scrollbar-hide">
-            {filterPill('all', '🏪', 'Все')}
-            {data.rootCategories.map((cat) => filterPill(cat.id, cat.emoji, cat.name))}
+            {filterPill('all', Store, 'Все')}
+            {data.rootCategories.map((cat) => filterPill(cat.id, cat.icon, cat.name))}
           </div>
           <div className="flex items-center justify-end">
             <ProductFiltersBar
@@ -129,8 +130,12 @@ export function HomePage() {
       {allEmpty && (
         <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
           <div className="relative mb-5">
-            <div className="w-20 h-20 rounded-3xl bg-muted/60 border border-border flex items-center justify-center text-4xl">
-              {isFiltered && activeCategory ? activeCategory.emoji : '🏪'}
+            <div className="w-20 h-20 rounded-3xl bg-muted/60 border border-border flex items-center justify-center">
+              {isFiltered && activeCategory ? (
+                <activeCategory.icon className="w-9 h-9 text-muted-foreground" />
+              ) : (
+                <Store className="w-9 h-9 text-muted-foreground" />
+              )}
             </div>
             <div className="absolute -bottom-2 -right-2 w-9 h-9 rounded-xl bg-muted border border-border flex items-center justify-center">
               <PackageSearch className="w-4 h-4 text-muted-foreground" />

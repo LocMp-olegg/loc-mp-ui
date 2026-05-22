@@ -28,7 +28,7 @@ export function ShopProductSection({ group, onViewAll }: Props) {
           onClick={() => onViewAll(group.id)}
           className="flex items-center gap-2.5 min-w-0 group cursor-pointer"
         >
-          <span className="text-xl md:text-2xl leading-none shrink-0">{group.emoji}</span>
+          <group.icon className="w-5 h-5 md:w-6 md:h-6 shrink-0 text-foreground" />
           <div className="flex flex-col items-start min-w-0">
             <h2 className="text-base md:text-xl font-bold text-foreground group-hover:text-primary transition-colors leading-tight truncate">
               {group.name}

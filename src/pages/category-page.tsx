@@ -56,7 +56,7 @@ function CategoryContent({ id }: { id: string }) {
 
       <div className="flex items-center justify-between flex-wrap gap-3 mb-5">
         <div className="flex items-center gap-2 min-w-0">
-          <span className="text-2xl shrink-0">{data.emoji}</span>
+          <data.icon className="w-6 h-6 shrink-0 text-foreground" />
           <h1 className="text-xl md:text-2xl font-bold text-foreground truncate">{data.name}</h1>
           {!loading && (
             <span className="text-sm text-muted-foreground shrink-0">
@@ -82,8 +82,8 @@ function CategoryContent({ id }: { id: string }) {
       {!loading && !data.products.length && (
         <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
           <div className="relative mb-5">
-            <div className="w-20 h-20 rounded-3xl bg-muted/60 border border-border flex items-center justify-center text-4xl">
-              {data.emoji}
+            <div className="w-20 h-20 rounded-3xl bg-muted/60 border border-border flex items-center justify-center">
+              <data.icon className="w-9 h-9 text-muted-foreground" />
             </div>
             <div className="absolute -bottom-2 -right-2 w-9 h-9 rounded-xl bg-muted border border-border flex items-center justify-center">
               <PackageSearch className="w-4 h-4 text-muted-foreground" />

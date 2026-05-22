@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useReducer, useRef } from 'react'
 import { useSearchParams, Link } from 'react-router-dom'
-import { PackageSearch, ArrowLeft, Loader2 } from 'lucide-react'
+import { PackageSearch, ArrowLeft, Loader2, Hash, Search } from 'lucide-react'
 import { fetchSearchResults, fetchTagResults } from '@/lib/catalog'
 import { ProductFiltersBar } from '@/components/catalog/product-filters-bar'
 import { ProductCard } from '@/components/product/product-card'
@@ -214,8 +214,12 @@ export function SearchPage() {
       {!loading && fetched && products.length === 0 && activeQuery && (
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <div className="relative mb-5">
-            <div className="w-20 h-20 rounded-3xl bg-muted/60 border border-border flex items-center justify-center text-4xl">
-              {isTagSearch ? '#️⃣' : '🔍'}
+            <div className="w-20 h-20 rounded-3xl bg-muted/60 border border-border flex items-center justify-center">
+              {isTagSearch ? (
+                <Hash className="w-9 h-9 text-muted-foreground" />
+              ) : (
+                <Search className="w-9 h-9 text-muted-foreground" />
+              )}
             </div>
             <div className="absolute -bottom-2 -right-2 w-9 h-9 rounded-xl bg-muted border border-border flex items-center justify-center">
               <PackageSearch className="w-4 h-4 text-muted-foreground" />

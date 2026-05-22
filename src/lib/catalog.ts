@@ -18,39 +18,62 @@ import type {
 import type { Product } from '@/types/product'
 import type { ProductDetail } from '@/types/product-detail'
 import type { ShopDetail } from '@/types/shop'
+import type { LucideIcon } from 'lucide-react'
+import {
+  Croissant,
+  CakeSlice,
+  Wheat,
+  Leaf,
+  Apple,
+  Cherry,
+  UtensilsCrossed,
+  Coffee,
+  Beef,
+  Fish,
+  Milk,
+  Palette,
+  Gem,
+  Shirt,
+  ShoppingBag,
+  Flower2,
+  Wrench,
+  Smartphone,
+  BookOpen,
+  Package,
+} from 'lucide-react'
 
-const EMOJI_MAP: [string, string][] = [
-  ['выпечк', '🥐'],
-  ['десерт', '🍰'],
-  ['хлеб', '🍞'],
-  ['овощ', '🥦'],
-  ['фрукт', '🍎'],
-  ['ягод', '🍓'],
-  ['еда', '🍽️'],
-  ['напит', '🥤'],
-  ['мясо', '🥩'],
-  ['рыба', '🐟'],
-  ['молоко', '🥛'],
-  ['сыр', '🧀'],
-  ['хендмейд', '🎨'],
-  ['ручн', '🎨'],
-  ['украшени', '💍'],
-  ['одежд', '👗'],
-  ['аксессуар', '👜'],
-  ['растени', '🌿'],
-  ['цветы', '🌸'],
-  ['цветок', '🌸'],
-  ['услуг', '🛎️'],
-  ['электроник', '📱'],
-  ['книг', '📚'],
+const ICON_MAP: [string, LucideIcon][] = [
+  ['выпечк', Croissant],
+  ['десерт', CakeSlice],
+  ['хлеб', Wheat],
+  ['овощ', Leaf],
+  ['фрукт', Apple],
+  ['ягод', Cherry],
+  ['еда', UtensilsCrossed],
+  ['напит', Coffee],
+  ['мясо', Beef],
+  ['рыба', Fish],
+  ['молоко', Milk],
+  ['сыр', Milk],
+  ['хендмейд', Palette],
+  ['ручн', Palette],
+  ['украшени', Gem],
+  ['одежд', Shirt],
+  ['аксессуар', ShoppingBag],
+  ['растени', Leaf],
+  ['цветы', Flower2],
+  ['цветок', Flower2],
+  ['услуг', Wrench],
+  ['электроник', Smartphone],
+  ['книг', BookOpen],
 ]
 
-export function resolveEmoji(name: string): string {
+export function resolveIcon(name: string): LucideIcon {
   const lower = name.toLowerCase()
-  for (const [key, emoji] of EMOJI_MAP) {
-    if (lower.includes(key)) return emoji
+  for (const [key, icon] of ICON_MAP) {
+    if (lower.includes(key)) return icon
   }
-  return '📦'
+  return Package
 }
 
 function flattenLeaves(nodes: CategoryTreeDto[]): CategoryTreeDto[] {
@@ -157,13 +180,13 @@ export function mapProductFromDto(dto: ProductDto): Product {
 export interface RootCategory {
   id: string
   name: string
-  emoji: string
+  icon: LucideIcon
 }
 
 export interface LeafCategory {
   id: string
   name: string
-  emoji: string
+  icon: LucideIcon
   rootCategoryId: string
 }
 
@@ -183,12 +206,12 @@ export async function fetchCatalogStructure(): Promise<CatalogStructure> {
     rootCategories: activeRoots.map((r) => ({
       id: r.id ?? '',
       name: r.name ?? '',
-      emoji: resolveEmoji(r.name ?? ''),
+      icon: resolveIcon(r.name ?? ''),
     })),
     leafCategories: leaves.map((l) => ({
       id: l.id ?? '',
       name: l.name ?? '',
-      emoji: resolveEmoji(l.name ?? ''),
+      icon: resolveIcon(l.name ?? ''),
       rootCategoryId: leafToRoot.get(l.id ?? '') ?? l.id ?? '',
     })),
   }
@@ -472,7 +495,13 @@ export async function fetchCategoryById(
   pageSize = 20,
   filter: ProductFilter = {},
   geo?: GeoFilter,
-): Promise<{ id: string; name: string; emoji: string; products: Product[]; hasNextPage: boolean }> {
+): Promise<{
+  id: string
+  name: string
+  icon: LucideIcon
+  products: Product[]
+  hasNextPage: boolean
+}> {
   const { sort, minPrice, maxPrice, isInStock } = filter
   const productsPromise = geo
     ? ProductsService.getApiCatalogProductsNearby({
@@ -503,7 +532,7 @@ export async function fetchCategoryById(
   return {
     id: catDto.id ?? '',
     name: catDto.name ?? '',
-    emoji: resolveEmoji(catDto.name ?? ''),
+    icon: resolveIcon(catDto.name ?? ''),
     products: (productsResult.items ?? []).map(mapProduct),
     hasNextPage: productsResult.hasNextPage ?? false,
   }
