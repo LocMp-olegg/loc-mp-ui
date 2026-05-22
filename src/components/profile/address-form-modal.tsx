@@ -1,12 +1,12 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { MapContainer, TileLayer, Marker } from 'react-leaflet'
+import { MapContainer, Marker } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { X, Search, MapPin } from 'lucide-react'
 import { MOSCOW } from '@/lib/map-constants'
-import { MapClickHandler, MapRecenter } from '@/lib/map-utils'
+import { MapClickHandler, MapRecenter, ThemedTileLayer } from '@/lib/map-utils'
 import { useAddressSuggestions } from '@/hooks/use-address-suggestions'
 import { useAddressFormFields } from '@/hooks/use-address-form-fields'
 import { useAutoGeocode } from '@/hooks/use-auto-geocode'
@@ -323,10 +323,7 @@ export function AddressFormModal({ initial, onClose, onSave }: Props) {
               style={{ height: '100%', width: '100%' }}
               zoomControl={false}
             >
-              <TileLayer
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-              />
+              <ThemedTileLayer />
               <MapClickHandler onMapClick={(a, b) => void applyMapClick(a, b)} />
               {recenter && lat !== null && lng !== null && <MapRecenter lat={lat} lng={lng} />}
               {lat !== null && lng !== null && <Marker position={[lat, lng]} icon={markerIcon} />}
