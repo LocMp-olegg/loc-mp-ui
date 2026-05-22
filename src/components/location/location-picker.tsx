@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { motion } from 'framer-motion'
-import { MapContainer, TileLayer, Marker, Circle } from 'react-leaflet'
+import { MapContainer, Marker, Circle } from 'react-leaflet'
 import { MOSCOW } from '@/lib/map-constants'
-import { MapClickHandler, MapRecenter } from '@/lib/map-utils'
+import { MapClickHandler, MapRecenter, ThemedTileLayer } from '@/lib/map-utils'
 import { ShopMarkers, MIN_ZOOM } from '@/components/shop/shop-markers'
 import { X, Search, MapPin } from 'lucide-react'
 import L from 'leaflet'
@@ -184,10 +184,7 @@ export function LocationPicker({ onClose }: Props) {
             style={{ height: '100%', width: '100%' }}
             zoomControl={true}
           >
-            <TileLayer
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-            />
+            <ThemedTileLayer />
             <MapClickHandler onMapClick={(a, b) => void applyPoint(a, b)} />
             {recenter && <MapRecenter lat={lat} lng={lng} />}
             <ShopMarkers />

@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { motion } from 'framer-motion'
-import { MapContainer, TileLayer, Marker, Circle } from 'react-leaflet'
+import { MapContainer, Marker, Circle } from 'react-leaflet'
 import { MOSCOW } from '@/lib/map-constants'
-import { MapClickHandler, MapRecenter } from '@/lib/map-utils'
+import { MapClickHandler, MapRecenter, ThemedTileLayer } from '@/lib/map-utils'
 import { X, Search, MapPin } from 'lucide-react'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
@@ -327,10 +327,7 @@ export function ShopLocationModal({
               style={{ height: '100%', width: '100%' }}
               zoomControl
             >
-              <TileLayer
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-              />
+              <ThemedTileLayer />
               <MapClickHandler onMapClick={(a, b) => void handleMapClick(a, b)} />
               {recenter && <MapRecenter lat={lat} lng={lng} />}
               <Marker position={[lat, lng]} icon={markerIcon} />

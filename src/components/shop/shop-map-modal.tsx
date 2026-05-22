@@ -1,6 +1,7 @@
 import { createPortal } from 'react-dom'
 import { motion } from 'framer-motion'
-import { MapContainer, TileLayer, Marker, Circle } from 'react-leaflet'
+import { MapContainer, Marker, Circle } from 'react-leaflet'
+import { ThemedTileLayer } from '@/lib/map-utils'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { X, MapPin } from 'lucide-react'
@@ -80,10 +81,7 @@ export function ShopMapModal({
             style={{ height: '100%', width: '100%' }}
             zoomControl
           >
-            <TileLayer
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-            />
+            <ThemedTileLayer />
             <Marker position={[lat, lng]} icon={markerIcon} />
             {radiusMeters !== null && (
               <Circle
