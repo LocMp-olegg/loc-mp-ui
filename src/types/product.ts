@@ -1,3 +1,5 @@
+import type { LucideIcon } from 'lucide-react'
+
 export interface Product {
   id: string
   name: string
@@ -24,6 +26,6 @@ export interface Product {
 export interface Category {
   id: string
   name: string
-  emoji: string
+  icon: LucideIcon
   products: Product[]
 }

@@ -1,10 +1,11 @@
 ﻿import type { Category, Product } from '@/types/product'
+import { Croissant, Leaf, Palette, Shirt, Flower2 } from 'lucide-react'
 
 export const categories: Category[] = [
   {
     id: 'bakery',
     name: 'Выпечка и десерты',
-    emoji: '🥐',
+    icon: Croissant,
     products: [
       {
         id: 'b1',
@@ -119,7 +120,7 @@ export const categories: Category[] = [
   {
     id: 'produce',
     name: 'Овощи и фрукты',
-    emoji: '🥦',
+    icon: Leaf,
     products: [
       {
         id: 'p1',
@@ -229,7 +230,7 @@ export const categories: Category[] = [
   {
     id: 'handmade',
     name: 'Хендмейд',
-    emoji: '🎨',
+    icon: Palette,
     products: [
       {
         id: 'h1',
@@ -344,7 +345,7 @@ export const categories: Category[] = [
   {
     id: 'clothing',
     name: 'Одежда и аксессуары',
-    emoji: '👗',
+    icon: Shirt,
     products: [
       {
         id: 'c1',
@@ -459,7 +460,7 @@ export const categories: Category[] = [
   {
     id: 'plants',
     name: 'Растения и цветы',
-    emoji: '🌿',
+    icon: Flower2,
     products: [
       {
         id: 'pl1',

@@ -417,7 +417,7 @@ function ShopContent({ id }: { id: string }) {
             categories={categoryGroups.map((g) => ({
               id: g.id,
               name: g.name,
-              emoji: g.emoji,
+              icon: g.icon,
               rootCategoryId: g.rootCategoryId,
             }))}
             filter={filter}

@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback, useEffect, useReducer } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { SlidersHorizontal, X, Search } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { ShopProductFilter } from '@/lib/catalog'
 import { POPUP_ANIM, POPUP_BASE, popupAlign } from '@/components/catalog/filters-constants'
@@ -10,14 +11,14 @@ import { useClickOutside } from '@/hooks/use-click-outside'
 interface Category {
   id: string
   name: string
-  emoji: string
+  icon: LucideIcon
   rootCategoryId: string
 }
 
 interface RootCategory {
   id: string
   name: string
-  emoji: string
+  icon: LucideIcon
 }
 
 interface Props {
@@ -238,7 +239,8 @@ export function ShopProductFilters({
                                   'font-semibold',
                                 )}
                               >
-                                {root.emoji} {root.name}
+                                <root.icon className="w-3.5 h-3.5 inline-block shrink-0" />{' '}
+                                {root.name}
                               </button>
                               <div className="flex flex-wrap gap-1.5 pl-3">
                                 {children.map((cat) => (
@@ -250,7 +252,8 @@ export function ShopProductFilters({
                                       draft.categoryId === cat.id ? pillActive : pillInactive,
                                     )}
                                   >
-                                    {cat.emoji} {cat.name}
+                                    <cat.icon className="w-3.5 h-3.5 inline-block shrink-0" />{' '}
+                                    {cat.name}
                                   </button>
                                 ))}
                               </div>
@@ -266,7 +269,7 @@ export function ShopProductFilters({
                               draft.categoryId === cat.id ? pillActive : pillInactive,
                             )}
                           >
-                            {cat.emoji} {cat.name}
+                            <cat.icon className="w-3.5 h-3.5 inline-block shrink-0" /> {cat.name}
                           </button>
                         ))}
                   </div>
