@@ -1,10 +1,21 @@
 import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { AnimatePresence } from 'framer-motion'
-import { ArrowLeft, Phone, Star, Store, BadgeCheck, Clock, MapPin, Truck } from 'lucide-react'
+import {
+  ArrowLeft,
+  MessageSquare,
+  Phone,
+  Star,
+  Store,
+  BadgeCheck,
+  Clock,
+  MapPin,
+  Truck,
+} from 'lucide-react'
 import { formatPhone } from '@/lib/auth-validation'
 import { useSellerDetail } from '@/hooks/use-seller-detail'
 import { useAuth } from '@/contexts/auth-context'
+import { useStartChat } from '@/hooks/use-start-chat'
 import { ShopReviewsModal } from '@/components/shop/reviews-modal'
 import { PhotoLightbox } from '@/components/ui/photo-lightbox'
 import { pluralize } from '@/lib/utils'
@@ -40,6 +51,7 @@ function SellerSkeleton() {
 function SellerContent({ id }: { id: string }) {
   const { seller, shops, rating, loading, error } = useSellerDetail(id)
   const { user } = useAuth()
+  const { startChat, loading: chatLoading } = useStartChat()
   const [reviewsOpen, setReviewsOpen] = useState(false)
   const [avatarLightbox, setAvatarLightbox] = useState(false)
 
@@ -61,6 +73,7 @@ function SellerContent({ id }: { id: string }) {
   const avatarSrc = seller.avatarUrl ?? noImageUrl
   const displayName = seller.displayName ?? 'Продавец'
   const isSelf = !!user && user.id === id
+  const canChat = !!user && !isSelf
 
   return (
     <div className="max-w-3xl mx-auto px-4 md:px-6 py-6">
@@ -107,6 +120,27 @@ function SellerContent({ id }: { id: string }) {
           ) : (
             <p className="text-sm text-muted-foreground mb-2">Пока нет отзывов</p>
           )}
+
+          {canChat && (
+            <button
+              type="button"
+              disabled={chatLoading}
+              onClick={() =>
+                startChat(
+                  {
+                    type: 'Direct',
+                    targetUserId: id,
+                    targetUserName: displayName,
+                  },
+                  `/sellers/${id}`,
+                )
+              }
+              className="inline-flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-colors disabled:opacity-50"
+            >
+              <MessageSquare className="w-4 h-4" />
+              Написать
+            </button>
+          )}
         </div>
       </div>
 
@@ -129,19 +163,24 @@ function SellerContent({ id }: { id: string }) {
                 ? Math.round(shop.serviceRadiusMeters / 100) / 10
                 : null
               return (
-                <Link
+                <div
                   key={shop.id}
-                  to={`/shop/${shop.id}`}
-                  className="flex gap-4 p-4 rounded-2xl border border-white/20 dark:border-white/8 shadow-sm backdrop-blur-sm hover:opacity-90 transition-opacity"
+                  className="relative flex gap-4 p-4 rounded-2xl border border-white/20 dark:border-white/8 shadow-sm backdrop-blur-sm"
                   style={{ background: 'color-mix(in srgb, var(--card) 35%, transparent)' }}
                 >
+                  <Link
+                    to={`/shop/${shop.id}`}
+                    className="absolute inset-0 rounded-2xl hover:opacity-90 transition-opacity z-0"
+                    aria-label={shop.businessName ?? ''}
+                  />
+
                   <img
                     src={shop.avatarUrl ?? noImageUrl}
                     alt={shop.businessName ?? ''}
-                    className="w-14 h-14 rounded-xl object-cover bg-muted shrink-0"
+                    className="w-14 h-14 rounded-xl object-cover bg-muted shrink-0 relative z-10 pointer-events-none"
                   />
 
-                  <div className="flex-1 min-w-0">
+                  <div className="flex-1 min-w-0 relative z-10">
                     <div className="flex flex-wrap items-center gap-1.5 mb-1">
                       <span className="font-semibold text-foreground leading-tight">
                         {shop.businessName}
@@ -210,7 +249,7 @@ function SellerContent({ id }: { id: string }) {
                       })()}
                     </div>
                   </div>
-                </Link>
+                </div>
               )
             })}
           </div>

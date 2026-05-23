@@ -19,6 +19,8 @@ import { ReviewNewPage } from '@/pages/review-new-page'
 import { ReviewDetailPage } from '@/pages/review-detail-page'
 import { MyReviewsPage } from '@/pages/my-reviews-page'
 import { NotificationsPage } from '@/pages/notifications-page'
+import { ChatsPage } from '@/pages/chats-page'
+import { ChatDetailPage } from '@/pages/chat-detail-page'
 import { RequireAuth } from '@/components/auth/require-auth'
 import { ShopsPage } from '@/pages/seller/shops-page'
 import { ShopEditPage } from '@/pages/seller/shop-edit-page'
@@ -26,6 +28,7 @@ import { ProductsPage } from '@/pages/seller/products-page'
 import { ProductEditPage } from '@/pages/seller/product-edit-page'
 import { OrdersPage as SellerOrdersPage } from '@/pages/seller/orders-page'
 import { AnalyticsPage } from '@/pages/seller/analytics-page'
+import { SellerChatsPage } from '@/pages/seller/chats-page'
 
 export const router = createBrowserRouter([
   {
@@ -106,6 +109,22 @@ export const router = createBrowserRouter([
               </RequireAuth>
             ),
           },
+          {
+            path: 'chats',
+            element: (
+              <RequireAuth>
+                <ChatsPage />
+              </RequireAuth>
+            ),
+          },
+          {
+            path: 'chats/:id',
+            element: (
+              <RequireAuth>
+                <ChatDetailPage />
+              </RequireAuth>
+            ),
+          },
           { path: 'login', element: <LoginPage /> },
           { path: 'reset-password', element: <ResetPasswordPage /> },
         ],
@@ -123,6 +142,7 @@ export const router = createBrowserRouter([
           { path: 'products/:productId/edit', element: <ProductEditPage /> },
           { path: 'orders', element: <SellerOrdersPage /> },
           { path: 'analytics', element: <AnalyticsPage /> },
+          { path: 'chats', element: <SellerChatsPage /> },
         ],
       },
     ],

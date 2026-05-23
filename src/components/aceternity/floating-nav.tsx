@@ -27,6 +27,7 @@ import { useFavorites } from '@/contexts/favorites-context'
 import { useUserLocation } from '@/contexts/location-context'
 import { useAuth } from '@/contexts/auth-context'
 import { useAddresses } from '@/contexts/addresses-context'
+import { useChatContext } from '@/contexts/chat-context'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { LocationPicker } from '@/components/location/location-picker'
 import { AddressDropdown } from '@/components/location/address-dropdown'
@@ -132,6 +133,7 @@ export function FloatingNav() {
   const { totalFavorites } = useFavorites()
   const { location } = useUserLocation()
   const { isAuthenticated, initializing } = useAuth()
+  const { unreadCount: unreadChats } = useChatContext()
   const { theme, setTheme } = useTheme()
   const ThemeIcon = THEME_ICONS[theme] ?? Monitor
   const { scrollY } = useScroll()
@@ -186,6 +188,14 @@ export function FloatingNav() {
           {totalItems > 0 && (
             <span className="absolute top-1 right-1 min-w-3.5 h-3.5 bg-accent text-nav-bg text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
               {totalItems > 9 ? '9+' : totalItems}
+            </span>
+          )}
+        </Link>
+        <Link to="/chats" aria-label="Чаты" className={`relative ${iconBtn}`}>
+          <MessageSquare className="w-5 h-5 text-nav-text/70" />
+          {unreadChats > 0 && (
+            <span className="absolute top-1 right-1 min-w-3.5 h-3.5 bg-primary text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
+              {unreadChats > 9 ? '9+' : unreadChats}
             </span>
           )}
         </Link>

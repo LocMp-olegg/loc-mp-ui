@@ -1,6 +1,15 @@
 import { Outlet, NavLink, useLocation, Link } from 'react-router-dom'
-import { Store, Package, ShoppingBag, BarChart2, ArrowLeft, ExternalLink } from 'lucide-react'
+import {
+  Store,
+  Package,
+  ShoppingBag,
+  BarChart2,
+  ArrowLeft,
+  ExternalLink,
+  MessageSquare,
+} from 'lucide-react'
 import { useAuth } from '@/contexts/auth-context'
+import { useChatContext } from '@/contexts/chat-context'
 import { LandscapeBackground } from './landscape-background'
 import { RequireSeller } from '@/components/auth/require-seller'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
@@ -11,6 +20,7 @@ const NAV_ITEMS = [
   { to: '/seller/products', icon: Package, label: 'Товары' },
   { to: '/seller/orders', icon: ShoppingBag, label: 'Заказы' },
   { to: '/seller/analytics', icon: BarChart2, label: 'Аналитика' },
+  { to: '/seller/chats', icon: MessageSquare, label: 'Чаты' },
 ]
 
 const PAGE_TITLES: Record<string, string> = {
@@ -18,6 +28,7 @@ const PAGE_TITLES: Record<string, string> = {
   '/seller/products': 'Товары',
   '/seller/orders': 'Заказы',
   '/seller/analytics': 'Аналитика',
+  '/seller/chats': 'Чаты',
 }
 
 function getPageTitle(pathname: string): string {
@@ -25,6 +36,26 @@ function getPageTitle(pathname: string): string {
     if (pathname.startsWith(path)) return title
   }
   return 'Панель продавца'
+}
+
+function ChatUnreadBadge() {
+  const { unreadCount } = useChatContext()
+  if (unreadCount <= 0) return null
+  return (
+    <span className="min-w-4 h-4 bg-primary text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5 ml-auto shrink-0">
+      {unreadCount > 99 ? '99+' : unreadCount}
+    </span>
+  )
+}
+
+function MobileChatBadge() {
+  const { unreadCount } = useChatContext()
+  if (unreadCount <= 0) return null
+  return (
+    <span className="absolute -top-0.5 -right-0.5 min-w-3.5 h-3.5 bg-primary text-white text-[8px] font-bold rounded-full flex items-center justify-center px-0.5">
+      {unreadCount > 9 ? '9+' : unreadCount}
+    </span>
+  )
 }
 
 /* shared glass style matching FloatingNav */
@@ -71,7 +102,8 @@ function SellerSidebar() {
             }
           >
             <Icon className="w-4 h-4 shrink-0" />
-            <span>{label}</span>
+            <span className="flex-1">{label}</span>
+            {to === '/seller/chats' && <ChatUnreadBadge />}
           </NavLink>
         ))}
       </nav>
@@ -152,11 +184,12 @@ function MobileBottomNav() {
             <>
               <div
                 className={cn(
-                  'w-8 h-8 rounded-xl flex items-center justify-center transition-colors',
+                  'relative w-8 h-8 rounded-xl flex items-center justify-center transition-colors',
                   isActive && 'bg-white/15',
                 )}
               >
                 <Icon className="w-5 h-5" />
+                {to === '/seller/chats' && <MobileChatBadge />}
               </div>
               <span className="text-[10px] leading-tight font-medium">{label}</span>
             </>
