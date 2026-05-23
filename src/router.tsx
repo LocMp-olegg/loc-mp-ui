@@ -19,7 +19,7 @@ import { ReviewNewPage } from '@/pages/review-new-page'
 import { ReviewDetailPage } from '@/pages/review-detail-page'
 import { MyReviewsPage } from '@/pages/my-reviews-page'
 import { NotificationsPage } from '@/pages/notifications-page'
-import { ChatsPage } from '@/pages/chats-page'
+import { ChatLayout } from '@/components/chats/chat-layout'
 import { ChatDetailPage } from '@/pages/chat-detail-page'
 import { RequireAuth } from '@/components/auth/require-auth'
 import { ShopsPage } from '@/pages/seller/shops-page'
@@ -113,17 +113,12 @@ export const router = createBrowserRouter([
             path: 'chats',
             element: (
               <RequireAuth>
-                <ChatsPage />
+                <ChatLayout />
               </RequireAuth>
             ),
-          },
-          {
-            path: 'chats/:id',
-            element: (
-              <RequireAuth>
-                <ChatDetailPage />
-              </RequireAuth>
-            ),
+            children: [
+              { path: ':id', element: <ChatDetailPage /> },
+            ],
           },
           { path: 'login', element: <LoginPage /> },
           { path: 'reset-password', element: <ResetPasswordPage /> },

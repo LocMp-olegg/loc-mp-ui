@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react'
+import React, { useState, useRef, useCallback } from 'react'
 import { SendHorizonal, Paperclip } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { AttachmentPreviews } from './attachment-previews'
@@ -114,72 +114,82 @@ export function MessageInput({ onSend, onTyping, disabled = false }: MessageInpu
   }
 
   return (
-    <div className="border-t border-border/50 bg-card/40 backdrop-blur-sm shrink-0">
-      <AttachmentPreviews files={files} onRemove={removeFile} />
+    <div className="px-3 pb-3 pt-1 shrink-0">
+      <div
+        className={cn(
+          'rounded-2xl',
+          'bg-nav-bg/70 backdrop-blur-xl',
+          'border border-white/10',
+          'shadow-[0_-4px_24px_rgba(0,0,0,0.12),inset_0_0_0_1px_rgba(255,255,255,0.06)]',
+        )}
+      >
+        <AttachmentPreviews files={files} onRemove={removeFile} />
 
-      {fileError && <p className="text-xs text-destructive px-4 pt-1">{fileError}</p>}
+        {fileError && <p className="text-xs text-destructive px-4 pt-2">{fileError}</p>}
 
-      <div className="flex items-end gap-2 px-4 py-3">
-        {/* Hidden file input */}
-        <input
-          ref={fileInputRef}
-          type="file"
-          multiple
-          accept={[...ALLOWED_TYPES].join(',')}
-          className="hidden"
-          onChange={handleFileSelect}
-        />
+        <div className="flex items-end gap-2 px-3 py-2.5">
+          {/* Hidden file input */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            accept={[...ALLOWED_TYPES].join(',')}
+            className="hidden"
+            onChange={handleFileSelect}
+          />
 
-        {/* Attach button */}
-        <button
-          type="button"
-          onClick={() => fileInputRef.current?.click()}
-          disabled={disabled || files.length >= MAX_ATTACHMENTS}
-          aria-label="Прикрепить файл"
-          className={cn(
-            'w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors',
-            disabled || files.length >= MAX_ATTACHMENTS
-              ? 'text-muted-foreground/40 cursor-not-allowed'
-              : 'text-muted-foreground hover:text-foreground hover:bg-muted/50',
-          )}
-        >
-          <Paperclip className="w-4 h-4" />
-        </button>
+          {/* Attach button */}
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={disabled || files.length >= MAX_ATTACHMENTS}
+            aria-label="Прикрепить файл"
+            className={cn(
+              'w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-colors',
+              disabled || files.length >= MAX_ATTACHMENTS
+                ? 'text-nav-text/25 cursor-default'
+                : 'text-nav-text/50 hover:text-nav-text hover:bg-white/10 cursor-pointer',
+            )}
+          >
+            <Paperclip className="w-4 h-4" />
+          </button>
 
-        {/* Textarea */}
-        <textarea
-          ref={textareaRef}
-          value={value}
-          onChange={handleChange}
-          onKeyDown={handleKeyDown}
-          disabled={disabled}
-          placeholder={disabled ? 'Чат закрыт' : 'Написать сообщение…'}
-          rows={1}
-          maxLength={MAX_BODY_LENGTH}
-          className={cn(
-            'flex-1 resize-none rounded-xl border border-border bg-background/60 px-3 py-2.5',
-            'text-sm text-foreground placeholder:text-muted-foreground',
-            'focus:outline-none focus:ring-1 focus:ring-primary/50',
-            'disabled:opacity-50 disabled:cursor-not-allowed',
-            'min-h-[40px] max-h-32 overflow-y-auto transition-[height]',
-          )}
-        />
+          {/* Textarea */}
+          <textarea
+            ref={textareaRef}
+            value={value}
+            onChange={handleChange}
+            onKeyDown={handleKeyDown}
+            disabled={disabled}
+            placeholder={disabled ? 'Чат закрыт' : 'Написать сообщение…'}
+            rows={1}
+            maxLength={MAX_BODY_LENGTH}
+            className={cn(
+              'flex-1 resize-none rounded-xl px-3 py-2',
+              'bg-white/8 border border-white/10',
+              'text-sm text-nav-text placeholder:text-nav-text/40',
+              'focus:outline-none focus:ring-1 focus:ring-primary/60 focus:border-primary/40',
+              'disabled:opacity-40 disabled:cursor-not-allowed',
+              'min-h-[36px] max-h-32 overflow-y-auto transition-[height] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
+            )}
+          />
 
-        {/* Send button */}
-        <button
-          type="button"
-          onClick={() => void handleSend()}
-          disabled={!canSend}
-          aria-label="Отправить"
-          className={cn(
-            'w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors',
-            canSend
-              ? 'bg-primary text-primary-foreground hover:bg-primary/90'
-              : 'bg-muted text-muted-foreground cursor-not-allowed',
-          )}
-        >
-          <SendHorizonal className="w-4 h-4" />
-        </button>
+          {/* Send button */}
+          <button
+            type="button"
+            onClick={() => void handleSend()}
+            disabled={!canSend}
+            aria-label="Отправить"
+            className={cn(
+              'w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-colors',
+              canSend
+                ? 'bg-primary text-primary-foreground hover:bg-primary/90 cursor-pointer'
+                : 'bg-white/8 text-nav-text/25 cursor-default',
+            )}
+          >
+            <SendHorizonal className="w-4 h-4" />
+          </button>
+        </div>
       </div>
     </div>
   )

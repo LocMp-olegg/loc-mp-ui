@@ -6,6 +6,30 @@ import { TypingIndicator } from './typing-indicator'
 import type { MessageDto } from '@/api/chat'
 import type { TypingUser } from '@/hooks/use-chat-messages'
 
+const TODAY_YEAR = new Date().getFullYear()
+
+function dayKey(iso: string): string {
+  const d = new Date(iso)
+  return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`
+}
+
+function formatDayLabel(iso: string): string {
+  const d = new Date(iso)
+  const year = d.getFullYear()
+  const label = d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })
+  return year !== TODAY_YEAR ? `${label} ${year}` : label
+}
+
+function DateSeparator({ iso }: { iso: string }) {
+  return (
+    <div className="flex justify-center py-2 select-none">
+      <span className="px-3 py-1 rounded-full text-xs font-medium bg-nav-bg/60 text-nav-text/80 backdrop-blur-md border border-white/10 shadow-sm">
+        {formatDayLabel(iso)}
+      </span>
+    </div>
+  )
+}
+
 interface MessageListProps {
   messages: MessageDto[]
   loading: boolean
@@ -14,6 +38,8 @@ interface MessageListProps {
   onLoadOlder: () => void
   currentUserId: string
   typingUsers: TypingUser[]
+  paddingTop?: number
+  paddingBottom?: number
 }
 
 const NEAR_BOTTOM_THRESHOLD = 150
@@ -26,6 +52,8 @@ export function MessageList({
   onLoadOlder,
   currentUserId,
   typingUsers,
+  paddingTop = 12,
+  paddingBottom = 12,
 }: MessageListProps) {
   const scrollRef = useRef<HTMLDivElement>(null)
   const prevScrollHeightRef = useRef(0)
@@ -90,7 +118,8 @@ export function MessageList({
     <div
       ref={scrollRef}
       onScroll={handleScroll}
-      className="flex-1 overflow-y-auto px-4 py-3 space-y-2 overscroll-none"
+      className="flex-1 overflow-y-auto px-4 space-y-2 overscroll-none"
+      style={{ paddingTop, paddingBottom }}
     >
       {hasOlderMessages && (
         <div className="flex justify-center py-2">
@@ -107,16 +136,23 @@ export function MessageList({
       )}
 
       <AnimatePresence initial={false}>
-        {messages.map((msg) => (
-          <motion.div
-            key={msg.id}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.18, ease: 'easeOut' }}
-          >
-            <MessageBubble message={msg} isOwn={msg.senderId === currentUserId} />
-          </motion.div>
-        ))}
+        {messages.map((msg, i) => {
+          const showSeparator =
+            msg.sentAt != null &&
+            (i === 0 || dayKey(msg.sentAt) !== dayKey(messages[i - 1].sentAt ?? ''))
+          return (
+            <div key={msg.id}>
+              {showSeparator && <DateSeparator iso={msg.sentAt!} />}
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.18, ease: 'easeOut' }}
+              >
+                <MessageBubble message={msg} isOwn={msg.senderId === currentUserId} />
+              </motion.div>
+            </div>
+          )
+        })}
       </AnimatePresence>
 
       <TypingIndicator users={typingUsers} />
