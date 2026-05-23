@@ -23,6 +23,7 @@ type ChatsAction =
   | { type: 'append_loading' }
   | { type: 'success'; chats: ChatSummaryDto[]; total: number; page: number; append: boolean }
   | { type: 'error'; message: string }
+  | { type: 'update_unread'; chatId: string; delta: number }
 
 function reducer(state: ChatsState, action: ChatsAction): ChatsState {
   switch (action.type) {
@@ -43,6 +44,15 @@ function reducer(state: ChatsState, action: ChatsAction): ChatsState {
     }
     case 'error':
       return { ...state, loading: false, error: action.message }
+    case 'update_unread':
+      return {
+        ...state,
+        chats: state.chats.map((c) =>
+          c.id === action.chatId
+            ? { ...c, unreadCount: Math.max(0, (c.unreadCount ?? 0) + action.delta) }
+            : c,
+        ),
+      }
   }
 }
 
@@ -88,5 +98,9 @@ export function useChats({ type, status, isSupport = false, pageSize = 20 }: Use
 
   const reload = useCallback(() => fetchPage(1, false), [fetchPage])
 
-  return { ...state, loadMore, reload }
+  const updateChatUnread = useCallback((chatId: string, delta: number) => {
+    dispatch({ type: 'update_unread', chatId, delta })
+  }, [])
+
+  return { ...state, loadMore, reload, updateChatUnread }
 }

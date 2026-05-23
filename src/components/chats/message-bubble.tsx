@@ -55,13 +55,14 @@ export function MessageBubble({ message, isOwn }: MessageBubbleProps) {
     <div className={cn('flex', isOwn ? 'justify-end' : 'justify-start')}>
       <div
         className={cn(
-          'max-w-[72%] rounded-2xl overflow-hidden',
+          'rounded-2xl overflow-hidden',
+          hasAttachments && !hasBody ? 'w-full max-w-[75%]' : 'max-w-[72%]',
           isOwn
             ? 'bg-primary text-primary-foreground rounded-br-sm'
             : 'bg-card border border-border text-foreground rounded-bl-sm',
         )}
       >
-        {!isOwn && message.senderName && (
+        {!isOwn && message.senderName && (hasBody || !hasAttachments) && (
           <p
             className={cn(
               'text-xs font-semibold text-primary',

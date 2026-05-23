@@ -1,6 +1,6 @@
-import { useRef, useEffect, useLayoutEffect } from 'react'
+import { useRef, useLayoutEffect, useState, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Loader2 } from 'lucide-react'
+import { Loader2, ChevronDown } from 'lucide-react'
 import { MessageBubble } from './message-bubble'
 import { TypingIndicator } from './typing-indicator'
 import type { MessageDto } from '@/api/chat'
@@ -43,6 +43,7 @@ interface MessageListProps {
 }
 
 const NEAR_BOTTOM_THRESHOLD = 150
+const NEAR_TOP_THRESHOLD = 80
 
 export function MessageList({
   messages,
@@ -59,21 +60,51 @@ export function MessageList({
   const prevScrollHeightRef = useRef(0)
   const isInitialRef = useRef(true)
   const wasNearBottomRef = useRef(true)
+  const [isNearBottom, setIsNearBottom] = useState(true)
 
-  const handleScroll = () => {
+  const handleScroll = useCallback(() => {
     const el = scrollRef.current
     if (!el) return
-    wasNearBottomRef.current =
-      el.scrollHeight - el.scrollTop - el.clientHeight < NEAR_BOTTOM_THRESHOLD
-  }
+    const nearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < NEAR_BOTTOM_THRESHOLD
+    wasNearBottomRef.current = nearBottom
+    setIsNearBottom(nearBottom)
+    // Auto-load older messages when scrolled near the top
+    if (el.scrollTop < NEAR_TOP_THRESHOLD && hasOlderMessages && !loadingOlder) {
+      prevScrollHeightRef.current = el.scrollHeight
+      onLoadOlder()
+    }
+  }, [hasOlderMessages, loadingOlder, onLoadOlder])
+
+  const scrollToBottom = useCallback(() => {
+    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' })
+  }, [])
 
   useLayoutEffect(() => {
     const el = scrollRef.current
-    if (!el || messages.length === 0) return
+    if (!el || messages.length === 0) {
+      // Reset for next load (e.g. chat switch)
+      isInitialRef.current = true
+      wasNearBottomRef.current = true
+      setIsNearBottom(true)
+      return
+    }
 
     if (isInitialRef.current) {
-      el.scrollTop = el.scrollHeight
       isInitialRef.current = false
+      // Scroll to first unread message so user can read them top-to-bottom
+      const firstUnread = messages.find((m) => !m.isRead)
+      if (firstUnread) {
+        const msgEl = el.querySelector(`[data-msg-id="${firstUnread.id}"]`) as HTMLElement | null
+        if (msgEl) {
+          el.scrollTop = Math.max(0, msgEl.offsetTop - paddingTop)
+          setIsNearBottom(false)
+          wasNearBottomRef.current = false
+        } else {
+          el.scrollTop = el.scrollHeight
+        }
+      } else {
+        el.scrollTop = el.scrollHeight
+      }
       return
     }
 
@@ -86,25 +117,13 @@ export function MessageList({
     if (wasNearBottomRef.current) {
       el.scrollTop = el.scrollHeight
     }
-  }, [messages])
+  }, [messages, paddingTop])
 
   useLayoutEffect(() => {
     const el = scrollRef.current
     if (!el || typingUsers.length === 0 || !wasNearBottomRef.current) return
     el.scrollTop = el.scrollHeight
   }, [typingUsers.length])
-
-  useEffect(() => {
-    isInitialRef.current = true
-    wasNearBottomRef.current = true
-  }, [])
-
-  const handleLoadOlder = () => {
-    if (scrollRef.current) {
-      prevScrollHeightRef.current = scrollRef.current.scrollHeight
-    }
-    onLoadOlder()
-  }
 
   if (loading) {
     return (
@@ -115,47 +134,60 @@ export function MessageList({
   }
 
   return (
-    <div
-      ref={scrollRef}
-      onScroll={handleScroll}
-      className="flex-1 overflow-y-auto px-4 space-y-2 overscroll-none"
-      style={{ paddingTop, paddingBottom }}
-    >
-      {hasOlderMessages && (
-        <div className="flex justify-center py-2">
-          <button
-            type="button"
-            onClick={handleLoadOlder}
-            disabled={loadingOlder}
-            className="flex items-center gap-1.5 text-xs text-primary hover:text-primary/80 transition-colors disabled:opacity-50"
+    <div className="flex-1 relative min-h-0">
+      <div
+        ref={scrollRef}
+        onScroll={handleScroll}
+        className="absolute inset-0 overflow-y-auto px-4 space-y-2 overscroll-none [scrollbar-width:thin] [scrollbar-color:rgba(255,255,255,0.12)_transparent]"
+        style={{ paddingTop, paddingBottom }}
+      >
+        {loadingOlder && (
+          <div className="flex justify-center py-2">
+            <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+          </div>
+        )}
+
+        <AnimatePresence initial={false}>
+          {messages.map((msg, i) => {
+            const showSeparator =
+              msg.sentAt != null &&
+              (i === 0 || dayKey(msg.sentAt) !== dayKey(messages[i - 1].sentAt ?? ''))
+            return (
+              <div key={msg.id} data-msg-id={msg.id}>
+                {showSeparator && <DateSeparator iso={msg.sentAt!} />}
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.18, ease: 'easeOut' }}
+                >
+                  <MessageBubble message={msg} isOwn={msg.senderId === currentUserId} />
+                </motion.div>
+              </div>
+            )
+          })}
+        </AnimatePresence>
+
+        <TypingIndicator users={typingUsers} />
+      </div>
+
+      {/* Scroll-to-bottom button */}
+      <AnimatePresence>
+        {!isNearBottom && (
+          <motion.button
+            key="scroll-btn"
+            initial={{ opacity: 0, scale: 0.75 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.75 }}
+            transition={{ duration: 0.15 }}
+            style={{ bottom: paddingBottom + 12 }}
+            className="absolute right-4 w-9 h-9 rounded-full flex items-center justify-center cursor-pointer bg-nav-bg/70 backdrop-blur-xl border border-white/10 text-nav-text shadow-[0_4px_16px_rgba(0,0,0,0.25),inset_0_0_0_1px_rgba(255,255,255,0.06)] hover:bg-nav-bg/90 transition-colors"
+            onClick={scrollToBottom}
+            aria-label="Прокрутить вниз"
           >
-            {loadingOlder ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
-            {loadingOlder ? 'Загрузка…' : 'Загрузить предыдущие'}
-          </button>
-        </div>
-      )}
-
-      <AnimatePresence initial={false}>
-        {messages.map((msg, i) => {
-          const showSeparator =
-            msg.sentAt != null &&
-            (i === 0 || dayKey(msg.sentAt) !== dayKey(messages[i - 1].sentAt ?? ''))
-          return (
-            <div key={msg.id}>
-              {showSeparator && <DateSeparator iso={msg.sentAt!} />}
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.18, ease: 'easeOut' }}
-              >
-                <MessageBubble message={msg} isOwn={msg.senderId === currentUserId} />
-              </motion.div>
-            </div>
-          )
-        })}
+            <ChevronDown className="w-5 h-5" />
+          </motion.button>
+        )}
       </AnimatePresence>
-
-      <TypingIndicator users={typingUsers} />
     </div>
   )
 }

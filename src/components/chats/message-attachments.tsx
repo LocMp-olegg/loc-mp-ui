@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { AnimatePresence } from 'framer-motion'
 import { Play } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -50,6 +50,25 @@ function MediaThumbnail({ item, className, onClick }: ThumbnailProps) {
 type GridProps = { items: ChatMediaItem[]; onClick: (i: number) => void }
 
 function OneMedia({ items, onClick }: GridProps) {
+  const item = items[0]
+  if (item.mediaType === 'Video') {
+    return (
+      <button
+        type="button"
+        onClick={() => onClick(0)}
+        className="relative block w-full bg-black/10 cursor-pointer overflow-hidden"
+      >
+        <video
+          src={item.url}
+          className="w-full block aspect-video object-contain"
+          preload="metadata"
+          muted
+        />
+        <div className="absolute inset-0 bg-black/25" />
+        <PlayOverlay />
+      </button>
+    )
+  }
   return <MediaThumbnail item={items[0]} className="h-56 w-full" onClick={() => onClick(0)} />
 }
 
@@ -117,8 +136,6 @@ function FivePlusMedia({ items, onClick }: GridProps) {
     </div>
   )
 }
-
-// ── Main component ───────────────────────────────────────────────────────────
 
 interface MessageAttachmentsProps {
   attachments: AttachmentDto[]

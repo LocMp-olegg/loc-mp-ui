@@ -34,6 +34,7 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
     case 'loadFailed':
       return { ...state, loading: false }
     case 'append':
+      if (state.messages.some((m) => m.id === action.message.id)) return state
       return { ...state, messages: [...state.messages, action.message] }
     case 'markDeleted':
       return {
@@ -79,13 +80,15 @@ export function useChatMessages(chatId: string) {
     onChatClosed,
     onTyping,
     onMessagesRead,
-    refreshUnreadCount,
+    setActiveChatId,
+    decrementUnreadCount,
   } = useChatContext()
 
   // ── initial load ────────────────────────────────────────────────────────
   useEffect(() => {
     let cancelled = false
     dispatch({ type: 'reset' })
+    setActiveChatId(chatId)
 
     ChatsService.getApiChatsChats1({ id: chatId })
       .then((info) => {
@@ -99,6 +102,8 @@ export function useChatMessages(chatId: string) {
         const msgs = (result.items ?? []).slice().reverse()
         dispatch({ type: 'loaded', messages: msgs })
         setTotalCount(result.totalCount ?? 0)
+        const unread = msgs.filter((m) => !m.isRead).length
+        if (unread > 0) decrementUnreadCount(unread)
       })
       .catch(() => {
         if (!cancelled) dispatch({ type: 'loadFailed' })
@@ -106,17 +111,17 @@ export function useChatMessages(chatId: string) {
 
     void joinChat(chatId)
     void ChatsService.putApiChatsChatsMessagesRead({ id: chatId })
-    refreshUnreadCount()
 
     const timers = typingTimersRef.current
     return () => {
       cancelled = true
+      setActiveChatId(null)
       void leaveChat(chatId)
       if (stopTypingTimerRef.current) clearTimeout(stopTypingTimerRef.current)
       timers.forEach(clearTimeout)
       timers.clear()
     }
-  }, [chatId, joinChat, leaveChat, refreshUnreadCount])
+  }, [chatId, joinChat, leaveChat, setActiveChatId, decrementUnreadCount])
 
   // ── real-time events ─────────────────────────────────────────────────────
   useEffect(() => {
@@ -124,7 +129,6 @@ export function useChatMessages(chatId: string) {
       if (msg.chatId !== chatId) return
       dispatch({ type: 'append', message: msg })
       void ChatsService.putApiChatsChatsMessagesRead({ id: chatId })
-      refreshUnreadCount()
     })
 
     const unsubDeleted = onMessageDeleted(({ chatId: cId, messageId }) => {
@@ -170,15 +174,7 @@ export function useChatMessages(chatId: string) {
       unsubTyping()
       unsubRead()
     }
-  }, [
-    chatId,
-    onMessageReceived,
-    onMessageDeleted,
-    onChatClosed,
-    onTyping,
-    onMessagesRead,
-    refreshUnreadCount,
-  ])
+  }, [chatId, onMessageReceived, onMessageDeleted, onChatClosed, onTyping, onMessagesRead])
 
   // ── load older messages ──────────────────────────────────────────────────
   const loadOlderMessages = useCallback(() => {

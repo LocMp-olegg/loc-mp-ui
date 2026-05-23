@@ -1,10 +1,11 @@
-import React, { useState, useCallback, useMemo } from 'react'
+import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import { Outlet, useMatch, Link } from 'react-router-dom'
 import { Headphones, MessageSquare, XCircle } from 'lucide-react'
 import { useAuth } from '@/contexts/auth-context'
 import { useChats } from '@/hooks/use-chats'
 import { useMyShops } from '@/hooks/use-my-shops'
 import { useStartChat } from '@/hooks/use-start-chat'
+import { useChatContext } from '@/contexts/chat-context'
 import { hasRole, cn } from '@/lib/utils'
 import { ChatTabBar, type ChatsTab } from './chat-tab-bar'
 import { ChatListSkeleton } from './chat-list-skeleton'
@@ -113,20 +114,48 @@ export function ChatLayout() {
 
   const { shops } = useMyShops()
   const { startChat, loading: startingChat } = useStartChat()
-  const { chats, loading, error, hasMore, loadMore } = useChats({
+  const { chats, loading, error, hasMore, loadMore, updateChatUnread } = useChats({
     type: activeTab === 'shop' ? 'Shop' : undefined,
     isSupport: activeTab === 'support',
   })
-
-  const displayedChats = useMemo(() => {
-    if (activeTab === 'shop' && selectedShopId) {
-      return chats.filter((c) => c.referenceId === selectedShopId)
-    }
-    return chats
-  }, [chats, activeTab, selectedShopId])
+  const { onMessageReceived } = useChatContext()
 
   const chatMatch = useMatch('/chats/:id')
   const activeChatId = chatMatch?.params.id
+
+  // Keep a ref to chats so we can read current value without adding it as a dep
+  const chatsRef = useRef(chats)
+  useEffect(() => {
+    chatsRef.current = chats
+  })
+
+  // When a chat is opened, zero its badge in state so it stays zeroed after navigating away
+  useEffect(() => {
+    if (!activeChatId) return
+    const unread = chatsRef.current.find((c) => c.id === activeChatId)?.unreadCount ?? 0
+    if (unread > 0) updateChatUnread(activeChatId, -unread)
+  }, [activeChatId, updateChatUnread])
+
+  // Increment per-chat unread badge for messages arriving in non-active chats
+  useEffect(() => {
+    return onMessageReceived((msg) => {
+      if (msg.chatId && msg.chatId !== activeChatId) {
+        updateChatUnread(msg.chatId, 1)
+      }
+    })
+  }, [onMessageReceived, activeChatId, updateChatUnread])
+
+  const displayedChats = useMemo(() => {
+    let result = chats
+    if (activeTab === 'shop' && selectedShopId) {
+      result = result.filter((c) => c.referenceId === selectedShopId)
+    }
+    // Zero out unread badge for whichever chat is currently open
+    if (activeChatId) {
+      result = result.map((c) => (c.id === activeChatId ? { ...c, unreadCount: 0 } : c))
+    }
+    return result
+  }, [chats, activeTab, selectedShopId, activeChatId])
   const hasActiveChat = !!activeChatId
 
   const handleResizeDown = useCallback((e: React.MouseEvent) => {

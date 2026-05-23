@@ -38,6 +38,8 @@ interface Listeners {
 interface ChatContextValue extends ChatHubHandle {
   unreadCount: number
   refreshUnreadCount: () => void
+  setActiveChatId: (id: string | null) => void
+  decrementUnreadCount: (n: number) => void
   onMessageReceived: (handler: MessageHandler) => () => void
   onMessageDeleted: (handler: DeletedHandler) => () => void
   onChatClosed: (handler: ClosedHandler) => () => void
@@ -58,11 +60,21 @@ function ChatProviderInner({ children }: { children: ReactNode }) {
     typing: new Set(),
     messagesRead: new Set(),
   })
+  const activeChatIdRef = useRef<string | null>(null)
+  const seenMessageIdsRef = useRef(new Set<string>())
 
   const refreshUnreadCount = useCallback(() => {
     ChatsService.getApiChatsChatsUnreadCount()
       .then((count) => setUnreadCount(count ?? 0))
       .catch(() => {})
+  }, [])
+
+  const setActiveChatId = useCallback((id: string | null) => {
+    activeChatIdRef.current = id
+  }, [])
+
+  const decrementUnreadCount = useCallback((n: number) => {
+    if (n > 0) setUnreadCount((c) => Math.max(0, c - n))
   }, [])
 
   useEffect(() => {
@@ -73,9 +85,20 @@ function ChatProviderInner({ children }: { children: ReactNode }) {
 
   const hub = useChatHub({
     onMessageReceived: (msg) => {
+      // Deduplicate: active viewers receive the event from both the chat group
+      // and the personal user channel now that we push to both
+      if (msg.id && seenMessageIdsRef.current.has(msg.id)) return
+      if (msg.id) {
+        seenMessageIdsRef.current.add(msg.id)
+        if (seenMessageIdsRef.current.size > 200) {
+          const [first] = seenMessageIdsRef.current
+          seenMessageIdsRef.current.delete(first)
+        }
+      }
       listenersRef.current.messageReceived.forEach((h) => h(msg))
-      // increment unread only if not currently viewing that chat
-      setUnreadCount((c) => c + 1)
+      if (msg.chatId !== activeChatIdRef.current) {
+        setUnreadCount((c) => c + 1)
+      }
     },
     onMessageDeleted: (data) => {
       listenersRef.current.messageDeleted.forEach((h) => h(data))
@@ -121,6 +144,8 @@ function ChatProviderInner({ children }: { children: ReactNode }) {
       value={{
         unreadCount,
         refreshUnreadCount,
+        setActiveChatId,
+        decrementUnreadCount,
         ...hub,
         onMessageReceived,
         onMessageDeleted,
@@ -143,6 +168,8 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         value={{
           unreadCount: 0,
           refreshUnreadCount: () => {},
+          setActiveChatId: () => {},
+          decrementUnreadCount: () => {},
           joinChat: async () => {},
           leaveChat: async () => {},
           startTyping: async () => {},
