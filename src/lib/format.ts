@@ -16,6 +16,19 @@ export const DISPUTE_OUTCOME_LABELS: Record<DisputeOutcome, string> = {
   SellerFavored: 'В пользу продавца',
 }
 
+export function timeAgo(iso: string, oldFormat: 'date' | 'time' = 'date'): string {
+  const diff = Date.now() - new Date(iso).getTime()
+  const m = Math.floor(diff / 60_000)
+  if (m < 1) return 'только что'
+  if (m < 60) return `${m} мин. назад`
+  const h = Math.floor(m / 60)
+  if (h < 24) return `${h} ч. назад`
+  const d = new Date(iso)
+  return oldFormat === 'time'
+    ? d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
+    : d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })
+}
+
 export function formatDateTime(iso: string | undefined): string {
   if (!iso) return ''
   return new Date(iso).toLocaleString('ru-RU', {

@@ -18,7 +18,7 @@ import {
   Star,
   Map,
   Package,
-  MessageSquare,
+  MessagesSquare,
   Bell,
 } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
@@ -27,6 +27,7 @@ import { useFavorites } from '@/contexts/favorites-context'
 import { useUserLocation } from '@/contexts/location-context'
 import { useAuth } from '@/contexts/auth-context'
 import { useAddresses } from '@/contexts/addresses-context'
+import { useChatContext } from '@/contexts/chat-context'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { LocationPicker } from '@/components/location/location-picker'
 import { AddressDropdown } from '@/components/location/address-dropdown'
@@ -58,6 +59,7 @@ function isSeller(user: { role: string | string[] } | null) {
 
 function ProfileDropdown({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { user, logout } = useAuth()
+  const { unreadCount: unreadChats } = useChatContext()
   const navigate = useNavigate()
 
   const handleLogout = () => {
@@ -74,7 +76,7 @@ function ProfileDropdown({ open, onClose }: { open: boolean; onClose: () => void
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: -6 }}
           transition={{ duration: 0.13 }}
-          className="absolute top-full right-0 mt-2 z-50 rounded-xl border border-white/10 bg-nav-bg/95 backdrop-blur-md shadow-xl min-w-44 overflow-hidden"
+          className="absolute top-full right-0 mt-2 z-50 rounded-xl border border-white/10 bg-nav-bg/95 backdrop-blur-md shadow-xl min-w-52 overflow-hidden"
         >
           <div className="px-4 py-3 border-b border-white/8">
             <p className="text-nav-text text-sm font-medium truncate">{user?.username}</p>
@@ -99,11 +101,24 @@ function ProfileDropdown({ open, onClose }: { open: boolean; onClose: () => void
             Мои заказы
           </Link>
           <Link
+            to="/chats"
+            onClick={onClose}
+            className="w-full flex items-center gap-2.5 px-4 py-3 text-sm text-nav-text/80 hover:bg-white/8 hover:text-nav-text transition-colors cursor-pointer"
+          >
+            <MessagesSquare className="w-4 h-4 shrink-0" />
+            <span className="flex-1">Сообщения</span>
+            {unreadChats > 0 && (
+              <span className="min-w-4 h-4 bg-primary text-white text-[9px] font-bold rounded-full flex items-center justify-center px-1 shrink-0">
+                {unreadChats > 99 ? '99+' : unreadChats}
+              </span>
+            )}
+          </Link>
+          <Link
             to="/my-reviews"
             onClick={onClose}
             className="w-full flex items-center gap-2.5 px-4 py-3 text-sm text-nav-text/80 hover:bg-white/8 hover:text-nav-text transition-colors cursor-pointer"
           >
-            <MessageSquare className="w-4 h-4 shrink-0" />
+            <Star className="w-4 h-4 shrink-0" />
             Мои отзывы
           </Link>
           <Link
@@ -132,6 +147,7 @@ export function FloatingNav() {
   const { totalFavorites } = useFavorites()
   const { location } = useUserLocation()
   const { isAuthenticated, initializing } = useAuth()
+  const { unreadCount: unreadChats } = useChatContext()
   const { theme, setTheme } = useTheme()
   const ThemeIcon = THEME_ICONS[theme] ?? Monitor
   const { scrollY } = useScroll()
@@ -194,9 +210,12 @@ export function FloatingNav() {
           <button
             onClick={() => setProfileOpen((o) => !o)}
             aria-label="Профиль"
-            className={cn(iconBtn, profileOpen && 'bg-white/10')}
+            className={cn(iconBtn, 'relative', profileOpen && 'bg-white/10')}
           >
             <User className="w-5 h-5 text-nav-text/70" />
+            {unreadChats > 0 && (
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-primary rounded-full ring-1 ring-nav-bg" />
+            )}
           </button>
           <ProfileDropdown open={profileOpen} onClose={() => setProfileOpen(false)} />
         </div>
@@ -644,6 +663,7 @@ function MobileAddressSection({
 
 function MobileProfileSection({ onClose }: { onClose: () => void }) {
   const { user, logout } = useAuth()
+  const { unreadCount: unreadChats } = useChatContext()
   const navigate = useNavigate()
   const [expanded, setExpanded] = useState(false)
 
@@ -659,7 +679,12 @@ function MobileProfileSection({ onClose }: { onClose: () => void }) {
         onClick={() => setExpanded((o) => !o)}
         className="w-full flex items-center gap-3 px-4 py-3 text-nav-text/80 hover:bg-white/5 transition-colors cursor-pointer"
       >
-        <User className="w-5 h-5 text-nav-text/70 shrink-0" />
+        <div className="relative shrink-0">
+          <User className="w-5 h-5 text-nav-text/70" />
+          {unreadChats > 0 && (
+            <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-primary rounded-full ring-1 ring-nav-bg" />
+          )}
+        </div>
         <span className="text-sm flex-1 text-left truncate">{user?.username || 'Профиль'}</span>
         <ChevronRight
           className={cn(
@@ -696,11 +721,24 @@ function MobileProfileSection({ onClose }: { onClose: () => void }) {
               Мои заказы
             </Link>
             <Link
+              to="/chats"
+              onClick={onClose}
+              className="w-full flex items-center gap-3 px-4 py-3 pl-12 text-sm text-nav-text/80 hover:bg-white/5 transition-colors"
+            >
+              <MessagesSquare className="w-4 h-4 shrink-0" />
+              <span className="flex-1">Сообщения</span>
+              {unreadChats > 0 && (
+                <span className="min-w-4 h-4 bg-primary text-white text-[9px] font-bold rounded-full flex items-center justify-center px-1 shrink-0 mr-1">
+                  {unreadChats > 99 ? '99+' : unreadChats}
+                </span>
+              )}
+            </Link>
+            <Link
               to="/my-reviews"
               onClick={onClose}
               className="w-full flex items-center gap-3 px-4 py-3 pl-12 text-sm text-nav-text/80 hover:bg-white/5 transition-colors"
             >
-              <MessageSquare className="w-4 h-4 shrink-0" />
+              <Star className="w-4 h-4 shrink-0" />
               Мои отзывы
             </Link>
             <Link

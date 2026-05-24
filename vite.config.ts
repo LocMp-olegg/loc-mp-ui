@@ -12,7 +12,12 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      '/hubs': {
+      '/hubs/chat': {
+        target: 'http://localhost:5007',
+        ws: true,
+        changeOrigin: true,
+      },
+      '/hubs/notifications': {
         target: 'http://localhost:5005',
         ws: true,
         changeOrigin: true,

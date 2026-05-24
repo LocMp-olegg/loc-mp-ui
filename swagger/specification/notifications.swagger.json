@@ -339,6 +339,9 @@
           "systemAlerts": {
             "type": "boolean"
           },
+          "chatMessages": {
+            "type": "boolean"
+          },
           "emailEnabled": {
             "type": "boolean"
           },
@@ -346,6 +349,9 @@
             "type": "boolean"
           },
           "emailReviewReplies": {
+            "type": "boolean"
+          },
+          "emailChatMessages": {
             "type": "boolean"
           }
         },
@@ -369,7 +375,8 @@
           "AccountUnblocked",
           "DisputeOpened",
           "DisputeResolved",
-          "ProductRestocked"
+          "ProductRestocked",
+          "NewMessage"
         ],
         "type": "string"
       },
@@ -385,6 +392,9 @@
           "systemAlerts": {
             "type": "boolean"
           },
+          "chatMessages": {
+            "type": "boolean"
+          },
           "emailEnabled": {
             "type": "boolean"
           },
@@ -392,6 +402,9 @@
             "type": "boolean"
           },
           "emailReviewReplies": {
+            "type": "boolean"
+          },
+          "emailChatMessages": {
             "type": "boolean"
           }
         },

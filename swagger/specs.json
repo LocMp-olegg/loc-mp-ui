@@ -4,5 +4,6 @@
   "identity.swagger.json",
   "notifications.swagger.json",
   "orders.swagger.json",
-  "reviews.swagger.json"
+  "reviews.swagger.json",
+  "chat.swagger.json"
 ]

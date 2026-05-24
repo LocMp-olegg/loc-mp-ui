@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useNavigate } from 'react-router-dom'
 import { AnimatePresence } from 'framer-motion'
 import {
   ArrowLeft,
@@ -8,6 +8,7 @@ import {
   Clock,
   Mail,
   MapPin,
+  MessageSquare,
   Pencil,
   Phone,
   Star,
@@ -63,6 +64,7 @@ function ShopContent({ id }: { id: string }) {
   const { shop, products, categoryGroups, rootCategoriesInShop, leafToRoot, loading, error } =
     useShopDetail(id)
   const { user } = useAuth()
+  const navigate = useNavigate()
   const [avatarLightbox, setAvatarLightbox] = useState(false)
   const [galleryOpen, setGalleryOpen] = useState(false)
   const [mapOpen, setMapOpen] = useState(false)
@@ -93,10 +95,11 @@ function ShopContent({ id }: { id: string }) {
 
   const avatarSrc = shop.avatarUrl ?? noImageUrl
   const isOwner = !!user && hasRole(user.role, 'Seller') && user.id === shop.sellerId
+  const canChat = !!user && !isOwner && !!shop.sellerId
 
   return (
     <div className="max-w-5xl mx-auto px-4 md:px-6 py-6">
-      {/* Back + edit */}
+      {/* Back + actions */}
       <div className="flex items-center justify-between mb-6">
         <Link
           to={-1 as unknown as string}
@@ -105,15 +108,37 @@ function ShopContent({ id }: { id: string }) {
           <ArrowLeft className="w-4 h-4" />
           Назад
         </Link>
-        {isOwner && (
-          <Link
-            to={`/seller/shops/${shop.id}/edit`}
-            className="inline-flex items-center gap-1.5 text-sm text-primary border border-primary/30 hover:border-primary/70 hover:bg-primary/5 px-3 py-1.5 rounded-lg transition-colors"
-          >
-            <Pencil className="w-3.5 h-3.5" />
-            Редактировать
-          </Link>
-        )}
+        <div className="flex items-center gap-2">
+          {canChat && (
+            <button
+              type="button"
+              onClick={() =>
+                navigate('/chats/new', {
+                  state: {
+                    type: 'Shop',
+                    targetUserId: shop.sellerId!,
+                    targetUserName: shop.sellerDisplayName ?? undefined,
+                    referenceId: shop.id,
+                    backTo: `/shop/${shop.id}`,
+                  },
+                })
+              }
+              className="inline-flex items-center gap-1.5 text-sm text-primary border border-primary/30 hover:border-primary/70 hover:bg-primary/5 px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
+            >
+              <MessageSquare className="w-3.5 h-3.5" />
+              Написать
+            </button>
+          )}
+          {isOwner && (
+            <Link
+              to={`/seller/shops/${shop.id}/edit`}
+              className="inline-flex items-center gap-1.5 text-sm text-primary border border-primary/30 hover:border-primary/70 hover:bg-primary/5 px-3 py-1.5 rounded-lg transition-colors"
+            >
+              <Pencil className="w-3.5 h-3.5" />
+              Редактировать
+            </Link>
+          )}
+        </div>
       </div>
 
       {/* Shop header */}

@@ -17,8 +17,6 @@ export function useNotificationHub(onNotificationReceived: () => void) {
     const connection = new signalR.HubConnectionBuilder()
       .withUrl(HUB_URL, {
         accessTokenFactory: () => getAccessToken() ?? '',
-        transport: signalR.HttpTransportType.WebSockets,
-        skipNegotiation: false,
       })
       .withAutomaticReconnect([0, 2000, 5000, 10000, 30000])
       .configureLogging(signalR.LogLevel.Warning)
@@ -33,7 +31,9 @@ export function useNotificationHub(onNotificationReceived: () => void) {
     try {
       await connection.start()
     } catch {
-      connectionRef.current = null
+      if (connectionRef.current === connection) {
+        connectionRef.current = null
+      }
     }
   }, [])
 
