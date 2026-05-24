@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react'
-import { useParams, useLocation } from 'react-router-dom'
+import { useParams, useLocation, useSearchParams } from 'react-router-dom'
 import { useAuth } from '@/contexts/auth-context'
 import { useChatMessages } from '@/hooks/use-chat-messages'
 import { ChatHeader } from '@/components/chats/chat-header'
@@ -23,7 +23,9 @@ export function ChatDetailPage() {
   const { id } = useParams<{ id: string }>()
   const { user } = useAuth()
   const { state } = useLocation()
+  const [searchParams] = useSearchParams()
   const backTo = (state as { backTo?: string } | null)?.backTo ?? '/chats'
+  const targetMessageId = searchParams.get('msgId') ?? undefined
 
   const headerRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLDivElement>(null)
@@ -55,6 +57,7 @@ export function ChatDetailPage() {
         typingUsers={typingUsers}
         paddingTop={headerH}
         paddingBottom={inputH}
+        targetMessageId={targetMessageId}
       />
 
       <div ref={headerRef} className="absolute top-0 inset-x-0 z-10">

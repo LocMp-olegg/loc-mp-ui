@@ -41,6 +41,7 @@ interface MessageListProps {
   typingUsers: TypingUser[]
   paddingTop?: number
   paddingBottom?: number
+  targetMessageId?: string
 }
 
 const NEAR_BOTTOM_THRESHOLD = 150
@@ -57,27 +58,31 @@ export function MessageList({
   typingUsers,
   paddingTop = 12,
   paddingBottom = 12,
+  targetMessageId,
 }: MessageListProps) {
   const scrollRef = useRef<HTMLDivElement>(null)
   const prevScrollHeightRef = useRef(0)
   const isInitialRef = useRef(true)
   const wasNearBottomRef = useRef(true)
+  const scrollTopRef = useRef<number | null>(null)
   const [isNearBottom, setIsNearBottom] = useState(true)
+  const [highlightedId, setHighlightedId] = useState<string | null>(null)
 
   useEffect(() => {
-    const el = scrollRef.current
+    scrollTopRef.current = null
     return () => {
-      if (!el) return
-      sessionStorage.setItem(`chat-scroll-${chatId}`, String(Math.round(el.scrollTop)))
+      if (scrollTopRef.current !== null) {
+        sessionStorage.setItem(`chat-scroll-${chatId}`, String(scrollTopRef.current))
+      }
     }
   }, [chatId])
 
   const handleScroll = useCallback(() => {
     const el = scrollRef.current
     if (!el) return
+    scrollTopRef.current = Math.round(el.scrollTop)
     const nearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < NEAR_BOTTOM_THRESHOLD
     wasNearBottomRef.current = nearBottom
-    setIsNearBottom(nearBottom)
     setIsNearBottom(nearBottom)
     if (el.scrollTop < NEAR_TOP_THRESHOLD && hasOlderMessages && !loadingOlder) {
       prevScrollHeightRef.current = el.scrollHeight
@@ -104,38 +109,52 @@ export function MessageList({
       const saved = sessionStorage.getItem(`chat-scroll-${chatId}`)
       if (saved !== null) {
         el.scrollTop = parseInt(saved)
+        scrollTopRef.current = Math.round(el.scrollTop)
         const nearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < NEAR_BOTTOM_THRESHOLD
         setIsNearBottom(nearBottom)
         wasNearBottomRef.current = nearBottom
         return
       }
 
-      const firstUnread = messages.find((m) => !m.isRead)
-      if (firstUnread) {
-        const msgEl = el.querySelector(`[data-msg-id="${firstUnread.id}"]`) as HTMLElement | null
+      if (targetMessageId) {
+        const msgEl = el.querySelector(`[data-msg-id="${targetMessageId}"]`) as HTMLElement | null
         if (msgEl) {
-          el.scrollTop = Math.max(0, msgEl.offsetTop - paddingTop)
+          el.scrollTop = Math.max(0, msgEl.offsetTop - paddingTop - 40)
+          scrollTopRef.current = Math.round(el.scrollTop)
           setIsNearBottom(false)
           wasNearBottomRef.current = false
-        } else {
-          el.scrollTop = el.scrollHeight
+          setHighlightedId(targetMessageId)
+          setTimeout(() => setHighlightedId(null), 2000)
+          return
         }
-      } else {
-        el.scrollTop = el.scrollHeight
       }
+
+      el.scrollTop = el.scrollHeight
+      scrollTopRef.current = Math.round(el.scrollTop)
+      if (el.scrollTop === 0 && el.scrollHeight > el.clientHeight) {
+        requestAnimationFrame(() => {
+          if (!scrollRef.current) return
+          scrollRef.current.scrollTop = scrollRef.current.scrollHeight
+          scrollTopRef.current = Math.round(scrollRef.current.scrollTop)
+        })
+      }
+      setIsNearBottom(true)
+      wasNearBottomRef.current = true
       return
     }
 
     if (prevScrollHeightRef.current > 0) {
       el.scrollTop += el.scrollHeight - prevScrollHeightRef.current
       prevScrollHeightRef.current = 0
+      scrollTopRef.current = Math.round(el.scrollTop)
       return
     }
 
     if (wasNearBottomRef.current) {
       el.scrollTop = el.scrollHeight
+      scrollTopRef.current = Math.round(el.scrollTop)
     }
-  }, [messages, paddingTop, chatId])
+  }, [messages, paddingTop, chatId, targetMessageId])
 
   useLayoutEffect(() => {
     const el = scrollRef.current
@@ -170,8 +189,13 @@ export function MessageList({
             const showSeparator =
               msg.sentAt != null &&
               (i === 0 || dayKey(msg.sentAt) !== dayKey(messages[i - 1].sentAt ?? ''))
+            const isHighlighted = msg.id === highlightedId
             return (
-              <div key={msg.id} data-msg-id={msg.id}>
+              <div
+                key={msg.id}
+                data-msg-id={msg.id}
+                className={isHighlighted ? 'rounded-xl ring-2 ring-primary/40 transition-all' : undefined}
+              >
                 {showSeparator && <DateSeparator iso={msg.sentAt!} />}
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}

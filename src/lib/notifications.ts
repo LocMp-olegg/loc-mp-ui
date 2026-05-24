@@ -102,7 +102,9 @@ export function notificationLink(n: NotificationDto): string | null {
       return '/seller/shops'
     case 'NewMessage': {
       const id = pid(p, 'chatId')
-      return id ? `/chats/${id}` : '/chats'
+      if (!id) return '/chats'
+      const msgId = pid(p, 'messageId')
+      return msgId ? `/chats/${id}?msgId=${msgId}` : `/chats/${id}`
     }
     default:
       return null
