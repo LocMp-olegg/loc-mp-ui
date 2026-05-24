@@ -194,7 +194,9 @@ export function MessageList({
               <div
                 key={msg.id}
                 data-msg-id={msg.id}
-                className={isHighlighted ? 'rounded-xl ring-2 ring-primary/40 transition-all' : undefined}
+                className={
+                  isHighlighted ? 'rounded-xl ring-2 ring-primary/40 transition-all' : undefined
+                }
               >
                 {showSeparator && <DateSeparator iso={msg.sentAt!} />}
                 <motion.div

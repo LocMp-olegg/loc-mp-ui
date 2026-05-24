@@ -75,7 +75,6 @@ function bellReducer(state: BellState, action: BellAction): BellState {
   }
 }
 
-
 function NotificationToast({
   notification,
   onDismiss,
