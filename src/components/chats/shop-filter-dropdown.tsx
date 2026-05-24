@@ -1,27 +1,26 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { ChevronDown, Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useClickOutside } from '@/hooks/use-click-outside'
 import type { ShopDto } from '@/api/catalog'
 
 interface ShopFilterDropdownProps {
   shops: ShopDto[]
   selectedShopId: string | null
   onChange: (shopId: string | null) => void
+  unreadByShopId?: Record<string, number>
 }
 
-export function ShopFilterDropdown({ shops, selectedShopId, onChange }: ShopFilterDropdownProps) {
+export function ShopFilterDropdown({
+  shops,
+  selectedShopId,
+  onChange,
+  unreadByShopId = {},
+}: ShopFilterDropdownProps) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    if (!open) return
-    const handler = (e: MouseEvent) => {
-      if (!ref.current?.contains(e.target as Node)) setOpen(false)
-    }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [open])
+  useClickOutside([{ ref, onClose: () => setOpen(false) }])
 
   const selected = shops.find((s) => s.id === selectedShopId)
   const label = selected?.businessName ?? 'Все магазины'
@@ -70,25 +69,35 @@ export function ShopFilterDropdown({ shops, selectedShopId, onChange }: ShopFilt
               {!selectedShopId && <Check className="w-3.5 h-3.5 shrink-0" />}
             </button>
 
-            {shops.map((shop) => (
-              <button
-                key={shop.id}
-                type="button"
-                onClick={() => {
-                  onChange(shop.id ?? null)
-                  setOpen(false)
-                }}
-                className={cn(
-                  'w-full flex items-center justify-between px-3 py-2.5 text-sm transition-colors cursor-pointer',
-                  selectedShopId === shop.id
-                    ? 'text-primary font-medium bg-primary/10'
-                    : 'text-nav-text/80 hover:bg-white/8',
-                )}
-              >
-                <span className="truncate">{shop.businessName ?? ''}</span>
-                {selectedShopId === shop.id && <Check className="w-3.5 h-3.5 shrink-0" />}
-              </button>
-            ))}
+            {shops.map((shop) => {
+              const unread = shop.id ? (unreadByShopId[shop.id] ?? 0) : 0
+              return (
+                <button
+                  key={shop.id}
+                  type="button"
+                  onClick={() => {
+                    onChange(shop.id ?? null)
+                    setOpen(false)
+                  }}
+                  className={cn(
+                    'w-full flex items-center justify-between px-3 py-2.5 text-sm transition-colors cursor-pointer',
+                    selectedShopId === shop.id
+                      ? 'text-primary font-medium bg-primary/10'
+                      : 'text-nav-text/80 hover:bg-white/8',
+                  )}
+                >
+                  <span className="truncate">{shop.businessName ?? ''}</span>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    {unread > 0 && (
+                      <span className="min-w-4 h-4 bg-primary text-primary-foreground text-[10px] font-bold rounded-full flex items-center justify-center px-1">
+                        {unread > 99 ? '99+' : unread}
+                      </span>
+                    )}
+                    {selectedShopId === shop.id && <Check className="w-3.5 h-3.5" />}
+                  </div>
+                </button>
+              )
+            })}
           </motion.div>
         )}
       </AnimatePresence>

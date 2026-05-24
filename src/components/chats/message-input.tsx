@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback, useEffect } from 'react'
+import React, { useReducer, useState, useRef, useCallback, useEffect } from 'react'
 import { SendHorizonal, Paperclip } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { AttachmentPreviews } from './attachment-previews'
@@ -41,6 +41,38 @@ function validateFiles(
   return { valid, error: errors.length > 0 ? errors.join('; ') : null }
 }
 
+interface InputState {
+  value: string
+  files: File[]
+  fileError: string | null
+}
+
+type InputAction =
+  | { type: 'load_draft'; draft: string }
+  | { type: 'set_value'; value: string }
+  | { type: 'add_files'; files: File[]; error: string | null }
+  | { type: 'remove_file'; index: number }
+  | { type: 'after_send' }
+
+function inputReducer(state: InputState, action: InputAction): InputState {
+  switch (action.type) {
+    case 'load_draft':
+      return { value: action.draft, files: [], fileError: null }
+    case 'set_value':
+      return { ...state, value: action.value }
+    case 'add_files':
+      return {
+        ...state,
+        files: action.files.length > 0 ? [...state.files, ...action.files] : state.files,
+        fileError: action.error,
+      }
+    case 'remove_file':
+      return { ...state, files: state.files.filter((_, i) => i !== action.index), fileError: null }
+    case 'after_send':
+      return { value: '', files: [], fileError: null }
+  }
+}
+
 interface MessageInputProps {
   chatId: string
   onSend: (body: string, files: File[]) => Promise<void>
@@ -49,25 +81,23 @@ interface MessageInputProps {
 }
 
 export function MessageInput({ chatId, onSend, onTyping, disabled = false }: MessageInputProps) {
-  const [value, setValue] = useState(() => sessionStorage.getItem(`chat-draft-${chatId}`) ?? '')
-  const [files, setFiles] = useState<File[]>([])
-  const [fileError, setFileError] = useState<string | null>(null)
+  const [{ value, files, fileError }, dispatch] = useReducer(inputReducer, undefined, () => ({
+    value: sessionStorage.getItem(`chat-draft-${chatId}`) ?? '',
+    files: [],
+    fileError: null,
+  }))
   const [sending, setSending] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const valueRef = useRef(value)
 
-  // Keep ref in sync so the cleanup closure always sees the latest value
   useEffect(() => {
     valueRef.current = value
   })
 
-  // On chatId change: save draft for old chat, restore for new chat
   useEffect(() => {
-    const saved = sessionStorage.getItem(`chat-draft-${chatId}`) ?? ''
-    setValue(saved)
-    setFiles([])
-    setFileError(null)
+    const draft = sessionStorage.getItem(`chat-draft-${chatId}`) ?? ''
+    dispatch({ type: 'load_draft', draft })
     requestAnimationFrame(() => {
       const ta = textareaRef.current
       if (!ta) return
@@ -98,7 +128,7 @@ export function MessageInput({ chatId, onSend, onTyping, disabled = false }: Mes
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setValue(e.target.value)
+    dispatch({ type: 'set_value', value: e.target.value })
     resize()
     onTyping()
   }
@@ -109,22 +139,18 @@ export function MessageInput({ chatId, onSend, onTyping, disabled = false }: Mes
     if (incoming.length === 0) return
 
     const { valid, error } = validateFiles(incoming, files)
-    setFileError(error)
-    if (valid.length > 0) setFiles((prev) => [...prev, ...valid])
+    dispatch({ type: 'add_files', files: valid, error })
   }
 
   const removeFile = (index: number) => {
-    setFiles((prev) => prev.filter((_, i) => i !== index))
-    setFileError(null)
+    dispatch({ type: 'remove_file', index })
   }
 
   const handleSend = useCallback(async () => {
     if (!canSend) return
     const body = value.trim()
     const toSend = [...files]
-    setValue('')
-    setFiles([])
-    setFileError(null)
+    dispatch({ type: 'after_send' })
     sessionStorage.removeItem(`chat-draft-${chatId}`)
     if (textareaRef.current) textareaRef.current.style.height = 'auto'
     setSending(true)

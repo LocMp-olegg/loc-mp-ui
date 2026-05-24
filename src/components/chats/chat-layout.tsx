@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react'
+import React, { useState, useReducer, useCallback, useMemo, useEffect, useRef } from 'react'
 import { Outlet, useMatch, useNavigate, Link } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Headphones, MessageSquare, XCircle } from 'lucide-react'
@@ -11,6 +11,7 @@ import { ChatTabBar, type ChatsTab } from './chat-tab-bar'
 import { ChatListSkeleton } from './chat-list-skeleton'
 import { ChatTypeAvatar } from './chat-type-avatar'
 import { chatTitle, formatChatTime } from '@/lib/chats'
+import { ChatsService } from '@/api/chat'
 import type { ChatSummaryDto } from '@/api/chat'
 
 const MIN_W = 240
@@ -55,9 +56,7 @@ function SidebarChatItem({ chat, currentUserId, active }: SidebarItemProps) {
       to={`/chats/${chat.id}`}
       className={cn(
         'flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors',
-        active
-          ? 'bg-primary/15 text-foreground'
-          : 'hover:bg-muted/50 text-foreground',
+        active ? 'bg-primary/15 text-foreground' : 'hover:bg-muted/50 text-foreground',
         unread > 0 && !active && 'bg-card/50',
       )}
     >
@@ -65,12 +64,7 @@ function SidebarChatItem({ chat, currentUserId, active }: SidebarItemProps) {
 
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between gap-1">
-          <span
-            className={cn(
-              'text-sm truncate',
-              unread > 0 ? 'font-semibold' : 'font-medium',
-            )}
-          >
+          <span className={cn('text-sm truncate', unread > 0 ? 'font-semibold' : 'font-medium')}>
             {title}
           </span>
           {time && (
@@ -87,8 +81,7 @@ function SidebarChatItem({ chat, currentUserId, active }: SidebarItemProps) {
           ) : !chat.lastMessageAt ? (
             <span className="text-[11px] text-muted-foreground italic">Нет сообщений</span>
           ) : (
-            <span className="text-[11px] text-muted-foreground truncate">
-            </span>
+            <span className="text-[11px] text-muted-foreground truncate"></span>
           )}
           {unread > 0 && (
             <span className="min-w-4 h-4 bg-primary text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1 shrink-0">
@@ -99,6 +92,22 @@ function SidebarChatItem({ chat, currentUserId, active }: SidebarItemProps) {
       </div>
     </Link>
   )
+}
+
+type BadgesAction =
+  | { type: 'set'; tab: 'my' | 'shop'; value: number }
+  | { type: 'increment'; tab: 'my' | 'shop' }
+
+function badgesReducer(
+  state: { my: number; shop: number },
+  action: BadgesAction,
+): { my: number; shop: number } {
+  switch (action.type) {
+    case 'set':
+      return { ...state, [action.tab]: action.value }
+    case 'increment':
+      return { ...state, [action.tab]: state[action.tab] + 1 }
+  }
 }
 
 export function ChatLayout() {
@@ -112,13 +121,25 @@ export function ChatLayout() {
   const [selectedShopId, setSelectedShopId] = useState<string | null>(null)
   const [panelWidth, setPanelWidth] = useState(storedWidth)
   const [showSupportConfirm, setShowSupportConfirm] = useState(false)
+  const [tabBadges, dispatchBadges] = useReducer(badgesReducer, { my: 0, shop: 0 })
+  const chatTabCacheRef = useRef<Map<string, ChatsTab>>(new Map())
 
   const { shops } = useMyShops()
-  const { chats, loading, error, hasMore, loadMore, reload, updateChatUnread, touchChat } = useChats({
+  const {
+    chats,
+    loading,
+    error,
+    hasMore,
+    loadMore,
+    reload,
+    softReload,
+    updateChatUnread,
+    touchChat,
+  } = useChats({
     type: activeTab === 'shop' ? 'Shop' : undefined,
     isSupport: activeTab === 'support',
   })
-  const { onMessageReceived } = useChatContext()
+  const { onMessageReceived, supportUnreadCount, decrementSupportUnreadCount } = useChatContext()
 
   const chatMatch = useMatch('/chats/:id')
   const activeChatId = chatMatch?.params.id !== 'new' ? chatMatch?.params.id : undefined
@@ -128,6 +149,33 @@ export function ChatLayout() {
   useEffect(() => {
     chatsRef.current = chats
   })
+
+  useEffect(() => {
+    if (!isSeller) return
+    ChatsService.getApiChatsChats({ type: 'Shop', pageSize: 100 })
+      .then((r) => {
+        const total = (r.items ?? []).reduce((sum, c) => sum + (c.unreadCount ?? 0), 0)
+        r.items?.forEach((c) => {
+          if (c.id) chatTabCacheRef.current.set(c.id, 'shop')
+        })
+        dispatchBadges({ type: 'set', tab: 'shop', value: total })
+      })
+      .catch(() => {})
+  }, [isSeller])
+
+  useEffect(() => {
+    chats.forEach((c) => {
+      if (!c.id) return
+      const tab: ChatsTab = c.type === 'Shop' ? 'shop' : c.type === 'Support' ? 'support' : 'my'
+      chatTabCacheRef.current.set(c.id, tab)
+    })
+    if (!loading && (activeTab === 'my' || activeTab === 'shop')) {
+      const filtered =
+        isAdmin && activeTab === 'my' ? chats.filter((c) => c.type !== 'Support') : chats
+      const total = filtered.reduce((sum, c) => sum + (c.unreadCount ?? 0), 0)
+      dispatchBadges({ type: 'set', tab: activeTab as 'my' | 'shop', value: total })
+    }
+  }, [chats, loading, activeTab, isAdmin])
 
   useEffect(() => {
     if (!activeChatId) return
@@ -146,14 +194,35 @@ export function ChatLayout() {
     return onMessageReceived((msg) => {
       if (!msg.chatId) return
       if (msg.sentAt) touchChat(msg.chatId, msg.sentAt)
+      const isKnown = chatsRef.current.some((c) => c.id === msg.chatId)
       if (msg.chatId !== activeChatId) {
         updateChatUnread(msg.chatId, 1)
+        const msgTab = chatTabCacheRef.current.get(msg.chatId)
+        if (msgTab && msgTab !== activeTab && msgTab !== 'support') {
+          dispatchBadges({ type: 'increment', tab: msgTab })
+        }
+        if (!isKnown && !msgTab) {
+          softReload()
+        }
       }
     })
-  }, [onMessageReceived, activeChatId, updateChatUnread, touchChat])
+  }, [onMessageReceived, activeChatId, updateChatUnread, touchChat, activeTab, softReload])
+
+  const shopUnreadByShopId = useMemo(() => {
+    const map: Record<string, number> = {}
+    chats.forEach((c) => {
+      if (c.type === 'Shop' && c.referenceId) {
+        map[c.referenceId] = (map[c.referenceId] ?? 0) + (c.unreadCount ?? 0)
+      }
+    })
+    return map
+  }, [chats])
 
   const displayedChats = useMemo(() => {
     let result = chats
+    if (isAdmin && activeTab === 'my') {
+      result = result.filter((c) => c.type !== 'Support')
+    }
     if (activeTab === 'shop' && selectedShopId) {
       result = result.filter((c) => c.referenceId === selectedShopId)
     }
@@ -161,28 +230,31 @@ export function ChatLayout() {
       result = result.map((c) => (c.id === activeChatId ? { ...c, unreadCount: 0 } : c))
     }
     return result
-  }, [chats, activeTab, selectedShopId, activeChatId])
+  }, [chats, isAdmin, activeTab, selectedShopId, activeChatId])
 
-  const handleResizeDown = useCallback((e: React.MouseEvent) => {
-    e.preventDefault()
-    const startX = e.clientX
-    const startW = panelWidth
+  const handleResizeDown = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault()
+      const startX = e.clientX
+      const startW = panelWidth
 
-    const onMove = (ev: MouseEvent) => {
-      const w = Math.max(MIN_W, Math.min(MAX_W, startW + ev.clientX - startX))
-      setPanelWidth(w)
-    }
-    const onUp = () => {
-      document.removeEventListener('mousemove', onMove)
-      document.removeEventListener('mouseup', onUp)
-      setPanelWidth((w) => {
-        localStorage.setItem('chat-sidebar-width', String(w))
-        return w
-      })
-    }
-    document.addEventListener('mousemove', onMove)
-    document.addEventListener('mouseup', onUp)
-  }, [panelWidth])
+      const onMove = (ev: MouseEvent) => {
+        const w = Math.max(MIN_W, Math.min(MAX_W, startW + ev.clientX - startX))
+        setPanelWidth(w)
+      }
+      const onUp = () => {
+        document.removeEventListener('mousemove', onMove)
+        document.removeEventListener('mouseup', onUp)
+        setPanelWidth((w) => {
+          localStorage.setItem('chat-sidebar-width', String(w))
+          return w
+        })
+      }
+      document.addEventListener('mousemove', onMove)
+      document.addEventListener('mouseup', onUp)
+    },
+    [panelWidth],
+  )
 
   return (
     <div
@@ -222,12 +294,17 @@ export function ChatLayout() {
               onTabChange={(tab) => {
                 setActiveTab(tab)
                 setSelectedShopId(null)
+                if (tab === 'support') decrementSupportUnreadCount(supportUnreadCount)
               }}
               isSeller={isSeller}
               isAdmin={isAdmin}
               shops={shops}
               selectedShopId={selectedShopId}
               onShopChange={setSelectedShopId}
+              myUnread={activeTab !== 'my' ? tabBadges.my : 0}
+              shopUnread={activeTab !== 'shop' ? tabBadges.shop : 0}
+              supportUnread={activeTab !== 'support' ? supportUnreadCount : 0}
+              shopUnreadByShopId={shopUnreadByShopId}
             />
           </div>
         )}

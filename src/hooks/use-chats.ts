@@ -20,6 +20,7 @@ interface ChatsState {
 
 type ChatsAction =
   | { type: 'reset' }
+  | { type: 'soft_reload' }
   | { type: 'append_loading' }
   | { type: 'success'; chats: ChatSummaryDto[]; total: number; page: number; append: boolean }
   | { type: 'error'; message: string }
@@ -30,6 +31,8 @@ function reducer(state: ChatsState, action: ChatsAction): ChatsState {
   switch (action.type) {
     case 'reset':
       return { chats: [], loading: true, error: null, page: 1, total: 0, hasMore: false }
+    case 'soft_reload':
+      return { ...state, loading: true, error: null }
     case 'append_loading':
       return { ...state, loading: true, error: null }
     case 'success': {
@@ -79,8 +82,10 @@ export function useChats({ type, status, isSupport = false, pageSize = 20 }: Use
   })
 
   const fetchPage = useCallback(
-    (page: number, append: boolean) => {
-      dispatch(append ? { type: 'append_loading' } : { type: 'reset' })
+    (page: number, append: boolean, soft = false) => {
+      dispatch(
+        append ? { type: 'append_loading' } : soft ? { type: 'soft_reload' } : { type: 'reset' },
+      )
       const request = isSupport
         ? ChatsService.getApiChatsChatsSupport({ status, page, pageSize })
         : ChatsService.getApiChatsChats({ type, status, page, pageSize })
@@ -109,6 +114,7 @@ export function useChats({ type, status, isSupport = false, pageSize = 20 }: Use
   }, [state.hasMore, state.loading, state.page, fetchPage])
 
   const reload = useCallback(() => fetchPage(1, false), [fetchPage])
+  const softReload = useCallback(() => fetchPage(1, false, true), [fetchPage])
 
   const updateChatUnread = useCallback((chatId: string, delta: number) => {
     dispatch({ type: 'update_unread', chatId, delta })
@@ -118,5 +124,5 @@ export function useChats({ type, status, isSupport = false, pageSize = 20 }: Use
     dispatch({ type: 'touch_chat', chatId, lastMessageAt })
   }, [])
 
-  return { ...state, loadMore, reload, updateChatUnread, touchChat }
+  return { ...state, loadMore, reload, softReload, updateChatUnread, touchChat }
 }

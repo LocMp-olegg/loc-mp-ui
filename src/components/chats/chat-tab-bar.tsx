@@ -1,6 +1,7 @@
 import { cn } from '@/lib/utils'
 import { ShopFilterDropdown } from './shop-filter-dropdown'
 import type { ShopDto } from '@/api/catalog'
+import React from 'react'
 
 export type ChatsTab = 'my' | 'shop' | 'support'
 
@@ -12,6 +13,19 @@ interface ChatTabBarProps {
   shops: ShopDto[]
   selectedShopId: string | null
   onShopChange: (shopId: string | null) => void
+  myUnread?: number
+  shopUnread?: number
+  supportUnread?: number
+  shopUnreadByShopId?: Record<string, number>
+}
+
+function UnreadBadge({ count }: { count: number }) {
+  if (count <= 0) return null
+  return (
+    <span className="min-w-4 h-4 bg-primary text-primary-foreground text-[10px] font-bold rounded-full flex items-center justify-center px-1">
+      {count > 99 ? '99+' : count}
+    </span>
+  )
 }
 
 function TabButton({
@@ -47,6 +61,10 @@ export function ChatTabBar({
   shops,
   selectedShopId,
   onShopChange,
+  myUnread = 0,
+  shopUnread = 0,
+  supportUnread = 0,
+  shopUnreadByShopId = {},
 }: ChatTabBarProps) {
   const showShopTab = isSeller
   const showSupportTab = isAdmin
@@ -58,6 +76,7 @@ export function ChatTabBar({
     <div className="flex items-center gap-1 mb-4 flex-wrap">
       <TabButton active={activeTab === 'my'} onClick={() => onTabChange('my')}>
         Мои чаты
+        <UnreadBadge count={myUnread} />
       </TabButton>
 
       {showShopTab && (
@@ -77,11 +96,13 @@ export function ChatTabBar({
           >
             Магазин
           </button>
+          <UnreadBadge count={shopUnread} />
           {shops.length > 1 && activeTab === 'shop' && (
             <ShopFilterDropdown
               shops={shops}
               selectedShopId={selectedShopId}
               onChange={onShopChange}
+              unreadByShopId={shopUnreadByShopId}
             />
           )}
           {shops.length === 1 && (
@@ -102,6 +123,7 @@ export function ChatTabBar({
       {showSupportTab && (
         <TabButton active={activeTab === 'support'} onClick={() => onTabChange('support')}>
           Поддержка
+          <UnreadBadge count={supportUnread} />
         </TabButton>
       )}
     </div>

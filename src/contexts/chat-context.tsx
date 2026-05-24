@@ -10,6 +10,7 @@ import {
 import { ChatsService } from '@/api/chat'
 import type { MessageDto } from '@/api/chat'
 import { useAuth } from '@/contexts/auth-context'
+import { hasRole } from '@/lib/utils'
 import { useChatHub, type ChatHubHandle } from '@/hooks/use-chat-hub'
 
 // ── Event system ────────────────────────────────────────────────────────────
@@ -37,9 +38,11 @@ interface Listeners {
 
 interface ChatContextValue extends ChatHubHandle {
   unreadCount: number
+  supportUnreadCount: number
   refreshUnreadCount: () => void
   setActiveChatId: (id: string | null) => void
   decrementUnreadCount: (n: number) => void
+  decrementSupportUnreadCount: (n: number) => void
   onMessageReceived: (handler: MessageHandler) => () => void
   onMessageDeleted: (handler: DeletedHandler) => () => void
   onChatClosed: (handler: ClosedHandler) => () => void
@@ -52,7 +55,10 @@ const ChatContext = createContext<ChatContextValue | null>(null)
 // ── Provider ─────────────────────────────────────────────────────────────────
 
 function ChatProviderInner({ children }: { children: ReactNode }) {
+  const { user } = useAuth()
+  const isAdmin = hasRole(user?.role ?? [], 'Admin')
   const [unreadCount, setUnreadCount] = useState(0)
+  const [supportUnreadCount, setSupportUnreadCount] = useState(0)
   const listenersRef = useRef<Listeners>({
     messageReceived: new Set(),
     messageDeleted: new Set(),
@@ -64,10 +70,21 @@ function ChatProviderInner({ children }: { children: ReactNode }) {
   const seenMessageIdsRef = useRef(new Set<string>())
 
   const refreshUnreadCount = useCallback(() => {
-    ChatsService.getApiChatsChatsUnreadCount()
-      .then((count) => setUnreadCount(count ?? 0))
-      .catch(() => {})
-  }, [])
+    const regular = ChatsService.getApiChatsChatsUnreadCount()
+      .then((c) => c ?? 0)
+      .catch(() => 0)
+
+    const support = isAdmin
+      ? ChatsService.getApiChatsChatsSupport({ hasUnread: true, pageSize: 100 })
+          .then((r) => (r.items ?? []).reduce((sum, c) => sum + (c.unreadCount ?? 0), 0))
+          .catch(() => 0)
+      : Promise.resolve(0)
+
+    void Promise.all([regular, support]).then(([r, s]) => {
+      setUnreadCount(r)
+      setSupportUnreadCount(s)
+    })
+  }, [isAdmin])
 
   const setActiveChatId = useCallback((id: string | null) => {
     activeChatIdRef.current = id
@@ -75,6 +92,10 @@ function ChatProviderInner({ children }: { children: ReactNode }) {
 
   const decrementUnreadCount = useCallback((n: number) => {
     if (n > 0) setUnreadCount((c) => Math.max(0, c - n))
+  }, [])
+
+  const decrementSupportUnreadCount = useCallback((n: number) => {
+    if (n > 0) setSupportUnreadCount((c) => Math.max(0, c - n))
   }, [])
 
   useEffect(() => {
@@ -85,8 +106,6 @@ function ChatProviderInner({ children }: { children: ReactNode }) {
 
   const hub = useChatHub({
     onMessageReceived: (msg) => {
-      // Deduplicate: active viewers receive the event from both the chat group
-      // and the personal user channel now that we push to both
       if (msg.id && seenMessageIdsRef.current.has(msg.id)) return
       if (msg.id) {
         seenMessageIdsRef.current.add(msg.id)
@@ -143,9 +162,11 @@ function ChatProviderInner({ children }: { children: ReactNode }) {
     <ChatContext.Provider
       value={{
         unreadCount,
+        supportUnreadCount,
         refreshUnreadCount,
         setActiveChatId,
         decrementUnreadCount,
+        decrementSupportUnreadCount,
         ...hub,
         onMessageReceived,
         onMessageDeleted,
@@ -167,9 +188,11 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       <ChatContext.Provider
         value={{
           unreadCount: 0,
+          supportUnreadCount: 0,
           refreshUnreadCount: () => {},
           setActiveChatId: () => {},
           decrementUnreadCount: () => {},
+          decrementSupportUnreadCount: () => {},
           joinChat: async () => {},
           leaveChat: async () => {},
           startTyping: async () => {},

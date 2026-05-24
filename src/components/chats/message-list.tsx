@@ -64,10 +64,9 @@ export function MessageList({
   const wasNearBottomRef = useRef(true)
   const [isNearBottom, setIsNearBottom] = useState(true)
 
-  // Save scroll position when leaving a chat; clear saved state on enter
   useEffect(() => {
+    const el = scrollRef.current
     return () => {
-      const el = scrollRef.current
       if (!el) return
       sessionStorage.setItem(`chat-scroll-${chatId}`, String(Math.round(el.scrollTop)))
     }
@@ -79,7 +78,7 @@ export function MessageList({
     const nearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < NEAR_BOTTOM_THRESHOLD
     wasNearBottomRef.current = nearBottom
     setIsNearBottom(nearBottom)
-    // Auto-load older messages when scrolled near the top
+    setIsNearBottom(nearBottom)
     if (el.scrollTop < NEAR_TOP_THRESHOLD && hasOlderMessages && !loadingOlder) {
       prevScrollHeightRef.current = el.scrollHeight
       onLoadOlder()
@@ -93,7 +92,6 @@ export function MessageList({
   useLayoutEffect(() => {
     const el = scrollRef.current
     if (!el || messages.length === 0) {
-      // Reset for next load (e.g. chat switch)
       isInitialRef.current = true
       wasNearBottomRef.current = true
       setIsNearBottom(true)
@@ -103,7 +101,6 @@ export function MessageList({
     if (isInitialRef.current) {
       isInitialRef.current = false
 
-      // Restore saved scroll position if available
       const saved = sessionStorage.getItem(`chat-scroll-${chatId}`)
       if (saved !== null) {
         el.scrollTop = parseInt(saved)
@@ -113,7 +110,6 @@ export function MessageList({
         return
       }
 
-      // Scroll to first unread message so user can read them top-to-bottom
       const firstUnread = messages.find((m) => !m.isRead)
       if (firstUnread) {
         const msgEl = el.querySelector(`[data-msg-id="${firstUnread.id}"]`) as HTMLElement | null
