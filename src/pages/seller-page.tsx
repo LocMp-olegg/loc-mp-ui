@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useNavigate } from 'react-router-dom'
 import { AnimatePresence } from 'framer-motion'
 import {
   ArrowLeft,
@@ -15,7 +15,6 @@ import {
 import { formatPhone } from '@/lib/auth-validation'
 import { useSellerDetail } from '@/hooks/use-seller-detail'
 import { useAuth } from '@/contexts/auth-context'
-import { useStartChat } from '@/hooks/use-start-chat'
 import { ShopReviewsModal } from '@/components/shop/reviews-modal'
 import { PhotoLightbox } from '@/components/ui/photo-lightbox'
 import { pluralize } from '@/lib/utils'
@@ -51,7 +50,7 @@ function SellerSkeleton() {
 function SellerContent({ id }: { id: string }) {
   const { seller, shops, rating, loading, error } = useSellerDetail(id)
   const { user } = useAuth()
-  const { startChat, loading: chatLoading } = useStartChat()
+  const navigate = useNavigate()
   const [reviewsOpen, setReviewsOpen] = useState(false)
   const [avatarLightbox, setAvatarLightbox] = useState(false)
 
@@ -124,18 +123,17 @@ function SellerContent({ id }: { id: string }) {
           {canChat && (
             <button
               type="button"
-              disabled={chatLoading}
               onClick={() =>
-                startChat(
-                  {
+                navigate('/chats/new', {
+                  state: {
                     type: 'Direct',
                     targetUserId: id,
                     targetUserName: displayName,
+                    backTo: `/sellers/${id}`,
                   },
-                  `/sellers/${id}`,
-                )
+                })
               }
-              className="inline-flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-colors disabled:opacity-50 cursor-pointer"
+              className="inline-flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-colors cursor-pointer"
             >
               <MessageSquare className="w-4 h-4" />
               Написать

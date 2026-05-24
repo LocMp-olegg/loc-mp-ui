@@ -1,11 +1,10 @@
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react'
-import { Outlet, useMatch, Link } from 'react-router-dom'
+import { Outlet, useMatch, useNavigate, Link } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Headphones, MessageSquare, XCircle } from 'lucide-react'
 import { useAuth } from '@/contexts/auth-context'
 import { useChats } from '@/hooks/use-chats'
 import { useMyShops } from '@/hooks/use-my-shops'
-import { useStartChat } from '@/hooks/use-start-chat'
 import { useChatContext } from '@/contexts/chat-context'
 import { hasRole, cn } from '@/lib/utils'
 import { ChatTabBar, type ChatsTab } from './chat-tab-bar'
@@ -108,13 +107,13 @@ export function ChatLayout() {
   const isAdmin = hasRole(user?.role ?? [], 'Admin')
   const canContactSupport = !!user && !isAdmin
 
+  const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState<ChatsTab>('my')
   const [selectedShopId, setSelectedShopId] = useState<string | null>(null)
   const [panelWidth, setPanelWidth] = useState(storedWidth)
   const [showSupportConfirm, setShowSupportConfirm] = useState(false)
 
   const { shops } = useMyShops()
-  const { startChat, loading: startingChat } = useStartChat()
   const { chats, loading, error, hasMore, loadMore, reload, updateChatUnread, touchChat } = useChats({
     type: activeTab === 'shop' ? 'Shop' : undefined,
     isSupport: activeTab === 'support',
@@ -122,7 +121,8 @@ export function ChatLayout() {
   const { onMessageReceived } = useChatContext()
 
   const chatMatch = useMatch('/chats/:id')
-  const activeChatId = chatMatch?.params.id
+  const activeChatId = chatMatch?.params.id !== 'new' ? chatMatch?.params.id : undefined
+  const hasActiveChat = !!chatMatch
 
   const chatsRef = useRef(chats)
   useEffect(() => {
@@ -134,6 +134,13 @@ export function ChatLayout() {
     const unread = chatsRef.current.find((c) => c.id === activeChatId)?.unreadCount ?? 0
     if (unread > 0) updateChatUnread(activeChatId, -unread)
   }, [activeChatId, updateChatUnread])
+
+  useEffect(() => {
+    if (!activeChatId || loading) return
+    if (!chatsRef.current.some((c) => c.id === activeChatId)) {
+      reload()
+    }
+  }, [activeChatId, loading, reload])
 
   useEffect(() => {
     return onMessageReceived((msg) => {
@@ -155,7 +162,6 @@ export function ChatLayout() {
     }
     return result
   }, [chats, activeTab, selectedShopId, activeChatId])
-  const hasActiveChat = !!activeChatId
 
   const handleResizeDown = useCallback((e: React.MouseEvent) => {
     e.preventDefault()
@@ -199,9 +205,8 @@ export function ChatLayout() {
           {canContactSupport && (
             <button
               type="button"
-              disabled={startingChat}
               onClick={() => setShowSupportConfirm(true)}
-              className="inline-flex items-center gap-1.5 text-xs text-primary border border-primary/30 hover:border-primary/60 hover:bg-primary/5 px-2.5 py-1.5 rounded-lg transition-colors disabled:opacity-50 cursor-pointer"
+              className="inline-flex items-center gap-1.5 text-xs text-primary border border-primary/30 hover:border-primary/60 hover:bg-primary/5 px-2.5 py-1.5 rounded-lg transition-colors cursor-pointer"
             >
               <Headphones className="w-3 h-3" />
               Поддержка
@@ -316,14 +321,11 @@ export function ChatLayout() {
                 </button>
                 <button
                   type="button"
-                  disabled={startingChat}
                   onClick={() => {
                     setShowSupportConfirm(false)
-                    startChat({ type: 'Support' }, '/chats')
-                      .then(() => reload())
-                      .catch(() => {})
+                    navigate('/chats/new', { state: { type: 'Support', backTo: '/chats' } })
                   }}
-                  className="flex-1 h-9 rounded-xl bg-primary text-primary-foreground text-sm font-medium flex items-center justify-center gap-1.5 hover:bg-primary/90 transition-colors disabled:opacity-50 cursor-pointer"
+                  className="flex-1 h-9 rounded-xl bg-primary text-primary-foreground text-sm font-medium flex items-center justify-center gap-1.5 hover:bg-primary/90 transition-colors cursor-pointer"
                 >
                   <Headphones className="w-3.5 h-3.5" />
                   Написать

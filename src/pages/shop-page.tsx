@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useNavigate } from 'react-router-dom'
 import { AnimatePresence } from 'framer-motion'
 import {
   ArrowLeft,
@@ -23,7 +23,6 @@ import {
 import { formatPhone } from '@/lib/auth-validation'
 import { useAuth } from '@/contexts/auth-context'
 import { hasRole } from '@/lib/utils'
-import { useStartChat } from '@/hooks/use-start-chat'
 import { useShopDetail } from '@/hooks/use-shop-detail'
 import { useShopFilteredProducts } from '@/hooks/use-shop-filtered-products'
 import { ProductCard } from '@/components/product/product-card'
@@ -65,7 +64,7 @@ function ShopContent({ id }: { id: string }) {
   const { shop, products, categoryGroups, rootCategoriesInShop, leafToRoot, loading, error } =
     useShopDetail(id)
   const { user } = useAuth()
-  const { startChat, loading: chatLoading } = useStartChat()
+  const navigate = useNavigate()
   const [avatarLightbox, setAvatarLightbox] = useState(false)
   const [galleryOpen, setGalleryOpen] = useState(false)
   const [mapOpen, setMapOpen] = useState(false)
@@ -113,19 +112,18 @@ function ShopContent({ id }: { id: string }) {
           {canChat && (
             <button
               type="button"
-              disabled={chatLoading}
               onClick={() =>
-                startChat(
-                  {
+                navigate('/chats/new', {
+                  state: {
                     type: 'Shop',
                     targetUserId: shop.sellerId!,
                     targetUserName: shop.sellerDisplayName ?? undefined,
                     referenceId: shop.id,
+                    backTo: `/shop/${shop.id}`,
                   },
-                  `/shop/${shop.id}`,
-                )
+                })
               }
-              className="inline-flex items-center gap-1.5 text-sm text-primary border border-primary/30 hover:border-primary/70 hover:bg-primary/5 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50 cursor-pointer"
+              className="inline-flex items-center gap-1.5 text-sm text-primary border border-primary/30 hover:border-primary/70 hover:bg-primary/5 px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
             >
               <MessageSquare className="w-3.5 h-3.5" />
               Написать

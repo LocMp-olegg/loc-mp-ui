@@ -21,6 +21,7 @@ import { MyReviewsPage } from '@/pages/my-reviews-page'
 import { NotificationsPage } from '@/pages/notifications-page'
 import { ChatLayout } from '@/components/chats/chat-layout'
 import { ChatDetailPage } from '@/pages/chat-detail-page'
+import { NewChatPage } from '@/pages/new-chat-page'
 import { RequireAuth } from '@/components/auth/require-auth'
 import { ShopsPage } from '@/pages/seller/shops-page'
 import { ShopEditPage } from '@/pages/seller/shop-edit-page'
@@ -117,6 +118,7 @@ export const router = createBrowserRouter([
               </RequireAuth>
             ),
             children: [
+              { path: 'new', element: <NewChatPage /> },
               { path: ':id', element: <ChatDetailPage /> },
             ],
           },
