@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import React, { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import {
   Bell,
@@ -26,6 +26,7 @@ import {
   notificationCategory,
   notificationLink,
 } from '@/lib/notifications'
+import { timeAgo } from '@/lib/format'
 import { cn } from '@/lib/utils'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -42,15 +43,6 @@ function formatDate(iso: string): string {
   return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })
 }
 
-function timeAgo(iso: string): string {
-  const diff = Date.now() - new Date(iso).getTime()
-  const m = Math.floor(diff / 60_000)
-  if (m < 1) return 'только что'
-  if (m < 60) return `${m} мин. назад`
-  const h = Math.floor(m / 60)
-  if (h < 24) return `${h} ч. назад`
-  return new Date(iso).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
-}
 
 function dayKey(iso: string): string {
   const d = new Date(iso)
@@ -81,6 +73,7 @@ function NotificationIcon({ type }: { type: NotificationType }) {
   else if (cat === 'review') Icon = MessageSquare
   else if (cat === 'stock') Icon = ShoppingBag
   else if (cat === 'account') Icon = User
+  else if (cat === 'chat') Icon = MessageSquare
   else if (cat === 'system') Icon = Cpu
 
   return (
@@ -135,7 +128,7 @@ function NotificationCard({
           </p>
           <div className="flex items-center gap-1.5 shrink-0">
             <span className="text-[11px] text-muted-foreground">
-              {item.createdAt ? timeAgo(item.createdAt) : ''}
+              {item.createdAt ? timeAgo(item.createdAt, 'time') : ''}
             </span>
             {link && (
               <ExternalLink className="w-3 h-3 text-muted-foreground/40 group-hover/card:text-primary transition-colors" />
@@ -297,6 +290,13 @@ function PreferencesSection() {
             onChange={toggle('systemAlerts')}
             disabled={saving}
           />
+          <ToggleRow
+            label="Сообщения в чатах"
+            description="Новые сообщения от пользователей и поддержки"
+            checked={prefs.chatMessages ?? true}
+            onChange={toggle('chatMessages')}
+            disabled={saving}
+          />
         </div>
       </div>
 
@@ -332,6 +332,13 @@ function PreferencesSection() {
               description="Когда получен новый отзыв"
               checked={prefs.emailReviewReplies ?? true}
               onChange={toggle('emailReviewReplies')}
+              disabled={saving || !prefs.emailEnabled}
+            />
+            <ToggleRow
+              label="Сообщения на email"
+              description="Уведомление о новом сообщении в чате"
+              checked={prefs.emailChatMessages ?? true}
+              onChange={toggle('emailChatMessages')}
               disabled={saving || !prefs.emailEnabled}
             />
           </div>

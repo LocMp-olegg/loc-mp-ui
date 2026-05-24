@@ -1,6 +1,6 @@
-import { useReducer, useEffect, useRef, useCallback } from 'react'
+import React, { useReducer, useEffect, useRef, useCallback } from 'react'
 import { createPortal } from 'react-dom'
-import { Link } from 'react-router-dom'
+import { Link, useMatch } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Bell, BellOff, Check, CheckCheck, Loader2, X } from 'lucide-react'
 import { NotificationsService } from '@/api/notifications'
@@ -12,7 +12,14 @@ import {
   notificationLink,
 } from '@/lib/notifications'
 import { useNotificationHub } from '@/hooks/use-notification-hub'
+import { timeAgo } from '@/lib/format'
 import { cn } from '@/lib/utils'
+
+function notifChatId(n: NotificationDto): string | null {
+  const p = n.payload as Record<string, unknown> | null | undefined
+  if (!p || typeof p !== 'object') return null
+  return typeof p.chatId === 'string' ? p.chatId : null
+}
 
 const POLL_MS = 60_000
 const DROPDOWN_SIZE = 5
@@ -68,15 +75,6 @@ function bellReducer(state: BellState, action: BellAction): BellState {
   }
 }
 
-function timeAgo(iso: string): string {
-  const diff = Date.now() - new Date(iso).getTime()
-  const m = Math.floor(diff / 60_000)
-  if (m < 1) return 'только что'
-  if (m < 60) return `${m} мин. назад`
-  const h = Math.floor(m / 60)
-  if (h < 24) return `${h} ч. назад`
-  return new Date(iso).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })
-}
 
 function NotificationToast({
   notification,
@@ -178,6 +176,13 @@ export function NotificationBell({ iconClassName }: { iconClassName?: string }) 
     openRef.current = open
   })
 
+  const chatMatch = useMatch('/chats/:id')
+  const activeChatId = chatMatch?.params.id !== 'new' ? chatMatch?.params.id : undefined
+  const activeChatIdRef = useRef(activeChatId)
+  useEffect(() => {
+    activeChatIdRef.current = activeChatId
+  })
+
   const hideToast = useCallback(() => dispatch({ type: 'hide_toast' }), [])
 
   const toastRef = useRef(toast)
@@ -193,11 +198,22 @@ export function NotificationBell({ iconClassName }: { iconClassName?: string }) 
   }, [])
 
   const onPush = useCallback(() => {
-    dispatch({ type: 'increment_count' })
     NotificationsService.getApiNotificationsNotifications({ page: 1, pageSize: DROPDOWN_SIZE })
       .then((res) => {
         const fetched = res.items ?? []
-        if (fetched[0]) dispatch({ type: 'show_toast', notification: fetched[0] })
+        const newest = fetched[0]
+        // Feature 1: user is already viewing this chat — mark read silently, skip toast/count
+        if (newest?.type === 'NewMessage' && notifChatId(newest) === activeChatIdRef.current) {
+          if (!newest.isRead && newest.id) {
+            NotificationsService.postApiNotificationsNotificationsRead({ id: newest.id }).catch(
+              () => {},
+            )
+          }
+          if (openRef.current) dispatch({ type: 'items_loaded', items: fetched })
+          return
+        }
+        dispatch({ type: 'increment_count' })
+        if (newest) dispatch({ type: 'show_toast', notification: newest })
         if (openRef.current) dispatch({ type: 'items_loaded', items: fetched })
       })
       .catch(() => {})
@@ -216,6 +232,27 @@ export function NotificationBell({ iconClassName }: { iconClassName?: string }) 
     const id = setInterval(fetchCount, POLL_MS)
     return () => clearInterval(id)
   }, [fetchCount])
+
+  // Feature 2: when user opens a chat, auto-mark any unread NewMessage notifications for it
+  useEffect(() => {
+    if (!activeChatId) return
+    let cancelled = false
+    NotificationsService.getApiNotificationsNotifications({ onlyUnread: true, pageSize: 50 })
+      .then((res) => {
+        if (cancelled) return
+        ;(res.items ?? [])
+          .filter((n) => n.type === 'NewMessage' && notifChatId(n) === activeChatId)
+          .forEach((n) => {
+            if (!n.id) return
+            dispatch({ type: 'mark_read', id: n.id })
+            NotificationsService.postApiNotificationsNotificationsRead({ id: n.id }).catch(() => {})
+          })
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [activeChatId])
 
   useEffect(() => {
     if (!open) return

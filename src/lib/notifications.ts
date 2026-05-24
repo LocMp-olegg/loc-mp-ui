@@ -18,9 +18,10 @@ export const NOTIFICATION_LABELS: Record<NotificationType, string> = {
   DisputeOpened: 'Спор открыт',
   DisputeResolved: 'Спор решён',
   ProductRestocked: 'Товар снова в наличии',
+  NewMessage: 'Новое сообщение',
 }
 
-type NotificationCategory = 'order' | 'review' | 'stock' | 'account' | 'system'
+type NotificationCategory = 'order' | 'review' | 'stock' | 'account' | 'chat' | 'system'
 
 export function notificationCategory(type: NotificationType): NotificationCategory {
   if (
@@ -39,6 +40,7 @@ export function notificationCategory(type: NotificationType): NotificationCatego
   if (type === 'StockDepleted' || type === 'ProductRestocked') return 'stock'
   if (type === 'AccountBlocked' || type === 'AccountUnblocked' || type === 'SellerActivated')
     return 'account'
+  if (type === 'NewMessage') return 'chat'
   return 'system'
 }
 
@@ -47,6 +49,7 @@ export const CATEGORY_COLORS: Record<NotificationCategory, string> = {
   review: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20',
   stock: 'bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/20',
   account: 'bg-destructive/10 text-destructive border-destructive/20',
+  chat: 'bg-violet-500/10 text-violet-600 dark:text-violet-400 border-violet-500/20',
   system: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20',
 }
 
@@ -55,6 +58,7 @@ export const CATEGORY_DOT_COLORS: Record<NotificationCategory, string> = {
   review: 'bg-amber-500',
   stock: 'bg-orange-500',
   account: 'bg-destructive',
+  chat: 'bg-violet-500',
   system: 'bg-blue-500',
 }
 
@@ -96,6 +100,10 @@ export function notificationLink(n: NotificationDto): string | null {
     }
     case 'SellerActivated':
       return '/seller/shops'
+    case 'NewMessage': {
+      const id = pid(p, 'chatId')
+      return id ? `/chats/${id}` : '/chats'
+    }
     default:
       return null
   }
