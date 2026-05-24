@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react'
+import React, { useState, useRef, useCallback, useEffect } from 'react'
 import { SendHorizonal, Paperclip } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { AttachmentPreviews } from './attachment-previews'
@@ -42,18 +42,47 @@ function validateFiles(
 }
 
 interface MessageInputProps {
+  chatId: string
   onSend: (body: string, files: File[]) => Promise<void>
   onTyping: () => void
   disabled?: boolean
 }
 
-export function MessageInput({ onSend, onTyping, disabled = false }: MessageInputProps) {
-  const [value, setValue] = useState('')
+export function MessageInput({ chatId, onSend, onTyping, disabled = false }: MessageInputProps) {
+  const [value, setValue] = useState(() => sessionStorage.getItem(`chat-draft-${chatId}`) ?? '')
   const [files, setFiles] = useState<File[]>([])
   const [fileError, setFileError] = useState<string | null>(null)
   const [sending, setSending] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const valueRef = useRef(value)
+
+  // Keep ref in sync so the cleanup closure always sees the latest value
+  useEffect(() => {
+    valueRef.current = value
+  })
+
+  // On chatId change: save draft for old chat, restore for new chat
+  useEffect(() => {
+    const saved = sessionStorage.getItem(`chat-draft-${chatId}`) ?? ''
+    setValue(saved)
+    setFiles([])
+    setFileError(null)
+    requestAnimationFrame(() => {
+      const ta = textareaRef.current
+      if (!ta) return
+      ta.style.height = 'auto'
+      ta.style.height = `${Math.min(ta.scrollHeight, 128)}px`
+    })
+    return () => {
+      const draft = valueRef.current.trim()
+      if (draft) {
+        sessionStorage.setItem(`chat-draft-${chatId}`, draft)
+      } else {
+        sessionStorage.removeItem(`chat-draft-${chatId}`)
+      }
+    }
+  }, [chatId])
 
   const canSend =
     (value.trim().length > 0 || files.length > 0) &&
@@ -96,6 +125,7 @@ export function MessageInput({ onSend, onTyping, disabled = false }: MessageInpu
     setValue('')
     setFiles([])
     setFileError(null)
+    sessionStorage.removeItem(`chat-draft-${chatId}`)
     if (textareaRef.current) textareaRef.current.style.height = 'auto'
     setSending(true)
     try {
@@ -104,7 +134,7 @@ export function MessageInput({ onSend, onTyping, disabled = false }: MessageInpu
       setSending(false)
       textareaRef.current?.focus()
     }
-  }, [canSend, value, files, onSend])
+  }, [canSend, value, files, chatId, onSend])
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {

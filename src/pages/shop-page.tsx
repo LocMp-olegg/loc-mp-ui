@@ -125,7 +125,7 @@ function ShopContent({ id }: { id: string }) {
                   `/shop/${shop.id}`,
                 )
               }
-              className="inline-flex items-center gap-1.5 text-sm text-primary border border-primary/30 hover:border-primary/70 hover:bg-primary/5 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 text-sm text-primary border border-primary/30 hover:border-primary/70 hover:bg-primary/5 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50 cursor-pointer"
             >
               <MessageSquare className="w-3.5 h-3.5" />
               Написать

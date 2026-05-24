@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import { Outlet, useMatch, Link } from 'react-router-dom'
+import { AnimatePresence, motion } from 'framer-motion'
 import { Headphones, MessageSquare, XCircle } from 'lucide-react'
 import { useAuth } from '@/contexts/auth-context'
 import { useChats } from '@/hooks/use-chats'
@@ -88,7 +89,6 @@ function SidebarChatItem({ chat, currentUserId, active }: SidebarItemProps) {
             <span className="text-[11px] text-muted-foreground italic">Нет сообщений</span>
           ) : (
             <span className="text-[11px] text-muted-foreground truncate">
-              {/* placeholder for last message preview */}
             </span>
           )}
           {unread > 0 && (
@@ -111,10 +111,11 @@ export function ChatLayout() {
   const [activeTab, setActiveTab] = useState<ChatsTab>('my')
   const [selectedShopId, setSelectedShopId] = useState<string | null>(null)
   const [panelWidth, setPanelWidth] = useState(storedWidth)
+  const [showSupportConfirm, setShowSupportConfirm] = useState(false)
 
   const { shops } = useMyShops()
   const { startChat, loading: startingChat } = useStartChat()
-  const { chats, loading, error, hasMore, loadMore, updateChatUnread } = useChats({
+  const { chats, loading, error, hasMore, loadMore, reload, updateChatUnread, touchChat } = useChats({
     type: activeTab === 'shop' ? 'Shop' : undefined,
     isSupport: activeTab === 'support',
   })
@@ -123,34 +124,32 @@ export function ChatLayout() {
   const chatMatch = useMatch('/chats/:id')
   const activeChatId = chatMatch?.params.id
 
-  // Keep a ref to chats so we can read current value without adding it as a dep
   const chatsRef = useRef(chats)
   useEffect(() => {
     chatsRef.current = chats
   })
 
-  // When a chat is opened, zero its badge in state so it stays zeroed after navigating away
   useEffect(() => {
     if (!activeChatId) return
     const unread = chatsRef.current.find((c) => c.id === activeChatId)?.unreadCount ?? 0
     if (unread > 0) updateChatUnread(activeChatId, -unread)
   }, [activeChatId, updateChatUnread])
 
-  // Increment per-chat unread badge for messages arriving in non-active chats
   useEffect(() => {
     return onMessageReceived((msg) => {
-      if (msg.chatId && msg.chatId !== activeChatId) {
+      if (!msg.chatId) return
+      if (msg.sentAt) touchChat(msg.chatId, msg.sentAt)
+      if (msg.chatId !== activeChatId) {
         updateChatUnread(msg.chatId, 1)
       }
     })
-  }, [onMessageReceived, activeChatId, updateChatUnread])
+  }, [onMessageReceived, activeChatId, updateChatUnread, touchChat])
 
   const displayedChats = useMemo(() => {
     let result = chats
     if (activeTab === 'shop' && selectedShopId) {
       result = result.filter((c) => c.referenceId === selectedShopId)
     }
-    // Zero out unread badge for whichever chat is currently open
     if (activeChatId) {
       result = result.map((c) => (c.id === activeChatId ? { ...c, unreadCount: 0 } : c))
     }
@@ -201,8 +200,8 @@ export function ChatLayout() {
             <button
               type="button"
               disabled={startingChat}
-              onClick={() => startChat({ type: 'Support' }, '/chats')}
-              className="inline-flex items-center gap-1.5 text-xs text-primary border border-primary/30 hover:border-primary/60 hover:bg-primary/5 px-2.5 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+              onClick={() => setShowSupportConfirm(true)}
+              className="inline-flex items-center gap-1.5 text-xs text-primary border border-primary/30 hover:border-primary/60 hover:bg-primary/5 px-2.5 py-1.5 rounded-lg transition-colors disabled:opacity-50 cursor-pointer"
             >
               <Headphones className="w-3 h-3" />
               Поддержка
@@ -280,6 +279,60 @@ export function ChatLayout() {
       >
         {hasActiveChat ? <Outlet /> : <ChatPlaceholder />}
       </div>
+
+      {/* ── Support confirm dialog ── */}
+      <AnimatePresence>
+        {showSupportConfirm && (
+          <motion.div
+            key="support-backdrop"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+            className="absolute inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+            onClick={() => setShowSupportConfirm(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.92, y: 8 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.92, y: 8 }}
+              transition={{ duration: 0.18, ease: 'easeOut' }}
+              className="bg-card border border-border rounded-2xl shadow-xl p-5 mx-4 w-full max-w-xs flex flex-col gap-4"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex flex-col gap-1.5">
+                <p className="text-sm font-semibold text-foreground">Написать в поддержку</p>
+                <p className="text-xs text-muted-foreground">
+                  Хотите начать новый чат с командой поддержки?
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowSupportConfirm(false)}
+                  className="flex-1 h-9 rounded-xl border border-border text-sm text-foreground hover:bg-muted transition-colors cursor-pointer"
+                >
+                  Отмена
+                </button>
+                <button
+                  type="button"
+                  disabled={startingChat}
+                  onClick={() => {
+                    setShowSupportConfirm(false)
+                    startChat({ type: 'Support' }, '/chats')
+                      .then(() => reload())
+                      .catch(() => {})
+                  }}
+                  className="flex-1 h-9 rounded-xl bg-primary text-primary-foreground text-sm font-medium flex items-center justify-center gap-1.5 hover:bg-primary/90 transition-colors disabled:opacity-50 cursor-pointer"
+                >
+                  <Headphones className="w-3.5 h-3.5" />
+                  Написать
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

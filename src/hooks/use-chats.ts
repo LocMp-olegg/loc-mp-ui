@@ -24,6 +24,7 @@ type ChatsAction =
   | { type: 'success'; chats: ChatSummaryDto[]; total: number; page: number; append: boolean }
   | { type: 'error'; message: string }
   | { type: 'update_unread'; chatId: string; delta: number }
+  | { type: 'touch_chat'; chatId: string; lastMessageAt: string }
 
 function reducer(state: ChatsState, action: ChatsAction): ChatsState {
   switch (action.type) {
@@ -53,6 +54,17 @@ function reducer(state: ChatsState, action: ChatsAction): ChatsState {
             : c,
         ),
       }
+    case 'touch_chat': {
+      const updated = state.chats.map((c) =>
+        c.id === action.chatId ? { ...c, lastMessageAt: action.lastMessageAt } : c,
+      )
+      updated.sort((a, b) => {
+        const ta = a.lastMessageAt ?? a.createdAt ?? ''
+        const tb = b.lastMessageAt ?? b.createdAt ?? ''
+        return tb < ta ? -1 : tb > ta ? 1 : 0
+      })
+      return { ...state, chats: updated }
+    }
   }
 }
 
@@ -102,5 +114,9 @@ export function useChats({ type, status, isSupport = false, pageSize = 20 }: Use
     dispatch({ type: 'update_unread', chatId, delta })
   }, [])
 
-  return { ...state, loadMore, reload, updateChatUnread }
+  const touchChat = useCallback((chatId: string, lastMessageAt: string) => {
+    dispatch({ type: 'touch_chat', chatId, lastMessageAt })
+  }, [])
+
+  return { ...state, loadMore, reload, updateChatUnread, touchChat }
 }

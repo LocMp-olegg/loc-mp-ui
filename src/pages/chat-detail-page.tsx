@@ -44,8 +44,8 @@ export function ChatDetailPage() {
 
   return (
     <div className="relative h-full overflow-hidden flex flex-col">
-      {/* Messages fill the entire area, scroll behind the glass panels */}
       <MessageList
+        chatId={id!}
         messages={messages}
         loading={loading}
         loadingOlder={loadingOlder}
@@ -57,14 +57,13 @@ export function ChatDetailPage() {
         paddingBottom={inputH}
       />
 
-      {/* Header — floating glass pill at the top */}
       <div ref={headerRef} className="absolute top-0 inset-x-0 z-10">
         <ChatHeader chatInfo={chatInfo} backTo={backTo} currentUserId={user?.id} />
       </div>
 
-      {/* Input — floating glass pill at the bottom */}
       <div ref={inputRef} className="absolute bottom-0 inset-x-0 z-10">
         <MessageInput
+          chatId={id!}
           onSend={(body, files) => sendMessage(body, files)}
           onTyping={notifyTyping}
           disabled={chatInfo?.status === 'Closed'}

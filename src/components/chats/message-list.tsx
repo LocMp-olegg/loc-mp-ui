@@ -1,4 +1,4 @@
-import { useRef, useLayoutEffect, useState, useCallback } from 'react'
+import { useRef, useLayoutEffect, useEffect, useState, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Loader2, ChevronDown } from 'lucide-react'
 import { MessageBubble } from './message-bubble'
@@ -31,6 +31,7 @@ function DateSeparator({ iso }: { iso: string }) {
 }
 
 interface MessageListProps {
+  chatId: string
   messages: MessageDto[]
   loading: boolean
   loadingOlder: boolean
@@ -46,6 +47,7 @@ const NEAR_BOTTOM_THRESHOLD = 150
 const NEAR_TOP_THRESHOLD = 80
 
 export function MessageList({
+  chatId,
   messages,
   loading,
   loadingOlder,
@@ -61,6 +63,15 @@ export function MessageList({
   const isInitialRef = useRef(true)
   const wasNearBottomRef = useRef(true)
   const [isNearBottom, setIsNearBottom] = useState(true)
+
+  // Save scroll position when leaving a chat; clear saved state on enter
+  useEffect(() => {
+    return () => {
+      const el = scrollRef.current
+      if (!el) return
+      sessionStorage.setItem(`chat-scroll-${chatId}`, String(Math.round(el.scrollTop)))
+    }
+  }, [chatId])
 
   const handleScroll = useCallback(() => {
     const el = scrollRef.current
@@ -91,6 +102,17 @@ export function MessageList({
 
     if (isInitialRef.current) {
       isInitialRef.current = false
+
+      // Restore saved scroll position if available
+      const saved = sessionStorage.getItem(`chat-scroll-${chatId}`)
+      if (saved !== null) {
+        el.scrollTop = parseInt(saved)
+        const nearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < NEAR_BOTTOM_THRESHOLD
+        setIsNearBottom(nearBottom)
+        wasNearBottomRef.current = nearBottom
+        return
+      }
+
       // Scroll to first unread message so user can read them top-to-bottom
       const firstUnread = messages.find((m) => !m.isRead)
       if (firstUnread) {
@@ -117,7 +139,7 @@ export function MessageList({
     if (wasNearBottomRef.current) {
       el.scrollTop = el.scrollHeight
     }
-  }, [messages, paddingTop])
+  }, [messages, paddingTop, chatId])
 
   useLayoutEffect(() => {
     const el = scrollRef.current
