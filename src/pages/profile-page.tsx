@@ -9,15 +9,18 @@ import {
   MessageSquare,
   ChevronRight,
 } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/auth-context'
 import { useProfile } from '@/hooks/use-profile'
 import { ProfileAvatar } from '@/components/profile/profile-avatar'
 import { ProfileInfoForm } from '@/components/profile/profile-info-form'
 import { BecomeSellerCard } from '@/components/profile/become-seller-card'
 import { SellerStatusCard } from '@/components/profile/seller-status-card'
+import { BecomeCourierCard } from '@/components/profile/become-courier-card'
+import { CourierStatusCard } from '@/components/profile/courier-status-card'
 import { ProfileSecuritySection } from '@/components/profile/profile-security-section'
 import { AddressSection } from '@/components/profile/address-section'
+import { CourierProfileService } from '@/api/identity'
 
 function ProfileSkeleton() {
   return (
@@ -52,7 +55,7 @@ function ProfileSkeleton() {
 }
 
 const EXTRA_ROLE_COLORS: Record<string, string> = {
-  Courier: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20',
+  Courier: 'bg-primary/10 text-primary border-primary/20',
   Admin: 'bg-destructive/10 text-destructive border-destructive/20',
 }
 const EXTRA_ROLE_LABELS: Record<string, string> = {
@@ -64,6 +67,7 @@ export function ProfilePage() {
   const { user, logout, refreshUser } = useAuth()
   const { profile, photoUrl, loading, error, updateProfile, uploadPhoto, deletePhoto, logoutAll } =
     useProfile()
+  const navigate = useNavigate()
 
   if (loading) return <ProfileSkeleton />
 
@@ -77,7 +81,8 @@ export function ProfilePage() {
 
   const roles = profile.roles ?? []
   const isSeller = roles.includes('Seller')
-  const extraRoles = roles.filter((r) => r !== 'User' && r !== 'Seller')
+  const isCourier = roles.includes('Courier')
+  const extraRoles = roles.filter((r) => r !== 'User' && r !== 'Seller' && r !== 'Courier')
 
   const displayName =
     [profile.firstName, profile.lastName].filter(Boolean).join(' ') ||
@@ -85,7 +90,7 @@ export function ProfilePage() {
     user?.username ||
     'Пользователь'
 
-  const registeredDate = new Date(profile.registeredAt).toLocaleDateString('ru-RU', {
+  const registeredDate = new Date(profile.registeredAt ?? '').toLocaleDateString('ru-RU', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
@@ -114,13 +119,19 @@ export function ProfilePage() {
         />
 
         <div className="flex-1 min-w-0 flex flex-col gap-1.5 sm:justify-center">
-          {/* Name + seller badge inline */}
+          {/* Name + role badges inline */}
           <div className="flex items-center gap-2 flex-wrap">
             <h1 className="text-xl font-bold text-foreground leading-tight">{displayName}</h1>
             {isSeller && (
               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-primary/12 text-primary border border-primary/25 shrink-0">
                 <BadgeCheck className="w-3 h-3" />
                 Продавец
+              </span>
+            )}
+            {isCourier && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-primary/12 text-primary border border-primary/25 shrink-0">
+                <BadgeCheck className="w-3 h-3" />
+                Курьер
               </span>
             )}
             {extraRoles.map((r) => (
@@ -192,6 +203,24 @@ export function ProfilePage() {
           onBecomeSeller={async () => {
             await updateProfile({ isSeller: true })
             await refreshUser()
+          }}
+        />
+      )}
+
+      {/* ── Courier status ── */}
+      {isCourier ? (
+        <CourierStatusCard
+          onResign={async () => {
+            await CourierProfileService.deleteApiIdentityProfileCourier()
+            await refreshUser()
+          }}
+        />
+      ) : (
+        <BecomeCourierCard
+          onBecomeCourier={async () => {
+            await CourierProfileService.postApiIdentityProfileCourierBecome()
+            await refreshUser()
+            navigate('/courier/profile')
           }}
         />
       )}

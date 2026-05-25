@@ -16,6 +16,7 @@ import {
   Store,
   Check,
   Star,
+  Bike,
   Map,
   Package,
   MessagesSquare,
@@ -57,6 +58,12 @@ function isSeller(user: { role: string | string[] } | null) {
   return roles.includes('Seller')
 }
 
+function isCourier(user: { role: string | string[] } | null) {
+  if (!user) return false
+  const roles = Array.isArray(user.role) ? user.role : [user.role]
+  return roles.includes('Courier')
+}
+
 function ProfileDropdown({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { user, logout } = useAuth()
   const { unreadCount: unreadChats } = useChatContext()
@@ -90,6 +97,16 @@ function ProfileDropdown({ open, onClose }: { open: boolean; onClose: () => void
             >
               <Store className="w-4 h-4 shrink-0" />
               Панель продавца
+            </Link>
+          )}
+          {isCourier(user) && (
+            <Link
+              to="/courier"
+              onClick={onClose}
+              className="w-full flex items-center gap-2.5 px-4 py-3 text-sm text-nav-text/80 hover:bg-white/8 hover:text-nav-text transition-colors cursor-pointer"
+            >
+              <Bike className="w-4 h-4 shrink-0" />
+              Панель курьера
             </Link>
           )}
           <Link
@@ -710,6 +727,16 @@ function MobileProfileSection({ onClose }: { onClose: () => void }) {
               >
                 <Store className="w-4 h-4 shrink-0" />
                 Панель продавца
+              </Link>
+            )}
+            {isCourier(user) && (
+              <Link
+                to="/courier"
+                onClick={onClose}
+                className="w-full flex items-center gap-3 px-4 py-3 pl-12 text-sm text-nav-text/80 hover:bg-white/5 transition-colors"
+              >
+                <Bike className="w-4 h-4 shrink-0" />
+                Панель курьера
               </Link>
             )}
             <Link
