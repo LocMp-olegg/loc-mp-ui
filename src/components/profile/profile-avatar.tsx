@@ -46,9 +46,9 @@ export function ProfileAvatar({ profile, photoUrl, onUpload, onDelete }: Profile
 
       <PhotoEditorModal
         open={modalOpen}
-        hasPhoto={profile.hasPhoto}
+        hasPhoto={profile.hasPhoto ?? false}
         photoUrl={photoUrl}
-        userName={profile.userName}
+        userName={profile.userName ?? null}
         onClose={() => setModalOpen(false)}
         onUpload={onUpload}
         onDelete={onDelete}
