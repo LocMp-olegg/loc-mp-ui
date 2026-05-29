@@ -11,6 +11,10 @@ const STATUS_CONFIG: Record<OrderStatus, { label: string; className: string }> =
     label: 'Готов к выдаче',
     className: 'bg-violet-500/15 text-violet-700 dark:text-violet-400',
   },
+  ReadyForCourier: {
+    label: 'Ожидает курьера',
+    className: 'bg-primary/15 text-primary',
+  },
   InDelivery: {
     label: 'Доставляется',
     className: 'bg-indigo-500/15 text-indigo-700 dark:text-indigo-400',

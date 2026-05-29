@@ -131,7 +131,10 @@ export function OrderDetailPage() {
   const canCancel = status === 'Pending' || status === 'Confirmed'
   const canComplete = status === 'ReadyForPickup' || status === 'InDelivery'
   const canDispute =
-    status === 'Confirmed' || status === 'ReadyForPickup' || status === 'InDelivery'
+    status === 'Confirmed' ||
+    status === 'ReadyForPickup' ||
+    status === 'ReadyForCourier' ||
+    status === 'InDelivery'
   const canReview = status === 'Completed'
 
   const itemCount = order?.items?.length ?? 0
@@ -189,7 +192,7 @@ export function OrderDetailPage() {
                 </Link>
               )}
               <span className="flex items-center gap-1">
-                {order.deliveryType === 'NeighborCourier' ? (
+                {order.deliveryType === 'Delivery' ? (
                   <>
                     <Truck className="w-3.5 h-3.5" /> Доставка курьером
                   </>
@@ -249,7 +252,7 @@ export function OrderDetailPage() {
           </section>
 
           {/* Delivery address */}
-          {order.deliveryType === 'NeighborCourier' && order.deliveryAddress && (
+          {order.deliveryType === 'Delivery' && order.deliveryAddress && (
             <section
               className="rounded-2xl border border-border p-4 space-y-1.5"
               style={{ background: 'color-mix(in srgb, var(--card) 80%, transparent)' }}

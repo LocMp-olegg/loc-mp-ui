@@ -34,7 +34,7 @@ export function OrderListItem({ order, onClick }: OrderListItemProps) {
         <div className="flex items-center gap-1.5 flex-wrap">
           <span className="text-xs font-mono text-muted-foreground">#{shortOrderId(order.id)}</span>
           <OrderStatusBadge status={order.status} />
-          {order.deliveryType === 'NeighborCourier' ? (
+          {order.deliveryType === 'Delivery' ? (
             <span className="flex items-center gap-0.5 text-[11px] text-muted-foreground">
               <Truck className="w-3 h-3" />
               Курьер

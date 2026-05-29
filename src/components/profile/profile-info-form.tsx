@@ -84,7 +84,7 @@ export function ProfileInfoForm({ profile, onSave }: ProfileInfoFormProps) {
         lastName: lastName || null,
         gender: (gender as 'Male' | 'Female') || null,
         birthDate: birthDate || null,
-        phoneNumber: phoneDigits ? `+7${phoneDigits}` : null,
+        phoneNumber: phoneDigits || null,
       })
       setSaved(true)
       setTimeout(() => setSaved(false), 2500)

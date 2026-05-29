@@ -1,6 +1,29 @@
 import { useReducer, useState, useEffect, useCallback } from 'react'
 import { OrdersService, DisputesService } from '@/api/orders'
-import type { OrderDto, OrderPhotoDto, DisputePhotoDto, DisputeType } from '@/api/orders'
+import type {
+  OrderDto,
+  OrderPhotoDto,
+  DisputePhotoDto,
+  DisputeType,
+  CourierApplicationDto,
+} from '@/api/orders'
+
+type AppsState = { items: CourierApplicationDto[]; loading: boolean }
+type AppsAction =
+  | { type: 'loading' }
+  | { type: 'success'; items: CourierApplicationDto[] }
+  | { type: 'reset' }
+
+function appsReducer(_: AppsState, action: AppsAction): AppsState {
+  switch (action.type) {
+    case 'loading':
+      return { items: [], loading: true }
+    case 'success':
+      return { items: action.items, loading: false }
+    case 'reset':
+      return { items: [], loading: false }
+  }
+}
 
 const MAX_PER_REQUEST = 5
 const MAX_PHOTOS = 10
@@ -32,6 +55,8 @@ export function useOrderDetail(orderId: string | null) {
   const [state, dispatch] = useReducer(reducer, { order: null, loading: false, error: null })
   const [actionBusy, setActionBusy] = useState(false)
   const [actionError, setActionError] = useState<string | null>(null)
+  const [appsState, appsDispatch] = useReducer(appsReducer, { items: [], loading: false })
+  const [appsReloadKey, setAppsReloadKey] = useState(0)
 
   const fetchOrder = useCallback(async (id: string) => {
     dispatch({ type: 'loading' })
@@ -61,6 +86,26 @@ export function useOrderDetail(orderId: string | null) {
       cancelled = true
     }
   }, [orderId])
+
+  useEffect(() => {
+    const order = state.order
+    if (!order?.id || order.status !== 'Confirmed' || order.deliveryType !== 'Delivery') {
+      appsDispatch({ type: 'reset' })
+      return
+    }
+    let cancelled = false
+    appsDispatch({ type: 'loading' })
+    OrdersService.getApiOrdersOrdersCourierApplications({ id: order.id })
+      .then((apps) => {
+        if (!cancelled) appsDispatch({ type: 'success', items: apps })
+      })
+      .catch(() => {
+        if (!cancelled) appsDispatch({ type: 'success', items: [] })
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [state.order?.id, state.order?.status, state.order?.deliveryType, appsReloadKey]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const runAction = useCallback(async (fn: () => Promise<void>): Promise<boolean> => {
     setActionBusy(true)
@@ -92,6 +137,14 @@ export function useOrderDetail(orderId: string | null) {
     if (!state.order?.id) return false
     const id = state.order.id
     const ok = await runAction(() => OrdersService.postApiOrdersOrdersReady({ id }))
+    if (ok) void fetchOrder(id)
+    return ok
+  }, [state.order, runAction, fetchOrder])
+
+  const markReadyForCourier = useCallback(async () => {
+    if (!state.order?.id) return false
+    const id = state.order.id
+    const ok = await runAction(() => OrdersService.postApiOrdersOrdersReadyForCourier({ id }))
     if (ok) void fetchOrder(id)
     return ok
   }, [state.order, runAction, fetchOrder])
@@ -141,6 +194,38 @@ export function useOrderDetail(orderId: string | null) {
         }),
       )
       if (ok) void fetchOrder(id)
+      return ok
+    },
+    [state.order, runAction, fetchOrder],
+  )
+
+  const approveCourierApp = useCallback(
+    async (applicationId: string) => {
+      if (!state.order?.id) return false
+      const id = state.order.id
+      const ok = await runAction(() =>
+        OrdersService.postApiOrdersOrdersCourierApplicationsApprove({ applicationId }),
+      )
+      if (ok) {
+        void fetchOrder(id)
+        setAppsReloadKey((k) => k + 1)
+      }
+      return ok
+    },
+    [state.order, runAction, fetchOrder],
+  )
+
+  const rejectCourierApp = useCallback(
+    async (applicationId: string) => {
+      if (!state.order?.id) return false
+      const id = state.order.id
+      const ok = await runAction(() =>
+        OrdersService.postApiOrdersOrdersCourierApplicationsReject({ applicationId }),
+      )
+      if (ok) {
+        void fetchOrder(id)
+        setAppsReloadKey((k) => k + 1)
+      }
       return ok
     },
     [state.order, runAction, fetchOrder],
@@ -278,13 +363,18 @@ export function useOrderDetail(orderId: string | null) {
     error: state.error,
     actionBusy,
     actionError,
+    courierApplications: appsState.items,
+    appsLoading: appsState.loading,
     reload,
     confirm,
     markReady,
+    markReadyForCourier,
     complete,
     cancel,
     openDispute,
     assignCourier,
+    approveCourierApp,
+    rejectCourierApp,
     uploadPhotos,
     deletePhoto,
     uploadDisputePhotos,

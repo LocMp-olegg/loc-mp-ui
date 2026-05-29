@@ -11,6 +11,7 @@ const STATUS_PILLS: { label: string; value: OrderStatus | '' }[] = [
   { label: 'Новые', value: 'Pending' },
   { label: 'Подтверждённые', value: 'Confirmed' },
   { label: 'Готов к выдаче', value: 'ReadyForPickup' },
+  { label: 'Ожидает курьера', value: 'ReadyForCourier' },
   { label: 'Доставляются', value: 'InDelivery' },
   { label: 'Завершённые', value: 'Completed' },
   { label: 'Отменённые', value: 'Cancelled' },
@@ -20,7 +21,7 @@ const STATUS_PILLS: { label: string; value: OrderStatus | '' }[] = [
 const DELIVERY_OPTIONS = [
   { value: '', label: 'Любая доставка' },
   { value: 'Pickup', label: 'Самовывоз' },
-  { value: 'NeighborCourier', label: 'Курьер' },
+  { value: 'Delivery', label: 'Курьер' },
 ]
 
 const SORT_OPTIONS: { value: OrderSortField | ''; label: string }[] = [

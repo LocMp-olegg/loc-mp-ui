@@ -36,7 +36,7 @@ export interface CheckoutGroup {
 const RECIPIENT_NAME_MAX = 200
 
 interface GroupForm {
-  deliveryType: 'Pickup' | 'NeighborCourier'
+  deliveryType: 'Pickup' | 'Delivery'
   selectedAddressId: string | null
   recipientName: string
   recipientPhoneDigits: string
@@ -64,7 +64,7 @@ function digitsFromRaw(raw: string | null | undefined): string {
 }
 
 function validateGroupForm(form: GroupForm): GroupErrors {
-  if (form.deliveryType !== 'NeighborCourier') return {}
+  if (form.deliveryType !== 'Delivery') return {}
   const errs: GroupErrors = {}
   if (!form.selectedAddressId) errs.address = 'Выберите адрес доставки'
   if (!form.recipientName.trim()) errs.recipientName = 'Укажите получателя'
@@ -220,7 +220,7 @@ export function CheckoutModal({ groups, productInfoMap, onClose, onSuccess }: Ch
               shopId: g.shopId ?? undefined,
               deliveryType: form.deliveryType,
               deliveryAddress:
-                form.deliveryType === 'NeighborCourier' && addr
+                form.deliveryType === 'Delivery' && addr
                   ? addressToDelivery(addr, form.recipientName, form.recipientPhoneDigits)
                   : undefined,
               selectedItemIds: g.isFullGroup ? undefined : g.items.map((item) => item.id!),
@@ -473,17 +473,17 @@ function GroupSection({
               onClick={() => onChange({ deliveryType: 'Pickup' })}
             />
             <DeliveryTypeBtn
-              active={form.deliveryType === 'NeighborCourier'}
+              active={form.deliveryType === 'Delivery'}
               icon={<Truck className="w-3.5 h-3.5" />}
               label="Курьер-сосед"
-              onClick={() => onChange({ deliveryType: 'NeighborCourier' })}
+              onClick={() => onChange({ deliveryType: 'Delivery' })}
             />
           </div>
         </div>
 
         {/* Address picker + recipient */}
         <AnimatePresence>
-          {form.deliveryType === 'NeighborCourier' && (
+          {form.deliveryType === 'Delivery' && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
