@@ -6,7 +6,15 @@ import type { ApplyCourierRequest } from '@/api/orders'
 function useAppliedIds() {
   const [ids, setIds] = useState<ReadonlySet<string>>(new Set())
   const add = useCallback((id: string) => setIds((prev) => new Set([...prev, id])), [])
-  return { ids, add }
+  const sync = useCallback(
+    (orderIds: string[]) =>
+      setIds((prev) => {
+        if (orderIds.every((id) => prev.has(id))) return prev
+        return new Set([...prev, ...orderIds])
+      }),
+    [],
+  )
+  return { ids, add, sync }
 }
 
 const PAGE_SIZE = 20
@@ -22,7 +30,7 @@ export function useCourierAvailableOrders({
 }) {
   const [state, dispatch] = useReducer(orderListReducer, ORDER_LIST_INITIAL)
   const [reloadKey, setReloadKey] = useState(0)
-  const { ids: appliedIds, add: markApplied } = useAppliedIds()
+  const { ids: appliedIds, add: markApplied, sync: syncApplied } = useAppliedIds()
   const pageRef = useRef(1)
   const fetchingMoreRef = useRef(false)
 
@@ -105,5 +113,5 @@ export function useCourierAvailableOrders({
     [markApplied],
   )
 
-  return { ...state, appliedIds, loadMore, reload, apply }
+  return { ...state, appliedIds, loadMore, reload, apply, syncApplied }
 }

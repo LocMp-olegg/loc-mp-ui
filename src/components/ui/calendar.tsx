@@ -136,7 +136,7 @@ export function Calendar({
 
         today: 'font-bold text-primary',
         outside: 'text-muted-foreground/40',
-        disabled: 'text-muted-foreground/30 cursor-not-allowed hover:bg-transparent',
+        disabled: 'text-muted-foreground/30 cursor-default hover:bg-transparent',
         hidden: 'invisible',
         ...classNames,
       }}

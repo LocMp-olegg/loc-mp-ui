@@ -94,7 +94,7 @@ export function ProductReviews({
         <button
           onClick={loadMore}
           disabled={loading}
-          className="self-center flex items-center gap-2 px-5 py-2 rounded-xl border border-border text-sm text-muted-foreground hover:text-foreground hover:border-primary/50 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          className="self-center flex items-center gap-2 px-5 py-2 rounded-xl border border-border text-sm text-muted-foreground hover:text-foreground hover:border-primary/50 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-default"
         >
           {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
           Показать ещё

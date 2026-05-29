@@ -191,6 +191,7 @@
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
   padding: 0;
   overflow: hidden;
+  color: var(--foreground);
 }
 .shop-popup .leaflet-popup-content {
   margin: 0;

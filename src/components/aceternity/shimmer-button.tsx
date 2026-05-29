@@ -12,7 +12,7 @@ export function ShimmerButton({ children, className, disabled, ...props }: Shimm
       className={cn(
         'group relative overflow-hidden rounded-xl bg-primary text-primary-foreground cursor-pointer',
         'transition-all duration-200 active:scale-95',
-        'disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none',
+        'disabled:opacity-50 disabled:cursor-default disabled:pointer-events-none',
         className,
       )}
       {...props}
