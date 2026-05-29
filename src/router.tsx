@@ -35,6 +35,7 @@ import { CourierProfilePage } from '@/pages/courier/profile-page'
 import { CourierOrdersPage } from '@/pages/courier/orders-page'
 import { CourierHistoryPage } from '@/pages/courier/history-page'
 import { CourierReviewsPage } from '@/pages/courier/reviews-page'
+import { CourierPublicPage } from '@/pages/courier-public-page'
 
 export const router = createBrowserRouter([
   {
@@ -50,6 +51,7 @@ export const router = createBrowserRouter([
           { path: 'search', element: <SearchPage /> },
           { path: 'shop/:id', element: <ShopPage /> },
           { path: 'sellers/:id', element: <SellerPage /> },
+          { path: 'couriers/:id', element: <CourierPublicPage /> },
           {
             path: 'cart',
             element: (

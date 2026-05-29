@@ -299,22 +299,36 @@ export function OrderDetailPage() {
               <div className="flex items-center gap-2">
                 <Truck className="w-4 h-4 text-muted-foreground shrink-0" />
                 <div>
-                  <p className="text-sm text-foreground">
+                  <Link
+                    to={`/couriers/${order.courierAssignment.courierId}`}
+                    state={{
+                      name: order.courierAssignment.courierName,
+                      phone: order.courierAssignment.courierPhone,
+                    }}
+                    className="text-sm text-foreground hover:text-primary transition-colors"
+                  >
                     {order.courierAssignment.courierName ?? 'Имя не указано'}
-                  </p>
+                  </Link>
                   {order.courierAssignment.courierPhone && (
                     <p className="text-xs text-muted-foreground">
                       {displayPhone(order.courierAssignment.courierPhone)}
                     </p>
                   )}
                   {courierRating && (courierRating.reviewCount ?? 0) > 0 && (
-                    <p className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <Link
+                      to={`/couriers/${order.courierAssignment.courierId}`}
+                      state={{
+                        name: order.courierAssignment.courierName,
+                        phone: order.courierAssignment.courierPhone,
+                      }}
+                      className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors"
+                    >
                       <Star className="w-3 h-3 fill-amber-400 text-amber-400 shrink-0" />
                       {courierRating.averageRating?.toFixed(1)}
                       <span className="text-muted-foreground/60">
                         ({courierRating.reviewCount})
                       </span>
-                    </p>
+                    </Link>
                   )}
                 </div>
               </div>

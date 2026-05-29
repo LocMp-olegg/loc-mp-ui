@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
+import { Link } from 'react-router-dom'
 import { formatDateTime, shortOrderId, timeAgo, displayPhone } from '@/lib/format'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -58,9 +59,13 @@ function CourierApplicationRow({ app, busy, onApprove, onReject }: CourierApplic
     <div className="rounded-xl border border-border bg-background px-3 py-2.5 space-y-2">
       <div className="flex items-start justify-between gap-2">
         <div className="space-y-0.5 min-w-0">
-          <p className="text-sm font-medium text-foreground truncate">
+          <Link
+            to={`/couriers/${app.courierId}`}
+            state={{ name: app.courierName, phone: app.courierPhone }}
+            className="text-sm font-medium text-foreground hover:text-primary transition-colors truncate"
+          >
             {app.courierName ?? 'Курьер'}
-          </p>
+          </Link>
           {app.courierPhone && (
             <p className="flex items-center gap-1 text-xs text-muted-foreground">
               <Phone className="w-3 h-3 shrink-0" />
@@ -388,7 +393,16 @@ export function OrderDetailModal({ orderId, onClose, onActionDone }: OrderDetail
                         Курьер
                       </p>
                       <div className="rounded-xl bg-muted/50 border border-border px-3 py-2.5 text-sm text-foreground">
-                        <p>{order.courierAssignment.courierName ?? 'Не указано имя'}</p>
+                        <Link
+                          to={`/couriers/${order.courierAssignment.courierId}`}
+                          state={{
+                            name: order.courierAssignment.courierName,
+                            phone: order.courierAssignment.courierPhone,
+                          }}
+                          className="text-sm text-foreground hover:text-primary transition-colors"
+                        >
+                          {order.courierAssignment.courierName ?? 'Не указано имя'}
+                        </Link>
                         {order.courierAssignment.courierPhone && (
                           <p className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
                             <Phone className="w-3 h-3 shrink-0" />
@@ -396,13 +410,20 @@ export function OrderDetailModal({ orderId, onClose, onActionDone }: OrderDetail
                           </p>
                         )}
                         {assignedCourierRating && (assignedCourierRating.reviewCount ?? 0) > 0 && (
-                          <p className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
+                          <Link
+                            to={`/couriers/${order.courierAssignment.courierId}`}
+                            state={{
+                              name: order.courierAssignment.courierName,
+                              phone: order.courierAssignment.courierPhone,
+                            }}
+                            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors mt-0.5"
+                          >
                             <Star className="w-3 h-3 fill-amber-400 text-amber-400 shrink-0" />
                             {assignedCourierRating.averageRating?.toFixed(1)}
                             <span className="text-muted-foreground/60">
                               ({assignedCourierRating.reviewCount})
                             </span>
-                          </p>
+                          </Link>
                         )}
                       </div>
                     </section>
