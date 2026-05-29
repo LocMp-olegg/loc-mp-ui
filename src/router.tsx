@@ -31,9 +31,10 @@ import { ProductEditPage } from '@/pages/seller/product-edit-page'
 import { OrdersPage as SellerOrdersPage } from '@/pages/seller/orders-page'
 import { AnalyticsPage } from '@/pages/seller/analytics-page'
 import { SellerChatsPage } from '@/pages/seller/chats-page'
-import { CourierProfilePage, CourierComingSoon } from '@/pages/courier/profile-page'
+import { CourierProfilePage } from '@/pages/courier/profile-page'
 import { CourierOrdersPage } from '@/pages/courier/orders-page'
 import { CourierHistoryPage } from '@/pages/courier/history-page'
+import { CourierReviewsPage } from '@/pages/courier/reviews-page'
 
 export const router = createBrowserRouter([
   {
@@ -138,7 +139,7 @@ export const router = createBrowserRouter([
           { path: 'profile', element: <CourierProfilePage /> },
           { path: 'orders', element: <CourierOrdersPage /> },
           { path: 'history', element: <CourierHistoryPage /> },
-          { path: 'reviews', element: <CourierComingSoon label="Отзывы" /> },
+          { path: 'reviews', element: <CourierReviewsPage /> },
         ],
       },
       {

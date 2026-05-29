@@ -76,3 +76,30 @@ export async function fetchProductReviews(
     hasNextPage: result.hasNextPage ?? false,
   }
 }
+
+export function fetchCourierRating(courierId: string): Promise<RatingAggregateDto> {
+  return ReviewsService.getApiReviewsReviewsRating({
+    subjectType: 'Courier',
+    subjectId: courierId,
+  })
+}
+
+export async function fetchCourierReviews(
+  courierId: string,
+  sortBy?: ReviewSortBy,
+  rating?: number,
+  page = 1,
+): Promise<{ items: ReviewItem[]; hasNextPage: boolean }> {
+  const result = await ReviewsService.getApiReviewsReviews({
+    subjectType: 'Courier',
+    subjectId: courierId,
+    page,
+    pageSize: REVIEWS_PAGE_SIZE,
+    sortBy,
+    rating,
+  })
+  return {
+    items: (result.items ?? []).filter((r) => r.isVisible !== false).map(mapReview),
+    hasNextPage: result.hasNextPage ?? false,
+  }
+}
