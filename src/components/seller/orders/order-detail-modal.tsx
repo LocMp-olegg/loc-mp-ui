@@ -16,6 +16,7 @@ import {
   CheckCircle2,
   XCircle,
   Users,
+  Star,
 } from 'lucide-react'
 import { OrderStatusBadge } from './order-status-badge'
 import { OrderPhotosSection } from './order-photos-section'
@@ -23,6 +24,7 @@ import { DisputeBlock } from '@/components/orders/dispute-block'
 import { StatusHistory } from '@/components/orders/status-history'
 import { useOrderDetail } from '@/hooks/use-order-detail'
 import { OrderItemsSection } from '@/components/orders/order-items-section'
+import { useCourierRating } from '@/hooks/use-courier-rating'
 import type { CourierApplicationDto } from '@/api/orders'
 
 interface CourierApplicationRowProps {
@@ -35,6 +37,7 @@ interface CourierApplicationRowProps {
 function CourierApplicationRow({ app, busy, onApprove, onReject }: CourierApplicationRowProps) {
   const [localBusy, setLocalBusy] = useState(false)
   const [localError, setLocalError] = useState<string | null>(null)
+  const courierRating = useCourierRating(app.courierId)
 
   const handle = async (fn: () => Promise<boolean>, errMsg: string) => {
     setLocalBusy(true)
@@ -65,6 +68,13 @@ function CourierApplicationRow({ app, busy, onApprove, onReject }: CourierApplic
             </p>
           )}
           <div className="flex items-center gap-2 flex-wrap">
+            {courierRating && (courierRating.reviewCount ?? 0) > 0 && (
+              <p className="flex items-center gap-1 text-xs text-muted-foreground">
+                <Star className="w-3 h-3 fill-amber-400 text-amber-400 shrink-0" />
+                {courierRating.averageRating?.toFixed(1)}
+                <span className="text-muted-foreground/60">({courierRating.reviewCount})</span>
+              </p>
+            )}
             {app.distanceToShopMeters != null && (
               <p className="flex items-center gap-1 text-xs text-muted-foreground">
                 <MapPin className="w-3 h-3 shrink-0" />
@@ -225,6 +235,7 @@ export function OrderDetailModal({ orderId, onClose, onActionDone }: OrderDetail
 
   const isDeliveryOrder = order?.deliveryType === 'Delivery'
   const hasCourierAssigned = !!order?.courierAssignment
+  const assignedCourierRating = useCourierRating(order?.courierAssignment?.courierId)
   const pendingApps = courierApplications.filter((a) => a.status === 'Pending')
 
   const canDispute =
@@ -382,6 +393,15 @@ export function OrderDetailModal({ orderId, onClose, onActionDone }: OrderDetail
                           <p className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
                             <Phone className="w-3 h-3 shrink-0" />
                             {displayPhone(order.courierAssignment.courierPhone)}
+                          </p>
+                        )}
+                        {assignedCourierRating && (assignedCourierRating.reviewCount ?? 0) > 0 && (
+                          <p className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
+                            <Star className="w-3 h-3 fill-amber-400 text-amber-400 shrink-0" />
+                            {assignedCourierRating.averageRating?.toFixed(1)}
+                            <span className="text-muted-foreground/60">
+                              ({assignedCourierRating.reviewCount})
+                            </span>
                           </p>
                         )}
                       </div>

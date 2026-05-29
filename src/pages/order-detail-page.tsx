@@ -14,6 +14,7 @@ import {
   Star,
 } from 'lucide-react'
 import { useOrderDetail } from '@/hooks/use-order-detail'
+import { useCourierRating } from '@/hooks/use-courier-rating'
 import { OrderStatusBadge } from '@/components/seller/orders/order-status-badge'
 import { DisputeBlock } from '@/components/orders/dispute-block'
 import { StatusHistory } from '@/components/orders/status-history'
@@ -136,6 +137,7 @@ export function OrderDetailPage() {
     status === 'ReadyForCourier' ||
     status === 'InDelivery'
   const canReview = status === 'Completed'
+  const courierRating = useCourierRating(order?.courierAssignment?.courierId)
 
   const itemCount = order?.items?.length ?? 0
 
@@ -303,6 +305,15 @@ export function OrderDetailPage() {
                   {order.courierAssignment.courierPhone && (
                     <p className="text-xs text-muted-foreground">
                       {displayPhone(order.courierAssignment.courierPhone)}
+                    </p>
+                  )}
+                  {courierRating && (courierRating.reviewCount ?? 0) > 0 && (
+                    <p className="flex items-center gap-1 text-xs text-muted-foreground">
+                      <Star className="w-3 h-3 fill-amber-400 text-amber-400 shrink-0" />
+                      {courierRating.averageRating?.toFixed(1)}
+                      <span className="text-muted-foreground/60">
+                        ({courierRating.reviewCount})
+                      </span>
                     </p>
                   )}
                 </div>
