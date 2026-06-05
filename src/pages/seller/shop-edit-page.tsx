@@ -217,7 +217,7 @@ export function ShopEditPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className={labelClass}>Телефон</label>
+                  <label className={labelClass}>Телефон*</label>
                   <input
                     type="tel"
                     value={formatPhone(form.phoneNumber)}
@@ -243,7 +243,7 @@ export function ShopEditPage() {
                   )}
                 </div>
                 <div>
-                  <label className={labelClass}>Email</label>
+                  <label className={labelClass}>Email*</label>
                   <input
                     type="email"
                     value={form.email}
@@ -486,13 +486,18 @@ export function ShopEditPage() {
             <div className={sectionClass}>
               <h2 className={sectionTitle}>
                 <Truck className="w-4 h-4 text-muted-foreground" />
-                Курьерская доставка
+                Доставка
               </h2>
               <div className="space-y-3">
                 <Toggle
+                  checked={form.allowSellerDelivery}
+                  onChange={(v) => dispatch({ type: 'patch', patch: { allowSellerDelivery: v } })}
+                  label="Доставка силами продавца"
+                />
+                <Toggle
                   checked={form.allowCourier}
                   onChange={(v) => dispatch({ type: 'patch', patch: { allowCourier: v } })}
-                  label="Разрешить курьерскую доставку"
+                  label="Доставка курьером-соседом"
                 />
                 <AnimatePresence>
                   {form.allowCourier && (

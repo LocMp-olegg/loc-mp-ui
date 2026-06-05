@@ -31,6 +31,7 @@ export type FormState = {
   addressFloor: string
   allowCourier: boolean
   maxCourierMeters: string
+  allowSellerDelivery: boolean
   avatarUrl: string | null
   photos: ShopPhotoDto[]
 }
@@ -56,6 +57,7 @@ export const INIT_FORM: FormState = {
   addressFloor: '',
   allowCourier: false,
   maxCourierMeters: '',
+  allowSellerDelivery: false,
   avatarUrl: null,
   photos: [],
 }
@@ -94,6 +96,7 @@ export function formReducer(state: FormState, action: FormAction): FormState {
       addressFloor: action.shop.address?.floor ?? '',
       allowCourier: action.shop.allowCourierDelivery ?? false,
       maxCourierMeters: action.shop.maxCourierDistanceMeters?.toString() ?? '',
+      allowSellerDelivery: action.shop.allowSellerDelivery ?? false,
       avatarUrl: action.shop.avatarUrl ?? state.avatarUrl,
       photos: action.shop.photos?.length ? action.shop.photos : state.photos,
     }

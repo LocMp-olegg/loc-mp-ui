@@ -24,6 +24,7 @@ import { OrderPhotosSection } from './order-photos-section'
 import { DisputeBlock } from '@/components/orders/dispute-block'
 import { StatusHistory } from '@/components/orders/status-history'
 import { useOrderDetail } from '@/hooks/use-order-detail'
+import { useShopById } from '@/hooks/use-my-shops'
 import { OrderItemsSection } from '@/components/orders/order-items-section'
 import { useCourierRating } from '@/hooks/use-courier-rating'
 import type { CourierApplicationDto } from '@/api/orders'
@@ -228,6 +229,7 @@ export function OrderDetailModal({ orderId, onClose, onActionDone }: OrderDetail
     confirm,
     markReady,
     markReadyForCourier,
+    startSellerDelivery,
     cancel,
     openDispute,
     approveCourierApp,
@@ -238,10 +240,16 @@ export function OrderDetailModal({ orderId, onClose, onActionDone }: OrderDetail
     deleteDisputePhoto,
   } = useOrderDetail(orderId)
 
+  const { shop } = useShopById(order?.shopId ?? undefined)
+
   const isDeliveryOrder = order?.deliveryType === 'Delivery'
   const hasCourierAssigned = !!order?.courierAssignment
   const assignedCourierRating = useCourierRating(order?.courierAssignment?.courierId)
   const pendingApps = courierApplications.filter((a) => a.status === 'Pending')
+
+  const allowCourierDelivery = shop?.allowCourierDelivery ?? false
+  const allowSellerDelivery = shop?.allowSellerDelivery ?? false
+  const bothDeliveryModes = isDeliveryOrder && allowCourierDelivery && allowSellerDelivery
 
   const canDispute =
     order?.status === 'Confirmed' ||
@@ -254,6 +262,13 @@ export function OrderDetailModal({ orderId, onClose, onActionDone }: OrderDetail
     if (ok) onActionDone()
   }
 
+  const handleConfirmAndDeliver = async () => {
+    const confirmOk = await confirm()
+    if (!confirmOk) return
+    const deliverOk = await startSellerDelivery()
+    if (deliverOk) onActionDone()
+  }
+
   const handleMarkReady = async () => {
     const ok = await markReady()
     if (ok) onActionDone()
@@ -261,6 +276,11 @@ export function OrderDetailModal({ orderId, onClose, onActionDone }: OrderDetail
 
   const handleMarkReadyForCourier = async () => {
     const ok = await markReadyForCourier()
+    if (ok) onActionDone()
+  }
+
+  const handleStartSellerDelivery = async () => {
+    const ok = await startSellerDelivery()
     if (ok) onActionDone()
   }
 
@@ -527,15 +547,46 @@ export function OrderDetailModal({ orderId, onClose, onActionDone }: OrderDetail
               <div className="px-5 pb-4 pt-3 border-t border-border shrink-0 space-y-2">
                 {order?.status === 'Pending' && (
                   <>
-                    <button
-                      type="button"
-                      onClick={() => void handleConfirm()}
-                      disabled={actionBusy}
-                      className="w-full h-9 rounded-xl bg-primary text-primary-foreground text-sm font-medium flex items-center justify-center gap-1.5 hover:bg-primary/90 transition-colors cursor-pointer disabled:opacity-50"
-                    >
-                      {actionBusy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
-                      Подтвердить
-                    </button>
+                    {bothDeliveryModes ? (
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          type="button"
+                          onClick={() => void handleConfirm()}
+                          disabled={actionBusy}
+                          className="h-9 rounded-xl bg-primary text-primary-foreground text-xs font-medium flex items-center justify-center gap-1.5 hover:bg-primary/90 transition-colors cursor-pointer disabled:opacity-50 px-2"
+                        >
+                          {actionBusy ? (
+                            <Loader2 className="w-3 h-3 animate-spin shrink-0" />
+                          ) : (
+                            <Users className="w-3 h-3 shrink-0" />
+                          )}
+                          Принять, найти курьера
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => void handleConfirmAndDeliver()}
+                          disabled={actionBusy}
+                          className="h-9 rounded-xl border border-primary text-primary text-xs font-medium flex items-center justify-center gap-1.5 hover:bg-primary/8 transition-colors cursor-pointer disabled:opacity-50 px-2"
+                        >
+                          {actionBusy ? (
+                            <Loader2 className="w-3 h-3 animate-spin shrink-0" />
+                          ) : (
+                            <Truck className="w-3 h-3 shrink-0" />
+                          )}
+                          Принять, доставим сами
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => void handleConfirm()}
+                        disabled={actionBusy}
+                        className="w-full h-9 rounded-xl bg-primary text-primary-foreground text-sm font-medium flex items-center justify-center gap-1.5 hover:bg-primary/90 transition-colors cursor-pointer disabled:opacity-50"
+                      >
+                        {actionBusy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
+                        Подтвердить
+                      </button>
+                    )}
                     <CancelForm busy={actionBusy} onCancel={handleCancel} />
                   </>
                 )}
@@ -572,6 +623,22 @@ export function OrderDetailModal({ orderId, onClose, onActionDone }: OrderDetail
                           <Truck className="w-3.5 h-3.5" />
                         )}
                         Готов к передаче курьеру
+                      </button>
+                    )}
+                    {/* Delivery + no courier + seller can deliver themselves */}
+                    {isDeliveryOrder && !hasCourierAssigned && allowSellerDelivery && (
+                      <button
+                        type="button"
+                        onClick={() => void handleStartSellerDelivery()}
+                        disabled={actionBusy}
+                        className="w-full h-9 rounded-xl border border-primary text-primary text-sm font-medium flex items-center justify-center gap-1.5 hover:bg-primary/8 transition-colors cursor-pointer disabled:opacity-50"
+                      >
+                        {actionBusy ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                          <Truck className="w-3.5 h-3.5" />
+                        )}
+                        Доставить самостоятельно
                       </button>
                     )}
                     <CancelForm busy={actionBusy} onCancel={handleCancel} />

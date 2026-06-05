@@ -149,6 +149,14 @@ export function useOrderDetail(orderId: string | null) {
     return ok
   }, [state.order, runAction, fetchOrder])
 
+  const startSellerDelivery = useCallback(async () => {
+    if (!state.order?.id) return false
+    const id = state.order.id
+    const ok = await runAction(() => OrdersService.postApiOrdersOrdersStartSellerDelivery({ id }))
+    if (ok) void fetchOrder(id)
+    return ok
+  }, [state.order, runAction, fetchOrder])
+
   const cancel = useCallback(
     async (comment?: string) => {
       if (!state.order?.id) return false
@@ -369,6 +377,7 @@ export function useOrderDetail(orderId: string | null) {
     confirm,
     markReady,
     markReadyForCourier,
+    startSellerDelivery,
     complete,
     cancel,
     openDispute,

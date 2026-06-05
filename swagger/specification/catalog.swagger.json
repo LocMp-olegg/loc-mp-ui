@@ -2057,6 +2057,48 @@
         }
       }
     },
+    "/api/catalog/Shops/{id}/seller-delivery": {
+      "patch": {
+        "tags": [
+          "Shops"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetSellerDeliveryRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetSellerDeliveryRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetSellerDeliveryRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/catalog/Shops/{shopId}/photos/{photoId}": {
       "delete": {
         "tags": [
@@ -2947,6 +2989,15 @@
             "type": "integer",
             "format": "int32",
             "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "SetSellerDeliveryRequest": {
+        "type": "object",
+        "properties": {
+          "allow": {
+            "type": "boolean"
           }
         },
         "additionalProperties": false

@@ -40,6 +40,7 @@ import {
   Smartphone,
   BookOpen,
   Package,
+  Archive,
 } from 'lucide-react'
 
 const ICON_MAP: [string, LucideIcon][] = [
@@ -53,8 +54,12 @@ const ICON_MAP: [string, LucideIcon][] = [
   ['напит', Coffee],
   ['мясо', Beef],
   ['рыба', Fish],
+  ['молоч', Milk],
   ['молоко', Milk],
   ['сыр', Milk],
+  ['консерв', Archive],
+  ['специ', Leaf],
+  ['трав', Leaf],
   ['хендмейд', Palette],
   ['ручн', Palette],
   ['украшени', Gem],

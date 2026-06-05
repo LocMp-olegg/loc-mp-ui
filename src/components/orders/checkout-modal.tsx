@@ -475,7 +475,7 @@ function GroupSection({
             <DeliveryTypeBtn
               active={form.deliveryType === 'Delivery'}
               icon={<Truck className="w-3.5 h-3.5" />}
-              label="Курьер-сосед"
+              label="Курьер"
               onClick={() => onChange({ deliveryType: 'Delivery' })}
             />
           </div>
