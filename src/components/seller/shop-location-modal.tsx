@@ -326,6 +326,7 @@ export function ShopLocationModal({
               zoom={initialLat !== null ? 15 : 10}
               style={{ height: '100%', width: '100%' }}
               zoomControl
+              attributionControl={false}
             >
               <ThemedTileLayer />
               <MapClickHandler onMapClick={(a, b) => void handleMapClick(a, b)} />

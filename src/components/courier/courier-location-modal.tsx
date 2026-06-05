@@ -178,6 +178,7 @@ export function CourierLocationModal({
             zoom={14}
             style={{ height: '100%', width: '100%' }}
             zoomControl={false}
+            attributionControl={false}
           >
             <ThemedTileLayer />
             <MapClickHandler onMapClick={handleMapClick} />

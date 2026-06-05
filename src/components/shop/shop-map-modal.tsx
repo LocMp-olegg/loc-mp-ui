@@ -80,6 +80,7 @@ export function ShopMapModal({
             zoom={14}
             style={{ height: '100%', width: '100%' }}
             zoomControl
+            attributionControl={false}
           >
             <ThemedTileLayer />
             <Marker position={[lat, lng]} icon={markerIcon} />

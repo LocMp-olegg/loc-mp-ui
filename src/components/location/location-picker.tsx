@@ -183,6 +183,7 @@ export function LocationPicker({ onClose }: Props) {
             maxZoom={18}
             style={{ height: '100%', width: '100%' }}
             zoomControl={true}
+            attributionControl={false}
           >
             <ThemedTileLayer />
             <MapClickHandler onMapClick={(a, b) => void applyPoint(a, b)} />

@@ -146,6 +146,7 @@ export function CourierDeliveryMap({
         style={{ height: '100%', width: '100%' }}
         zoomControl
         scrollWheelZoom
+        attributionControl={false}
       >
         <ThemedTileLayer />
         <FitBounds points={allPoints} />
