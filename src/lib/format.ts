@@ -5,6 +5,7 @@ export const ORDER_STATUS_LABELS: Partial<Record<OrderStatus, string>> = {
   Pending: 'Новый',
   Confirmed: 'Подтверждён',
   ReadyForPickup: 'Готов к выдаче',
+  ReadyForCourier: 'Ожидает курьера',
   InDelivery: 'Доставляется',
   Completed: 'Завершён',
   Cancelled: 'Отменён',

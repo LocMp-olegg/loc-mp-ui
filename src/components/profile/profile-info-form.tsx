@@ -84,7 +84,7 @@ export function ProfileInfoForm({ profile, onSave }: ProfileInfoFormProps) {
         lastName: lastName || null,
         gender: (gender as 'Male' | 'Female') || null,
         birthDate: birthDate || null,
-        phoneNumber: phoneDigits ? `+7${phoneDigits}` : null,
+        phoneNumber: phoneDigits || null,
       })
       setSaved(true)
       setTimeout(() => setSaved(false), 2500)
@@ -193,7 +193,7 @@ export function ProfileInfoForm({ profile, onSave }: ProfileInfoFormProps) {
           type="submit"
           disabled={saving || !isDirty}
           whileTap={{ scale: 0.97 }}
-          className="h-10 px-5 rounded-xl bg-primary text-primary-foreground text-sm font-medium flex items-center gap-2 hover:bg-primary/90 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          className="h-10 px-5 rounded-xl bg-primary text-primary-foreground text-sm font-medium flex items-center gap-2 hover:bg-primary/90 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-default"
         >
           {saving ? (
             <Loader2 className="w-4 h-4 animate-spin" />

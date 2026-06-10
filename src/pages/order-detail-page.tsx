@@ -14,6 +14,7 @@ import {
   Star,
 } from 'lucide-react'
 import { useOrderDetail } from '@/hooks/use-order-detail'
+import { useCourierRating } from '@/hooks/use-courier-rating'
 import { OrderStatusBadge } from '@/components/seller/orders/order-status-badge'
 import { DisputeBlock } from '@/components/orders/dispute-block'
 import { StatusHistory } from '@/components/orders/status-history'
@@ -131,8 +132,12 @@ export function OrderDetailPage() {
   const canCancel = status === 'Pending' || status === 'Confirmed'
   const canComplete = status === 'ReadyForPickup' || status === 'InDelivery'
   const canDispute =
-    status === 'Confirmed' || status === 'ReadyForPickup' || status === 'InDelivery'
+    status === 'Confirmed' ||
+    status === 'ReadyForPickup' ||
+    status === 'ReadyForCourier' ||
+    status === 'InDelivery'
   const canReview = status === 'Completed'
+  const courierRating = useCourierRating(order?.courierAssignment?.courierId)
 
   const itemCount = order?.items?.length ?? 0
 
@@ -189,7 +194,7 @@ export function OrderDetailPage() {
                 </Link>
               )}
               <span className="flex items-center gap-1">
-                {order.deliveryType === 'NeighborCourier' ? (
+                {order.deliveryType === 'Delivery' ? (
                   <>
                     <Truck className="w-3.5 h-3.5" /> Доставка курьером
                   </>
@@ -249,7 +254,7 @@ export function OrderDetailPage() {
           </section>
 
           {/* Delivery address */}
-          {order.deliveryType === 'NeighborCourier' && order.deliveryAddress && (
+          {order.deliveryType === 'Delivery' && order.deliveryAddress && (
             <section
               className="rounded-2xl border border-border p-4 space-y-1.5"
               style={{ background: 'color-mix(in srgb, var(--card) 80%, transparent)' }}
@@ -294,13 +299,36 @@ export function OrderDetailPage() {
               <div className="flex items-center gap-2">
                 <Truck className="w-4 h-4 text-muted-foreground shrink-0" />
                 <div>
-                  <p className="text-sm text-foreground">
+                  <Link
+                    to={`/couriers/${order.courierAssignment.courierId}`}
+                    state={{
+                      name: order.courierAssignment.courierName,
+                      phone: order.courierAssignment.courierPhone,
+                    }}
+                    className="text-sm text-foreground hover:text-primary transition-colors"
+                  >
                     {order.courierAssignment.courierName ?? 'Имя не указано'}
-                  </p>
+                  </Link>
                   {order.courierAssignment.courierPhone && (
                     <p className="text-xs text-muted-foreground">
                       {displayPhone(order.courierAssignment.courierPhone)}
                     </p>
+                  )}
+                  {courierRating && (courierRating.reviewCount ?? 0) > 0 && (
+                    <Link
+                      to={`/couriers/${order.courierAssignment.courierId}`}
+                      state={{
+                        name: order.courierAssignment.courierName,
+                        phone: order.courierAssignment.courierPhone,
+                      }}
+                      className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors"
+                    >
+                      <Star className="w-3 h-3 fill-amber-400 text-amber-400 shrink-0" />
+                      {courierRating.averageRating?.toFixed(1)}
+                      <span className="text-muted-foreground/60">
+                        ({courierRating.reviewCount})
+                      </span>
+                    </Link>
                   )}
                 </div>
               </div>

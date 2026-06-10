@@ -11,6 +11,10 @@ const STATUS_CONFIG: Record<OrderStatus, { label: string; className: string }> =
     label: 'Готов к выдаче',
     className: 'bg-violet-500/15 text-violet-700 dark:text-violet-400',
   },
+  ReadyForCourier: {
+    label: 'Ожидает курьера',
+    className: 'bg-primary/15 text-primary',
+  },
   InDelivery: {
     label: 'Доставляется',
     className: 'bg-indigo-500/15 text-indigo-700 dark:text-indigo-400',
@@ -28,17 +32,24 @@ const STATUS_CONFIG: Record<OrderStatus, { label: string; className: string }> =
 
 interface OrderStatusBadgeProps {
   status: OrderStatus | undefined
+  isSellerDelivery?: boolean
   className?: string
 }
 
-export function OrderStatusBadge({ status, className }: OrderStatusBadgeProps) {
+export function OrderStatusBadge({ status, isSellerDelivery, className }: OrderStatusBadgeProps) {
   if (!status) return null
   const cfg = STATUS_CONFIG[status]
+  const label =
+    isSellerDelivery && status === 'ReadyForCourier'
+      ? 'Готов к отправке'
+      : isSellerDelivery && status === 'InDelivery'
+        ? 'В пути'
+        : cfg.label
   return (
     <span
       className={cn('text-[10px] font-medium px-1.5 py-0.5 rounded-md', cfg.className, className)}
     >
-      {cfg.label}
+      {label}
     </span>
   )
 }

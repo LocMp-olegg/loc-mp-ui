@@ -225,7 +225,7 @@ export function MessageInput({ chatId, onSend, onTyping, disabled = false }: Mes
               'bg-white/8 border border-white/10',
               'text-sm text-nav-text placeholder:text-nav-text/40',
               'focus:outline-none focus:ring-1 focus:ring-primary/60 focus:border-primary/40',
-              'disabled:opacity-40 disabled:cursor-not-allowed',
+              'disabled:opacity-40 disabled:cursor-default',
               'min-h-[36px] max-h-32 overflow-y-auto transition-[height] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
             )}
           />

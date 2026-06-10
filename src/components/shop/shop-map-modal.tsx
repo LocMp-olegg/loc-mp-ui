@@ -1,10 +1,20 @@
+import { useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { motion } from 'framer-motion'
-import { MapContainer, Marker, Circle } from 'react-leaflet'
+import { MapContainer, Marker, Circle, useMap } from 'react-leaflet'
 import { ThemedTileLayer } from '@/lib/map-utils'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { X, MapPin } from 'lucide-react'
+
+function MapResizer() {
+  const map = useMap()
+  useEffect(() => {
+    const t = setTimeout(() => map.invalidateSize(), 260)
+    return () => clearTimeout(t)
+  }, [map])
+  return null
+}
 
 const markerIcon = L.divIcon({
   className: '',
@@ -80,7 +90,9 @@ export function ShopMapModal({
             zoom={14}
             style={{ height: '100%', width: '100%' }}
             zoomControl
+            attributionControl={false}
           >
+            <MapResizer />
             <ThemedTileLayer />
             <Marker position={[lat, lng]} icon={markerIcon} />
             {radiusMeters !== null && (

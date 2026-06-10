@@ -1,4 +1,4 @@
-import { useState, useEffect, type RefObject } from 'react'
+import { useState, useEffect } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { ProductCard } from '@/components/product/product-card'
@@ -18,43 +18,54 @@ interface Props {
 const SKELETON_COUNT = 5
 
 export function CategorySection({ category, onLoadComplete, filterKey, filter }: Props) {
-  const { products, loading, fetched, visible, ref } = useLazyCategoryProducts(category.id, filter)
+  const { products, loading, fetched } = useLazyCategoryProducts(category.id, filter)
   const [api, setApi] = useState<CarouselApi>()
 
   useEffect(() => {
-    if (visible && !loading && fetched) onLoadComplete?.(category.id, products.length > 0)
-  }, [visible, loading, fetched, products.length, filterKey, category.id, onLoadComplete])
+    if (!loading && fetched) onLoadComplete?.(category.id, products.length > 0)
+  }, [loading, fetched, products.length, filterKey, category.id, onLoadComplete])
+
   const { scrollProgress, canScrollPrev, canScrollNext } = useCarouselProgress(api)
+
+  if (!loading && !fetched) {
+    return <div style={{ minHeight: 420 }} />
+  }
+
+  if (fetched && products.length === 0) return null
 
   const hasMore = !loading && products.length >= 10
   const canScroll = canScrollPrev || canScrollNext
-
-  if (visible && !loading && fetched && products.length === 0) return null
-
-  if (!visible) return <div ref={ref as RefObject<HTMLDivElement>} style={{ minHeight: 420 }} />
+  const showSkeletonHeader = loading && !fetched
 
   return (
     <section
-      ref={ref}
       className="mb-4 md:mb-5 mx-2 md:mx-4 rounded-2xl border border-white/20 dark:border-white/8 shadow-sm backdrop-blur-sm overflow-hidden"
       style={{ background: 'color-mix(in srgb, var(--card) 35%, transparent)' }}
     >
       <div className="flex items-center justify-between mb-3 md:mb-4 px-4 md:px-5 pt-4 md:pt-5">
-        <Link to={`/category/${category.id}`} className="flex items-center gap-2.5 min-w-0 group">
-          <category.icon className="w-5 h-5 md:w-6 md:h-6 shrink-0 text-foreground" />
-          <div className="flex flex-col min-w-0">
-            <h2 className="text-base md:text-xl font-bold text-foreground leading-tight group-hover:text-primary transition-colors truncate">
-              {category.name}
-            </h2>
-            {!loading && (
+        {showSkeletonHeader ? (
+          <div className="flex items-center gap-2.5">
+            <div className="w-5 h-5 md:w-6 md:h-6 rounded bg-muted animate-pulse shrink-0" />
+            <div className="flex flex-col gap-1.5">
+              <div className="h-5 w-32 rounded bg-muted animate-pulse" />
+              <div className="h-3 w-16 rounded bg-muted animate-pulse" />
+            </div>
+          </div>
+        ) : (
+          <Link to={`/category/${category.id}`} className="flex items-center gap-2.5 min-w-0 group">
+            <category.icon className="w-5 h-5 md:w-6 md:h-6 shrink-0 text-foreground" />
+            <div className="flex flex-col min-w-0">
+              <h2 className="text-base md:text-xl font-bold text-foreground leading-tight group-hover:text-primary transition-colors truncate">
+                {category.name}
+              </h2>
               <span className="text-xs text-muted-foreground mt-0.5">
                 {products.length} {pluralize(products.length, 'товар', 'товара', 'товаров')}
               </span>
-            )}
-          </div>
-        </Link>
+            </div>
+          </Link>
+        )}
 
-        {canScroll && (
+        {canScroll && !showSkeletonHeader && (
           <div className="flex items-center gap-1 shrink-0 ml-3">
             <button
               onClick={() => api?.scrollPrev()}

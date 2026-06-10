@@ -25,6 +25,7 @@ const STATUS_OPTIONS: { value: OrderStatus | ''; label: string }[] = [
   { value: 'Pending', label: 'Новые' },
   { value: 'Confirmed', label: 'Подтверждённые' },
   { value: 'ReadyForPickup', label: 'Готовы к выдаче' },
+  { value: 'ReadyForCourier', label: 'Ожидает курьера' },
   { value: 'InDelivery', label: 'Доставляются' },
   { value: 'Completed', label: 'Завершённые' },
   { value: 'Cancelled', label: 'Отменённые' },
@@ -74,7 +75,7 @@ function PurchaseListItem({ order }: { order: OrderSummaryDto }) {
         <div className="flex items-center gap-1.5 flex-wrap">
           <span className="text-xs font-mono text-muted-foreground">#{shortOrderId(order.id)}</span>
           <OrderStatusBadge status={order.status} />
-          {order.deliveryType === 'NeighborCourier' ? (
+          {order.deliveryType === 'Delivery' ? (
             <span className="flex items-center gap-0.5 text-[11px] text-muted-foreground">
               <Truck className="w-3 h-3" />
               Курьер

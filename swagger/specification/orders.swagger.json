@@ -236,6 +236,85 @@
         }
       }
     },
+    "/api/orders/Courier/applications": {
+      "get": {
+        "tags": [
+          "Courier"
+        ],
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/CourierApplicationStatus"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/CourierApplicationDtoPagedResult"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CourierApplicationDtoPagedResult"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CourierApplicationDtoPagedResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/orders/Courier/applications/{applicationId}": {
+      "delete": {
+        "tags": [
+          "Courier"
+        ],
+        "parameters": [
+          {
+            "name": "applicationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/orders/Courier/orders": {
       "get": {
         "tags": [
@@ -274,26 +353,76 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/OrderSummaryDto"
-                  }
+                  "$ref": "#/components/schemas/OrderSummaryDtoPagedResult"
                 }
               },
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/OrderSummaryDto"
-                  }
+                  "$ref": "#/components/schemas/OrderSummaryDtoPagedResult"
                 }
               },
               "text/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/OrderSummaryDto"
-                  }
+                  "$ref": "#/components/schemas/OrderSummaryDtoPagedResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/orders/Courier/orders/{id}/apply": {
+      "post": {
+        "tags": [
+          "Courier"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApplyCourierRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApplyCourierRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApplyCourierRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/CourierApplicationDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CourierApplicationDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CourierApplicationDto"
                 }
               }
             }
@@ -399,7 +528,24 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderSummaryDtoPagedResult"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderSummaryDtoPagedResult"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderSummaryDtoPagedResult"
+                }
+              }
+            }
           }
         }
       }
@@ -861,6 +1007,55 @@
         }
       }
     },
+    "/api/orders/Orders/{id}/courier-applications": {
+      "get": {
+        "tags": [
+          "Orders"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CourierApplicationDto"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CourierApplicationDto"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CourierApplicationDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/orders/Orders/{id}/photos": {
       "post": {
         "tags": [
@@ -934,6 +1129,98 @@
       }
     },
     "/api/orders/Orders/{id}/ready": {
+      "post": {
+        "tags": [
+          "Orders"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/orders/Orders/{id}/ready-for-courier": {
+      "post": {
+        "tags": [
+          "Orders"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/orders/Orders/{id}/seller-delivered": {
+      "post": {
+        "tags": [
+          "Orders"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/orders/Orders/{id}/seller-picked-up": {
+      "post": {
+        "tags": [
+          "Orders"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/orders/Orders/{id}/start-seller-delivery": {
       "post": {
         "tags": [
           "Orders"
@@ -1040,6 +1327,52 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/orders/Orders/courier-applications/{applicationId}/approve": {
+      "post": {
+        "tags": [
+          "Orders"
+        ],
+        "parameters": [
+          {
+            "name": "applicationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/orders/Orders/courier-applications/{applicationId}/reject": {
+      "post": {
+        "tags": [
+          "Orders"
+        ],
+        "parameters": [
+          {
+            "name": "applicationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
           }
         }
       }
@@ -1359,6 +1692,30 @@
         },
         "additionalProperties": false
       },
+      "ApplyCourierRequest": {
+        "type": "object",
+        "properties": {
+          "courierName": {
+            "type": "string",
+            "nullable": true
+          },
+          "courierPhone": {
+            "type": "string",
+            "nullable": true
+          },
+          "latitude": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "longitude": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "AssignCourierRequest": {
         "type": "object",
         "properties": {
@@ -1504,10 +1861,6 @@
       "CheckoutRequest": {
         "type": "object",
         "properties": {
-          "buyerComment": {
-            "type": "string",
-            "nullable": true
-          },
           "groups": {
             "type": "array",
             "items": {
@@ -1517,6 +1870,96 @@
           }
         },
         "additionalProperties": false
+      },
+      "CourierApplicationDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "orderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "courierId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "courierName": {
+            "type": "string",
+            "nullable": true
+          },
+          "courierPhone": {
+            "type": "string",
+            "nullable": true
+          },
+          "distanceToShopMeters": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "status": {
+            "$ref": "#/components/schemas/CourierApplicationStatus"
+          },
+          "appliedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "CourierApplicationDtoPagedResult": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CourierApplicationDto"
+            },
+            "nullable": true
+          },
+          "totalCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalPages": {
+            "type": "integer",
+            "format": "int32",
+            "readOnly": true
+          },
+          "hasNextPage": {
+            "type": "boolean",
+            "readOnly": true
+          },
+          "hasPreviousPage": {
+            "type": "boolean",
+            "readOnly": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "CourierApplicationStatus": {
+        "enum": [
+          "Pending",
+          "Approved",
+          "Rejected",
+          "Withdrawn"
+        ],
+        "type": "string"
       },
       "CourierAssignmentDto": {
         "type": "object",
@@ -1655,7 +2098,7 @@
       "DeliveryType": {
         "enum": [
           "Pickup",
-          "NeighborCourier"
+          "Delivery"
         ],
         "type": "string"
       },
@@ -1855,6 +2298,10 @@
           "deliveryAddress": {
             "$ref": "#/components/schemas/DeliveryAddressRequest"
           },
+          "buyerComment": {
+            "type": "string",
+            "nullable": true
+          },
           "selectedItemIds": {
             "type": "array",
             "items": {
@@ -1970,6 +2417,9 @@
           "courierAssignment": {
             "$ref": "#/components/schemas/CourierAssignmentDto"
           },
+          "isSellerDelivery": {
+            "type": "boolean"
+          },
           "dispute": {
             "$ref": "#/components/schemas/DisputeDto"
           }
@@ -2074,7 +2524,8 @@
           "InDelivery",
           "Completed",
           "Cancelled",
-          "Disputed"
+          "Disputed",
+          "ReadyForCourier"
         ],
         "type": "string"
       },
@@ -2166,6 +2617,11 @@
           "completedAt": {
             "type": "string",
             "format": "date-time",
+            "nullable": true
+          },
+          "distanceToShopMeters": {
+            "type": "number",
+            "format": "double",
             "nullable": true
           }
         },

@@ -17,7 +17,11 @@ import {
   type TouchedFields,
 } from '@/lib/shop-form'
 
-const COURIER_KEYS = new Set<keyof FormState>(['allowCourier', 'maxCourierMeters'])
+const COURIER_KEYS = new Set<keyof FormState>([
+  'allowCourier',
+  'maxCourierMeters',
+  'allowSellerDelivery',
+])
 
 export type { FormState, FormAction }
 
@@ -203,22 +207,40 @@ export function useShopForm(
     if (!shopId || courierSaving) return
     setCourierSaving(true)
     setCourierError(null)
+    const errors: string[] = []
     try {
       await ShopsService.patchApiCatalogShopsCourierDelivery({
         id: shopId,
+        requestBody: { allow: form.allowCourier },
+      })
+    } catch {
+      errors.push('курьерская доставка')
+    }
+    try {
+      await ShopsService.patchApiCatalogShopsSellerDelivery({
+        id: shopId,
+        requestBody: { allow: form.allowSellerDelivery },
+      })
+    } catch {
+      errors.push('доставка продавцом')
+    }
+    try {
+      await ShopsService.patchApiCatalogShopsDeliveryDistance({
+        id: shopId,
         requestBody: {
-          allow: form.allowCourier,
-          maxDistanceMeters:
-            form.allowCourier && form.maxCourierMeters ? Number(form.maxCourierMeters) : null,
+          maxDistanceMeters: form.maxCourierMeters ? Number(form.maxCourierMeters) : null,
         },
       })
+    } catch {
+      errors.push('радиус доставки')
+    }
+    setCourierSaving(false)
+    if (errors.length > 0) {
+      setCourierError(`Не удалось сохранить: ${errors.join(', ')}`)
+    } else {
       setCourierSaved(true)
       setIsCourierDirty(false)
       setTimeout(() => setCourierSaved(false), 2500)
-    } catch {
-      setCourierError('Не удалось сохранить настройки доставки')
-    } finally {
-      setCourierSaving(false)
     }
   }
 

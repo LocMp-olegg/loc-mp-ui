@@ -23,6 +23,7 @@ import { ProfileSelect } from '@/components/ui/profile-select'
 import { BUSINESS_OPTIONS } from '@/lib/shop-form'
 import { EMAIL_RE, PHONE_RE } from '@/lib/auth-validation'
 import { cn } from '@/lib/utils'
+import { InfoTooltip } from '@/components/ui/info-tooltip'
 
 const inputClass =
   'w-full h-10 px-3 text-sm text-foreground bg-background border border-border rounded-xl outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary/50 transition-all placeholder:text-muted-foreground/50'
@@ -217,7 +218,7 @@ export function ShopEditPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className={labelClass}>Телефон</label>
+                  <label className={labelClass}>Телефон*</label>
                   <input
                     type="tel"
                     value={formatPhone(form.phoneNumber)}
@@ -243,7 +244,7 @@ export function ShopEditPage() {
                   )}
                 </div>
                 <div>
-                  <label className={labelClass}>Email</label>
+                  <label className={labelClass}>Email*</label>
                   <input
                     type="email"
                     value={form.email}
@@ -338,11 +339,12 @@ export function ShopEditPage() {
                     {form.latitude.toFixed(5)}, {form.longitude.toFixed(5)}
                   </span>
                   {form.serviceRadiusMeters !== null && (
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
+                    <span className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
                       Радиус:{' '}
                       {form.serviceRadiusMeters >= 1000
                         ? `${form.serviceRadiusMeters / 1000} км`
                         : `${form.serviceRadiusMeters} м`}
+                      <InfoTooltip text="Радиус обслуживания: покупатели дальше этого расстояния не видят ваш магазин в каталоге." />
                     </span>
                   )}
                   <a
@@ -486,36 +488,35 @@ export function ShopEditPage() {
             <div className={sectionClass}>
               <h2 className={sectionTitle}>
                 <Truck className="w-4 h-4 text-muted-foreground" />
-                Курьерская доставка
+                Доставка
               </h2>
               <div className="space-y-3">
                 <Toggle
+                  checked={form.allowSellerDelivery}
+                  onChange={(v) => dispatch({ type: 'patch', patch: { allowSellerDelivery: v } })}
+                  label="Доставка силами продавца"
+                />
+                <Toggle
                   checked={form.allowCourier}
                   onChange={(v) => dispatch({ type: 'patch', patch: { allowCourier: v } })}
-                  label="Разрешить курьерскую доставку"
+                  label="Доставка курьером-соседом"
                 />
-                <AnimatePresence>
-                  {form.allowCourier && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                      transition={{ duration: 0.15 }}
-                    >
-                      <label className={labelClass}>Максимальная дистанция (метры)</label>
-                      <input
-                        type="number"
-                        min={0}
-                        value={form.maxCourierMeters}
-                        onChange={(e) =>
-                          dispatch({ type: 'patch', patch: { maxCourierMeters: e.target.value } })
-                        }
-                        placeholder="5000"
-                        className={cn(inputClass, 'input-no-spin')}
-                      />
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                <div>
+                  <label className={`${labelClass} flex items-center gap-1.5`}>
+                    Максимальная дистанция доставки (метры)
+                    <InfoTooltip text="Максимальное расстояние от магазина до адреса доставки покупателя. Если не указано — покупатель может оформить доставку из любой точки." />
+                  </label>
+                  <input
+                    type="number"
+                    min={0}
+                    value={form.maxCourierMeters}
+                    onChange={(e) =>
+                      dispatch({ type: 'patch', patch: { maxCourierMeters: e.target.value } })
+                    }
+                    placeholder="5000"
+                    className={cn(inputClass, 'input-no-spin')}
+                  />
+                </div>
                 {courierError && <p className="text-xs text-destructive">{courierError}</p>}
                 <motion.button
                   type="button"

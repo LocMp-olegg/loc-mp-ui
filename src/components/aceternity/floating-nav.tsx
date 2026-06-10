@@ -16,12 +16,13 @@ import {
   Store,
   Check,
   Star,
+  Bike,
   Map,
   Package,
   MessagesSquare,
   Bell,
 } from 'lucide-react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useCart } from '@/contexts/cart-context'
 import { useFavorites } from '@/contexts/favorites-context'
 import { useUserLocation } from '@/contexts/location-context'
@@ -57,6 +58,12 @@ function isSeller(user: { role: string | string[] } | null) {
   return roles.includes('Seller')
 }
 
+function isCourier(user: { role: string | string[] } | null) {
+  if (!user) return false
+  const roles = Array.isArray(user.role) ? user.role : [user.role]
+  return roles.includes('Courier')
+}
+
 function ProfileDropdown({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { user, logout } = useAuth()
   const { unreadCount: unreadChats } = useChatContext()
@@ -90,6 +97,16 @@ function ProfileDropdown({ open, onClose }: { open: boolean; onClose: () => void
             >
               <Store className="w-4 h-4 shrink-0" />
               Панель продавца
+            </Link>
+          )}
+          {isCourier(user) && (
+            <Link
+              to="/courier"
+              onClick={onClose}
+              className="w-full flex items-center gap-2.5 px-4 py-3 text-sm text-nav-text/80 hover:bg-white/8 hover:text-nav-text transition-colors cursor-pointer"
+            >
+              <Bike className="w-4 h-4 shrink-0" />
+              Панель курьера
             </Link>
           )}
           <Link
@@ -153,10 +170,12 @@ export function FloatingNav() {
   const { scrollY } = useScroll()
   const [scrolled, setScrolled] = useState(false)
   const [isWide, setIsWide] = useState(() => window.innerWidth >= 768)
-  const [pickerOpen, setPickerOpen] = useState(false)
+  const [pickerOpenKey, setPickerOpenKey] = useState<string | null>(null)
   const [menuOpen, setMenuOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
   const profileRef = useRef<HTMLDivElement>(null)
+  const routerLocation = useLocation()
+  const pickerOpen = pickerOpenKey === routerLocation.key
 
   useMotionValueEvent(scrollY, 'change', (y) => {
     setScrolled(y > 80)
@@ -275,11 +294,14 @@ export function FloatingNav() {
             </Link>
 
             {!initializing && isAuthenticated ? (
-              <AddressDropdown onOpenPicker={() => setPickerOpen(true)} scrolled={scrolled} />
+              <AddressDropdown
+                onOpenPicker={() => setPickerOpenKey(routerLocation.key)}
+                scrolled={scrolled}
+              />
             ) : !initializing ? (
               <div className="relative group/loc shrink-0">
                 <motion.button
-                  onClick={() => setPickerOpen(true)}
+                  onClick={() => setPickerOpenKey(routerLocation.key)}
                   animate={{
                     paddingLeft: scrolled ? 8 : 12,
                     paddingRight: scrolled ? 8 : 12,
@@ -401,12 +423,12 @@ export function FloatingNav() {
                 {!initializing && isAuthenticated ? (
                   <MobileAddressSection
                     onClose={() => setMenuOpen(false)}
-                    onOpenPicker={() => setPickerOpen(true)}
+                    onOpenPicker={() => setPickerOpenKey(routerLocation.key)}
                   />
                 ) : (
                   <button
                     onClick={() => {
-                      setPickerOpen(true)
+                      setPickerOpenKey(routerLocation.key)
                       setMenuOpen(false)
                     }}
                     className="w-full flex items-center gap-3 px-4 py-3.5 text-sm text-nav-text/80 hover:bg-white/5 transition-colors cursor-pointer border-b border-white/8"
@@ -498,7 +520,7 @@ export function FloatingNav() {
       </div>
 
       <AnimatePresence>
-        {pickerOpen && <LocationPicker onClose={() => setPickerOpen(false)} />}
+        {pickerOpen && <LocationPicker onClose={() => setPickerOpenKey(null)} />}
       </AnimatePresence>
     </>
   )
@@ -710,6 +732,16 @@ function MobileProfileSection({ onClose }: { onClose: () => void }) {
               >
                 <Store className="w-4 h-4 shrink-0" />
                 Панель продавца
+              </Link>
+            )}
+            {isCourier(user) && (
+              <Link
+                to="/courier"
+                onClick={onClose}
+                className="w-full flex items-center gap-3 px-4 py-3 pl-12 text-sm text-nav-text/80 hover:bg-white/5 transition-colors"
+              >
+                <Bike className="w-4 h-4 shrink-0" />
+                Панель курьера
               </Link>
             )}
             <Link

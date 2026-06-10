@@ -322,6 +322,7 @@ export function AddressFormModal({ initial, onClose, onSave }: Props) {
               zoom={lat !== null ? 16 : 10}
               style={{ height: '100%', width: '100%' }}
               zoomControl={false}
+              attributionControl={false}
             >
               <ThemedTileLayer />
               <MapClickHandler onMapClick={(a, b) => void applyMapClick(a, b)} />

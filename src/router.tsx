@@ -2,6 +2,7 @@ import { createBrowserRouter, Navigate } from 'react-router-dom'
 import { RootLayout } from '@/components/layout/root-layout'
 import { Layout } from '@/components/layout/layout'
 import { SellerLayout } from '@/components/layout/seller-layout'
+import { CourierLayout } from '@/components/layout/courier-layout'
 import { HomePage } from '@/pages/home-page'
 import { CartPage } from '@/pages/cart-page'
 import { FavoritesPage } from '@/pages/favorites-page'
@@ -30,6 +31,11 @@ import { ProductEditPage } from '@/pages/seller/product-edit-page'
 import { OrdersPage as SellerOrdersPage } from '@/pages/seller/orders-page'
 import { AnalyticsPage } from '@/pages/seller/analytics-page'
 import { SellerChatsPage } from '@/pages/seller/chats-page'
+import { CourierProfilePage } from '@/pages/courier/profile-page'
+import { CourierOrdersPage } from '@/pages/courier/orders-page'
+import { CourierHistoryPage } from '@/pages/courier/history-page'
+import { CourierReviewsPage } from '@/pages/courier/reviews-page'
+import { CourierPublicPage } from '@/pages/courier-public-page'
 
 export const router = createBrowserRouter([
   {
@@ -45,6 +51,7 @@ export const router = createBrowserRouter([
           { path: 'search', element: <SearchPage /> },
           { path: 'shop/:id', element: <ShopPage /> },
           { path: 'sellers/:id', element: <SellerPage /> },
+          { path: 'couriers/:id', element: <CourierPublicPage /> },
           {
             path: 'cart',
             element: (
@@ -124,6 +131,17 @@ export const router = createBrowserRouter([
           },
           { path: 'login', element: <LoginPage /> },
           { path: 'reset-password', element: <ResetPasswordPage /> },
+        ],
+      },
+      {
+        path: '/courier',
+        element: <CourierLayout />,
+        children: [
+          { index: true, element: <Navigate to="/courier/profile" replace /> },
+          { path: 'profile', element: <CourierProfilePage /> },
+          { path: 'orders', element: <CourierOrdersPage /> },
+          { path: 'history', element: <CourierHistoryPage /> },
+          { path: 'reviews', element: <CourierReviewsPage /> },
         ],
       },
       {
