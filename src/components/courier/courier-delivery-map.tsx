@@ -1,6 +1,8 @@
-import { useEffect, useReducer, useRef } from 'react'
+import { useState, useEffect, useReducer, useRef } from 'react'
 import { MapContainer, Marker, Popup, Polyline, useMap } from 'react-leaflet'
 import { ThemedTileLayer } from '@/lib/map-utils'
+import { Car, Footprints } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 
@@ -33,14 +35,19 @@ function FitBounds({ points }: { points: [number, number][] }) {
   return null
 }
 
+type RouteMode = 'driving' | 'foot'
+
 async function fetchRoute(
   from: [number, number],
   to: [number, number],
+  mode: RouteMode,
 ): Promise<[number, number][] | null> {
   try {
-    const url =
-      `https://router.project-osrm.org/route/v1/driving/` +
-      `${from[1]},${from[0]};${to[1]},${to[0]}?overview=full&geometries=geojson`
+    const base =
+      mode === 'foot'
+        ? `https://routing.openstreetmap.de/routed-foot/route/v1/foot/`
+        : `https://router.project-osrm.org/route/v1/driving/`
+    const url = `${base}${from[1]},${from[0]};${to[1]},${to[0]}?overview=full&geometries=geojson`
     const res = await fetch(url)
     if (!res.ok) return null
     const data = (await res.json()) as {
@@ -91,12 +98,11 @@ export function CourierDeliveryMap({
   courierLat,
   courierLng,
 }: CourierDeliveryMapProps) {
+  const [mode, setMode] = useState<RouteMode>('driving')
   const [routes, dispatchRoutes] = useReducer(routesReducer, {
     shopToDelivery: null,
     courierToShop: null,
   })
-  const shopToDeliveryRoute = routes.shopToDelivery
-  const courierToShopRoute = routes.courierToShop
 
   const hasShop = shopLat != null && shopLng != null
   const hasDelivery = deliveryLat != null && deliveryLng != null
@@ -114,13 +120,14 @@ export function CourierDeliveryMap({
       return
     }
     let cancelled = false
-    fetchRoute([shopLat, shopLng], [deliveryLat, deliveryLng]).then((r) => {
+    dispatchRoutes({ type: 'setShopToDelivery', route: null })
+    fetchRoute([shopLat, shopLng], [deliveryLat, deliveryLng], mode).then((r) => {
       if (!cancelled) dispatchRoutes({ type: 'setShopToDelivery', route: r })
     })
     return () => {
       cancelled = true
     }
-  }, [hasShop, hasDelivery, shopLat, shopLng, deliveryLat, deliveryLng])
+  }, [hasShop, hasDelivery, shopLat, shopLng, deliveryLat, deliveryLng, mode])
 
   useEffect(() => {
     if (!hasCourier || !hasShop) {
@@ -128,18 +135,52 @@ export function CourierDeliveryMap({
       return
     }
     let cancelled = false
-    fetchRoute([courierLat, courierLng], [shopLat, shopLng]).then((r) => {
+    dispatchRoutes({ type: 'setCourierToShop', route: null })
+    fetchRoute([courierLat, courierLng], [shopLat, shopLng], mode).then((r) => {
       if (!cancelled) dispatchRoutes({ type: 'setCourierToShop', route: r })
     })
     return () => {
       cancelled = true
     }
-  }, [hasCourier, hasShop, courierLat, courierLng, shopLat, shopLng])
+  }, [hasCourier, hasShop, courierLat, courierLng, shopLat, shopLng, mode])
 
   if (allPoints.length === 0) return null
 
+  const routeColor = mode === 'foot' ? '#2a9d8f' : '#2a9d8f'
+  const courierColor = mode === 'foot' ? '#4f86f7' : '#4f86f7'
+
   return (
-    <div className="rounded-xl overflow-hidden border border-border" style={{ height: 260 }}>
+    <div className="rounded-xl overflow-hidden border border-border relative" style={{ height: 260 }}>
+      {/* Mode toggle */}
+      <div className="absolute top-2 right-2 z-[1000] flex rounded-lg overflow-hidden border border-border shadow-md">
+        <button
+          onClick={() => setMode('driving')}
+          className={cn(
+            'flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium transition-colors cursor-pointer',
+            mode === 'driving'
+              ? 'bg-primary text-primary-foreground'
+              : 'bg-card text-muted-foreground hover:bg-muted',
+          )}
+          title="Маршрут на транспорте"
+        >
+          <Car className="w-3.5 h-3.5" />
+          Авто
+        </button>
+        <button
+          onClick={() => setMode('foot')}
+          className={cn(
+            'flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium transition-colors cursor-pointer',
+            mode === 'foot'
+              ? 'bg-primary text-primary-foreground'
+              : 'bg-card text-muted-foreground hover:bg-muted',
+          )}
+          title="Пешеходный маршрут"
+        >
+          <Footprints className="w-3.5 h-3.5" />
+          Пешком
+        </button>
+      </div>
+
       <MapContainer
         center={allPoints[0]}
         zoom={13}
@@ -153,10 +194,10 @@ export function CourierDeliveryMap({
 
         {hasCourier &&
           hasShop &&
-          (courierToShopRoute ? (
+          (routes.courierToShop ? (
             <Polyline
-              positions={courierToShopRoute}
-              pathOptions={{ color: '#4f86f7', weight: 3, opacity: 0.75 }}
+              positions={routes.courierToShop}
+              pathOptions={{ color: courierColor, weight: 3, opacity: 0.75 }}
             />
           ) : (
             <Polyline
@@ -164,16 +205,16 @@ export function CourierDeliveryMap({
                 [courierLat, courierLng],
                 [shopLat, shopLng],
               ]}
-              pathOptions={{ color: '#4f86f7', weight: 2, opacity: 0.5, dashArray: '6 6' }}
+              pathOptions={{ color: courierColor, weight: 2, opacity: 0.5, dashArray: '6 6' }}
             />
           ))}
 
         {hasShop &&
           hasDelivery &&
-          (shopToDeliveryRoute ? (
+          (routes.shopToDelivery ? (
             <Polyline
-              positions={shopToDeliveryRoute}
-              pathOptions={{ color: '#2a9d8f', weight: 4, opacity: 0.85 }}
+              positions={routes.shopToDelivery}
+              pathOptions={{ color: routeColor, weight: 4, opacity: 0.85 }}
             />
           ) : (
             <Polyline
@@ -181,7 +222,7 @@ export function CourierDeliveryMap({
                 [shopLat, shopLng],
                 [deliveryLat, deliveryLng],
               ]}
-              pathOptions={{ color: '#2a9d8f', weight: 3, opacity: 0.5, dashArray: '6 6' }}
+              pathOptions={{ color: routeColor, weight: 3, opacity: 0.5, dashArray: '6 6' }}
             />
           ))}
 
