@@ -77,7 +77,7 @@ export function ShopMarkers() {
       <MapEventHandler onBounds={fetchForBounds} />
       {displayPins.map((pin) => (
         <Marker key={pin.shopId} position={[pin.displayLat, pin.displayLng]} icon={shopIcon}>
-          <Popup closeButton={false} className="shop-popup">
+          <Popup closeButton={false} className="shop-popup" autoPan={false}>
             <ShopPinPopup pin={pin} />
           </Popup>
         </Marker>

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { motion } from 'framer-motion'
-import { MapContainer, Marker, Circle } from 'react-leaflet'
+import { MapContainer, Marker, Circle, useMap } from 'react-leaflet'
 import { MOSCOW } from '@/lib/map-constants'
 import { MapClickHandler, MapRecenter, ThemedTileLayer } from '@/lib/map-utils'
 import { ShopMarkers, MIN_ZOOM } from '@/components/shop/shop-markers'
@@ -14,6 +14,15 @@ import { useApplyPoint } from '@/hooks/use-apply-point'
 import { useMapHandlers } from '@/hooks/use-map-handlers'
 import { RadiusInput } from '@/components/ui/radius-input'
 import { cn } from '@/lib/utils'
+
+function MapResizer() {
+  const map = useMap()
+  useEffect(() => {
+    const t = setTimeout(() => map.invalidateSize(), 260)
+    return () => clearTimeout(t)
+  }, [map])
+  return null
+}
 
 const markerIcon = L.divIcon({
   className: '',
@@ -185,6 +194,7 @@ export function LocationPicker({ onClose }: Props) {
             zoomControl={true}
             attributionControl={false}
           >
+            <MapResizer />
             <ThemedTileLayer />
             <MapClickHandler onMapClick={(a, b) => void applyPoint(a, b)} />
             {recenter && <MapRecenter lat={lat} lng={lng} />}
