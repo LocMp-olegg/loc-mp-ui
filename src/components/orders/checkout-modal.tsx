@@ -42,6 +42,7 @@ interface GroupForm {
   selectedAddressId: string | null
   recipientName: string
   recipientPhoneDigits: string
+  comment: string
 }
 
 interface GroupErrors {
@@ -56,6 +57,7 @@ function defaultGroupForm(defaultAddr: UserAddressDto | undefined): GroupForm {
     selectedAddressId: defaultAddr?.id ?? null,
     recipientName: '',
     recipientPhoneDigits: '',
+    comment: '',
   }
 }
 
@@ -175,7 +177,6 @@ export function CheckoutModal({ groups, productInfoMap, onClose, onSuccess }: Ch
   const [groupForms, dispatchForms] = useReducer(formsReducer, groups, (gs) =>
     gs.map(() => defaultGroupForm(defaultAddr)),
   )
-  const [comment, setComment] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [addingForIdx, setAddingForIdx] = useState<number | null>(null)
@@ -248,7 +249,6 @@ export function CheckoutModal({ groups, productInfoMap, onClose, onSuccess }: Ch
     try {
       await CartsService.postApiOrdersCartsCheckout({
         requestBody: {
-          buyerComment: comment || undefined,
           groups: groups.map((g, i) => {
             const form = groupForms[i]
             const addr = addresses.find((a) => a.id === form.selectedAddressId)
@@ -260,6 +260,7 @@ export function CheckoutModal({ groups, productInfoMap, onClose, onSuccess }: Ch
                 form.deliveryType === 'Delivery' && addr
                   ? addressToDelivery(addr, form.recipientName, form.recipientPhoneDigits)
                   : undefined,
+              buyerComment: form.comment.trim() || undefined,
               selectedItemIds: g.isFullGroup ? undefined : g.items.map((item) => item.id!),
             }
           }),
@@ -366,23 +367,9 @@ export function CheckoutModal({ groups, productInfoMap, onClose, onSuccess }: Ch
               }}
               onAddAddress={() => setAddingForIdx(idx)}
               showHeader={groups.length > 1}
+              showCommentLabel={groups.length > 1}
             />
           ))}
-
-          {/* Comment */}
-          <div>
-            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1.5 mb-1.5">
-              <MessageSquare className="w-3.5 h-3.5" />
-              Комментарий (необязательно)
-            </label>
-            <textarea
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              rows={2}
-              placeholder="Пожелания к заказу..."
-              className="w-full px-3 py-2 rounded-xl border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary/50 resize-none"
-            />
-          </div>
 
           {error && <p className="text-xs text-destructive">{error}</p>}
         </div>
@@ -441,6 +428,7 @@ interface GroupSectionProps {
   onChange: (patch: Partial<GroupForm>) => void
   onAddAddress: () => void
   showHeader: boolean
+  showCommentLabel: boolean
 }
 
 function GroupSection({
@@ -456,17 +444,16 @@ function GroupSection({
   onChange,
   onAddAddress,
   showHeader,
+  showCommentLabel,
 }: GroupSectionProps) {
   const shopLabel = group.shopName ?? group.sellerName ?? 'Магазин'
   const n = group.items.length
 
-  // courier delivery available if shop allows courier neighbors OR seller self-delivery
   const courierAllowed =
     shop === undefined || shop.allowCourierDelivery === true || shop.allowSellerDelivery === true
   const maxDistanceKm =
     shop?.maxCourierDistanceMeters ? shop.maxCourierDistanceMeters / 1000 : null
 
-  // auto-reset to Pickup when delivery becomes unavailable after shop data loads
   useEffect(() => {
     if (!courierAllowed && form.deliveryType === 'Delivery') {
       onChange({ deliveryType: 'Pickup' })
@@ -624,6 +611,21 @@ function GroupSection({
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Comment */}
+        <div>
+          <label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5 mb-1.5">
+            <MessageSquare className="w-3.5 h-3.5" />
+            {showCommentLabel ? `Комментарий к заказу в «${group.shopName ?? group.sellerName ?? 'магазине'}»` : 'Комментарий (необязательно)'}
+          </label>
+          <textarea
+            value={form.comment}
+            onChange={(e) => onChange({ comment: e.target.value })}
+            rows={2}
+            placeholder="Пожелания к заказу..."
+            className="w-full px-3 py-2 rounded-xl border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary/50 resize-none"
+          />
+        </div>
       </div>
     </div>
   )

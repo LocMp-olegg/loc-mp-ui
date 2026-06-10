@@ -1861,10 +1861,6 @@
       "CheckoutRequest": {
         "type": "object",
         "properties": {
-          "buyerComment": {
-            "type": "string",
-            "nullable": true
-          },
           "groups": {
             "type": "array",
             "items": {
@@ -2301,6 +2297,10 @@
           },
           "deliveryAddress": {
             "$ref": "#/components/schemas/DeliveryAddressRequest"
+          },
+          "buyerComment": {
+            "type": "string",
+            "nullable": true
           },
           "selectedItemIds": {
             "type": "array",
