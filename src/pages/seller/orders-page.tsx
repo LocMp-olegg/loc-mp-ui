@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { ShoppingBag, Loader2 } from 'lucide-react'
+import { ShoppingBag, Loader2, RefreshCw } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import { useMySales } from '@/hooks/use-my-sales'
 import { useMyShops } from '@/hooks/use-my-shops'
 import { OrderFilters } from '@/components/seller/orders/order-filters'
@@ -41,6 +42,15 @@ export function OrdersPage() {
             {hasNextPage ? '+' : ''} из {totalCount}
           </span>
         )}
+        <button
+          type="button"
+          onClick={reload}
+          disabled={loading}
+          className="ml-auto flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer disabled:opacity-50"
+        >
+          <RefreshCw className={cn('w-3.5 h-3.5', loading && 'animate-spin')} />
+          Обновить
+        </button>
       </div>
 
       {/* Filters */}

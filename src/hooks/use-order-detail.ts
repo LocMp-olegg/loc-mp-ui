@@ -125,6 +125,10 @@ export function useOrderDetail(orderId: string | null) {
     if (orderId) void fetchOrder(orderId)
   }, [orderId, fetchOrder])
 
+  const reloadApps = useCallback(() => {
+    setAppsReloadKey((k) => k + 1)
+  }, [])
+
   const confirm = useCallback(async () => {
     if (!state.order?.id) return false
     const id = state.order.id
@@ -390,6 +394,7 @@ export function useOrderDetail(orderId: string | null) {
     courierApplications: appsState.items,
     appsLoading: appsState.loading,
     reload,
+    reloadApps,
     confirm,
     markReady,
     markReadyForCourier,
