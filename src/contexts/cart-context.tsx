@@ -79,9 +79,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     isLoading: false,
   })
 
-  // Optimistic quantities: cartItemId → pending qty (shown while debounce is active)
   const [pendingQuantities, setPendingQuantities] = useState<Record<string, number>>({})
-  // Ref holds the same data for reading inside async callbacks (avoids stale closures)
   const pendingValuesRef = useRef<Record<string, number>>({})
   const timersRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
 
@@ -128,7 +126,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }
 
   const removeItem = async (cartItemId: string): Promise<void> => {
-    // Cancel any pending debounced update for this item
     if (timersRef.current[cartItemId]) {
       clearTimeout(timersRef.current[cartItemId])
       delete timersRef.current[cartItemId]
@@ -146,26 +143,33 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const updateQuantity = (cartItemId: string, quantity: number): Promise<void> => {
     if (quantity <= 0) return removeItem(cartItemId)
 
-    // Show new quantity immediately
     pendingValuesRef.current[cartItemId] = quantity
     setPendingQuantities((prev) => ({ ...prev, [cartItemId]: quantity }))
 
-    // Debounce: reset timer on every click, fire one request after 500ms of quiet
     if (timersRef.current[cartItemId]) clearTimeout(timersRef.current[cartItemId])
     timersRef.current[cartItemId] = setTimeout(() => {
       delete timersRef.current[cartItemId]
       const finalQty = pendingValuesRef.current[cartItemId]
       if (finalQty === undefined) return
       delete pendingValuesRef.current[cartItemId]
-      setPendingQuantities((prev) => {
-        const next = { ...prev }
-        delete next[cartItemId]
-        return next
-      })
+
+      const clearPending = () => {
+        if (pendingValuesRef.current[cartItemId] === undefined) {
+          setPendingQuantities((prev) => {
+            const next = { ...prev }
+            delete next[cartItemId]
+            return next
+          })
+        }
+      }
+
       CartsService.putApiOrdersCartsItems({ cartItemId, requestBody: { quantity: finalQty } })
-        .then((data) => dispatch({ type: 'update', cart: data }))
+        .then((data) => {
+          clearPending()
+          dispatch({ type: 'update', cart: data })
+        })
         .catch(() => {
-          // Rollback: re-fetch authoritative state from server
+          clearPending()
           CartsService.getApiOrdersCarts()
             .then((data) => dispatch({ type: 'loaded', cart: data }))
             .catch(() => {})
