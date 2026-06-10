@@ -451,8 +451,7 @@ function GroupSection({
 
   const courierAllowed =
     shop === undefined || shop.allowCourierDelivery === true || shop.allowSellerDelivery === true
-  const maxDistanceKm =
-    shop?.maxCourierDistanceMeters ? shop.maxCourierDistanceMeters / 1000 : null
+  const maxDistanceKm = shop?.maxCourierDistanceMeters ? shop.maxCourierDistanceMeters / 1000 : null
 
   useEffect(() => {
     if (!courierAllowed && form.deliveryType === 'Delivery') {
@@ -616,7 +615,9 @@ function GroupSection({
         <div>
           <label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5 mb-1.5">
             <MessageSquare className="w-3.5 h-3.5" />
-            {showCommentLabel ? `Комментарий к заказу в «${group.shopName ?? group.sellerName ?? 'магазине'}»` : 'Комментарий (необязательно)'}
+            {showCommentLabel
+              ? `Комментарий к заказу в «${group.shopName ?? group.sellerName ?? 'магазине'}»`
+              : 'Комментарий (необязательно)'}
           </label>
           <textarea
             value={form.comment}

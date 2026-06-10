@@ -294,7 +294,10 @@ export function FloatingNav() {
             </Link>
 
             {!initializing && isAuthenticated ? (
-              <AddressDropdown onOpenPicker={() => setPickerOpenKey(routerLocation.key)} scrolled={scrolled} />
+              <AddressDropdown
+                onOpenPicker={() => setPickerOpenKey(routerLocation.key)}
+                scrolled={scrolled}
+              />
             ) : !initializing ? (
               <div className="relative group/loc shrink-0">
                 <motion.button

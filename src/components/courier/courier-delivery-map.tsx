@@ -150,7 +150,10 @@ export function CourierDeliveryMap({
   const courierColor = mode === 'foot' ? '#4f86f7' : '#4f86f7'
 
   return (
-    <div className="rounded-xl overflow-hidden border border-border relative" style={{ height: 260 }}>
+    <div
+      className="rounded-xl overflow-hidden border border-border relative"
+      style={{ height: 260 }}
+    >
       {/* Mode toggle */}
       <div className="absolute top-2 right-2 z-[1000] flex rounded-lg overflow-hidden border border-border shadow-md">
         <button

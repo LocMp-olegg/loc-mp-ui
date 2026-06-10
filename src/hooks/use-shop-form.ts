@@ -17,7 +17,11 @@ import {
   type TouchedFields,
 } from '@/lib/shop-form'
 
-const COURIER_KEYS = new Set<keyof FormState>(['allowCourier', 'maxCourierMeters', 'allowSellerDelivery'])
+const COURIER_KEYS = new Set<keyof FormState>([
+  'allowCourier',
+  'maxCourierMeters',
+  'allowSellerDelivery',
+])
 
 export type { FormState, FormAction }
 

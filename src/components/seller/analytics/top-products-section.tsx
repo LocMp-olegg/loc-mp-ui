@@ -63,7 +63,6 @@ function formatMoney(v: number | null | undefined): string {
   }).format(v)
 }
 
-
 type ChartEntry = {
   name: string
   productId: string

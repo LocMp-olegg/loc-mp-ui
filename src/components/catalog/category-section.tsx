@@ -38,7 +38,8 @@ export function CategorySection({ category, onLoadComplete, filterKey, filter }:
   const showSkeletonHeader = loading && !fetched
 
   return (
-    <section className="mb-4 md:mb-5 mx-2 md:mx-4 rounded-2xl border border-white/20 dark:border-white/8 shadow-sm backdrop-blur-sm overflow-hidden"
+    <section
+      className="mb-4 md:mb-5 mx-2 md:mx-4 rounded-2xl border border-white/20 dark:border-white/8 shadow-sm backdrop-blur-sm overflow-hidden"
       style={{ background: 'color-mix(in srgb, var(--card) 35%, transparent)' }}
     >
       <div className="flex items-center justify-between mb-3 md:mb-4 px-4 md:px-5 pt-4 md:pt-5">

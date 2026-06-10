@@ -35,7 +35,6 @@ const labelClass = 'block text-xs font-medium text-muted-foreground mb-1.5'
 const sectionClass = 'rounded-2xl border border-border bg-card/60 p-5 sm:p-6'
 const sectionTitle = 'text-sm font-semibold text-foreground mb-4 flex items-center gap-2'
 
-
 function Toggle({
   checked,
   onChange,
