@@ -8,10 +8,11 @@ import { useCourierMyDeliveries } from '@/hooks/use-courier-my-deliveries'
 import { useAuth } from '@/contexts/auth-context'
 import { UserProfileService } from '@/api/identity'
 import { AvailableOrderCard } from '@/components/courier/available-order-card'
-
 import { CourierOrderModal } from '@/components/courier/courier-order-modal'
 import { MyApplicationCard } from '@/components/courier/my-application-card'
 import { ActiveDeliveryCard } from '@/components/courier/active-delivery-card'
+import { SwitchTabs } from '@/components/ui/switch-tabs'
+import { tabSlideVariants } from '@/lib/tab-variants'
 import { cn } from '@/lib/utils'
 
 type Tab = 'available' | 'my'
@@ -52,13 +53,12 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
   )
 }
 
-const TAB_ORDER: Tab[] = ['available', 'my']
+const TABS = [
+  { key: 'available', label: 'Доступные' },
+  { key: 'my', label: 'Мои доставки' },
+] as const
 
-const tabVariants = {
-  enter: (dir: number) => ({ x: dir * 24, opacity: 0 }),
-  center: { x: 0, opacity: 1 },
-  exit: (dir: number) => ({ x: dir * -24, opacity: 0 }),
-}
+const TAB_ORDER: Tab[] = ['available', 'my']
 
 export function CourierOrdersPage() {
   const [tab, setTab] = useState<Tab>('available')
@@ -152,45 +152,20 @@ export function CourierOrdersPage() {
         onWithdraw={myDeliveries.withdraw}
       />
       <div className="max-w-2xl mx-auto px-4 py-6 md:py-8">
-        {/* Tabs */}
-        <div className="flex gap-1 p-1 rounded-2xl bg-muted/50 mb-6">
-          {(
-            [
-              { key: 'available', label: 'Доступные' },
-              { key: 'my', label: 'Мои доставки' },
-            ] as const
-          ).map(({ key, label }) => (
-            <button
-              key={key}
-              type="button"
-              onClick={() => handleTabChange(key)}
-              className="relative flex-1 h-9 rounded-xl text-sm font-medium cursor-pointer"
-            >
-              {tab === key && (
-                <motion.div
-                  layoutId="courier-tab-indicator"
-                  className="absolute inset-0 rounded-xl bg-background shadow-sm"
-                  transition={{ duration: 0.22, ease: 'easeInOut' }}
-                />
-              )}
-              <span
-                className={cn(
-                  'relative z-10 transition-colors duration-200',
-                  tab === key ? 'text-foreground' : 'text-muted-foreground hover:text-foreground',
-                )}
-              >
-                {label}
-              </span>
-            </button>
-          ))}
-        </div>
+        <SwitchTabs
+          tabs={TABS}
+          active={tab}
+          onChange={handleTabChange}
+          layoutId="courier-tab-indicator"
+          className="mb-6"
+        />
 
         <div className="overflow-hidden">
           <AnimatePresence mode="wait" custom={direction}>
             <motion.div
               key={tab}
               custom={direction}
-              variants={tabVariants}
+              variants={tabSlideVariants}
               initial="enter"
               animate="center"
               exit="exit"
