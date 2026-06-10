@@ -260,8 +260,7 @@ function SubjectCard({
         </p>
       </div>
 
-      {/* Photos — not supported for Seller reviews */}
-      {subject.subjectType !== 'Seller' && (
+      {subject.subjectType !== 'Seller' && subject.subjectType !== 'Courier' && (
         <div>
           <p className="text-xs font-medium text-muted-foreground mb-2">
             Фото <span className="text-muted-foreground/50 font-normal">(необязательно, до 5)</span>
