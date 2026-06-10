@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Link, Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '@/contexts/auth-context'
 import { AnimatePresence, motion } from 'framer-motion'
@@ -7,39 +7,15 @@ import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { LoginForm } from '@/components/auth/login-form'
 import { RegisterForm } from '@/components/auth/register-form'
 import { ForgotPasswordForm } from '@/components/auth/forgot-password-form'
+import { SwitchTabs } from '@/components/ui/switch-tabs'
+import { useIsDesktop } from '@/hooks/use-is-desktop'
 
 type Tab = 'login' | 'register' | 'forgot'
 
-function useIsDesktop() {
-  const [isDesktop, setIsDesktop] = useState(() => window.innerWidth >= 768)
-  useEffect(() => {
-    const mq = window.matchMedia('(min-width: 768px)')
-    const handler = () => setIsDesktop(mq.matches)
-    mq.addEventListener('change', handler)
-    return () => mq.removeEventListener('change', handler)
-  }, [])
-  return isDesktop
-}
-
-function TabSwitcher({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
-  if (tab === 'forgot') return null
-  return (
-    <div className="flex p-1 rounded-xl bg-white/6 border border-white/10">
-      {(['login', 'register'] as const).map((t) => (
-        <button
-          key={t}
-          type="button"
-          onClick={() => setTab(t)}
-          className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer ${
-            tab === t ? 'bg-white/14 text-nav-text shadow-sm' : 'text-nav-text hover:text-nav-text'
-          }`}
-        >
-          {t === 'login' ? 'Войти' : 'Регистрация'}
-        </button>
-      ))}
-    </div>
-  )
-}
+const LOGIN_TABS = [
+  { key: 'login', label: 'Войти' },
+  { key: 'register', label: 'Регистрация' },
+] as const
 
 export function LoginPage() {
   const { isAuthenticated, initializing } = useAuth()
@@ -100,7 +76,15 @@ export function LoginPage() {
             </div>
           </div>
           <div className="px-6 pb-6">
-            <TabSwitcher tab={tab} setTab={handleSetTab} />
+            {tab !== 'forgot' && (
+              <SwitchTabs
+                tabs={LOGIN_TABS}
+                active={tab}
+                onChange={(t) => handleSetTab(t)}
+                layoutId="login-tab"
+                variant="dark"
+              />
+            )}
             <div className="mt-4">{formContent}</div>
           </div>
         </div>
@@ -130,7 +114,15 @@ export function LoginPage() {
         {/* Scrollable form */}
         <div className="flex-1 overflow-y-auto flex flex-col scrollbar-thin">
           <div className="my-auto w-full px-8 py-6">
-            <TabSwitcher tab={tab} setTab={handleSetTab} />
+            {tab !== 'forgot' && (
+              <SwitchTabs
+                tabs={LOGIN_TABS}
+                active={tab}
+                onChange={(t) => handleSetTab(t)}
+                layoutId="login-tab"
+                variant="dark"
+              />
+            )}
             <div className="mt-4">{formContent}</div>
           </div>
         </div>
