@@ -1985,6 +1985,48 @@
         }
       }
     },
+    "/api/catalog/Shops/{id}/delivery-distance": {
+      "patch": {
+        "tags": [
+          "Shops"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetDeliveryDistanceRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetDeliveryDistanceRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetDeliveryDistanceRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/catalog/Shops/{id}/photos": {
       "post": {
         "tags": [
@@ -2984,7 +3026,13 @@
         "properties": {
           "allow": {
             "type": "boolean"
-          },
+          }
+        },
+        "additionalProperties": false
+      },
+      "SetDeliveryDistanceRequest": {
+        "type": "object",
+        "properties": {
           "maxDistanceMeters": {
             "type": "integer",
             "format": "int32",

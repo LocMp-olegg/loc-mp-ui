@@ -1,4 +1,4 @@
-import React, { useState, useReducer, useCallback, useEffect } from 'react'
+import React, { useState, useReducer, useCallback, useEffect, useMemo } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -15,13 +15,15 @@ import {
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { CartsService, ApiError } from '@/api/orders'
+import { ShopsService } from '@/api/catalog'
 import { useAddresses } from '@/contexts/addresses-context'
 import { useProfile } from '@/hooks/use-profile'
 import { AddressFormModal } from '@/components/profile/address-form-modal'
 import { pluralize } from '@/lib/utils'
 import { formatPhone, PHONE_RE } from '@/lib/auth-validation'
+import { calculateDistanceKm } from '@/lib/geo'
 import type { CartItemDto, DeliveryAddressRequest } from '@/api/orders'
-import type { ProductDto } from '@/api/catalog'
+import type { ProductDto, ShopDto } from '@/api/catalog'
 import type { UserAddressDto, CreateUserAddressRequest } from '@/api/identity'
 
 export interface CheckoutGroup {
@@ -159,6 +161,17 @@ export function CheckoutModal({ groups, productInfoMap, onClose, onSuccess }: Ch
 
   const defaultAddr = addresses.find((a) => a.isDefault) ?? addresses[0]
 
+  const [shopMap, setShopMap] = useState<Record<string, ShopDto>>({})
+
+  useEffect(() => {
+    const ids = [...new Set(groups.map((g) => g.shopId).filter(Boolean) as string[])]
+    ids.forEach((id) => {
+      ShopsService.getApiCatalogShops({ id })
+        .then((shop) => setShopMap((prev) => ({ ...prev, [id]: shop })))
+        .catch(() => {})
+    })
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
   const [groupForms, dispatchForms] = useReducer(formsReducer, groups, (gs) =>
     gs.map(() => defaultGroupForm(defaultAddr)),
   )
@@ -199,6 +212,30 @@ export function CheckoutModal({ groups, productInfoMap, onClose, onSuccess }: Ch
   const [groupDeliveryErrors, setGroupDeliveryErrors] = useState<(string | null)[]>(() =>
     groups.map(() => null),
   )
+
+  const groupRangeWarnings = useMemo(
+    () =>
+      groups.map((group, idx) => {
+        const form = groupForms[idx]
+        const shop = group.shopId ? shopMap[group.shopId] : undefined
+        if (form?.deliveryType !== 'Delivery' || !shop?.maxCourierDistanceMeters) return null
+        if (!shop.latitude || !shop.longitude) return null
+        const addr = addresses.find((a) => a.id === form.selectedAddressId)
+        if (!addr?.latitude || !addr?.longitude) return null
+        const distKm = calculateDistanceKm(
+          shop.latitude,
+          shop.longitude,
+          addr.latitude,
+          addr.longitude,
+        )
+        const maxKm = shop.maxCourierDistanceMeters / 1000
+        if (distKm > maxKm)
+          return `Адрес в ${distKm.toFixed(1)} км от магазина — доставка только в радиусе ${maxKm} км.`
+        return null
+      }),
+    [groups, groupForms, shopMap, addresses],
+  )
+  const hasRangeError = groupRangeWarnings.some((w) => w !== null)
 
   const handleSubmit = async () => {
     const newErrors = groupForms.map(validateGroupForm)
@@ -309,9 +346,11 @@ export function CheckoutModal({ groups, productInfoMap, onClose, onSuccess }: Ch
             <GroupSection
               key={group.sellerId + (group.shopId ?? '')}
               group={group}
+              shop={group.shopId ? shopMap[group.shopId] : undefined}
               form={groupForms[idx]}
               errors={groupErrors[idx]}
               deliveryError={groupDeliveryErrors[idx]}
+              rangeWarning={groupRangeWarnings[idx]}
               productInfoMap={productInfoMap}
               addresses={addresses}
               addrLoading={addrLoading}
@@ -359,7 +398,7 @@ export function CheckoutModal({ groups, productInfoMap, onClose, onSuccess }: Ch
           <button
             type="button"
             onClick={() => void handleSubmit()}
-            disabled={busy}
+            disabled={busy || hasRangeError}
             className="px-6 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold flex items-center gap-2 hover:bg-primary/90 transition-colors cursor-pointer disabled:opacity-50 shrink-0"
           >
             {busy && <Loader2 className="w-4 h-4 animate-spin" />}
@@ -391,9 +430,11 @@ const inputErr = 'border-destructive/60 focus:border-destructive'
 
 interface GroupSectionProps {
   group: CheckoutGroup
+  shop: ShopDto | undefined
   form: GroupForm
   errors: GroupErrors
   deliveryError: string | null
+  rangeWarning: string | null
   productInfoMap: Record<string, ProductDto>
   addresses: UserAddressDto[]
   addrLoading: boolean
@@ -404,9 +445,11 @@ interface GroupSectionProps {
 
 function GroupSection({
   group,
+  shop,
   form,
   errors,
   deliveryError,
+  rangeWarning,
   productInfoMap,
   addresses,
   addrLoading,
@@ -416,6 +459,19 @@ function GroupSection({
 }: GroupSectionProps) {
   const shopLabel = group.shopName ?? group.sellerName ?? 'Магазин'
   const n = group.items.length
+
+  // courier delivery available if shop allows courier neighbors OR seller self-delivery
+  const courierAllowed =
+    shop === undefined || shop.allowCourierDelivery === true || shop.allowSellerDelivery === true
+  const maxDistanceKm =
+    shop?.maxCourierDistanceMeters ? shop.maxCourierDistanceMeters / 1000 : null
+
+  // auto-reset to Pickup when delivery becomes unavailable after shop data loads
+  useEffect(() => {
+    if (!courierAllowed && form.deliveryType === 'Delivery') {
+      onChange({ deliveryType: 'Pickup' })
+    }
+  }, [courierAllowed]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="rounded-xl border border-border overflow-hidden">
@@ -472,12 +528,18 @@ function GroupSection({
               label="Самовывоз"
               onClick={() => onChange({ deliveryType: 'Pickup' })}
             />
-            <DeliveryTypeBtn
-              active={form.deliveryType === 'Delivery'}
-              icon={<Truck className="w-3.5 h-3.5" />}
-              label="Курьер"
-              onClick={() => onChange({ deliveryType: 'Delivery' })}
-            />
+            {courierAllowed && (
+              <DeliveryTypeBtn
+                active={form.deliveryType === 'Delivery'}
+                icon={<Truck className="w-3.5 h-3.5" />}
+                label={
+                  maxDistanceKm
+                    ? `Курьер · ${maxDistanceKm % 1 === 0 ? maxDistanceKm : maxDistanceKm.toFixed(1)} км`
+                    : 'Курьер'
+                }
+                onClick={() => onChange({ deliveryType: 'Delivery' })}
+              />
+            )}
           </div>
         </div>
 
@@ -502,7 +564,7 @@ function GroupSection({
                 />
 
                 <AnimatePresence>
-                  {deliveryError && (
+                  {(deliveryError ?? rangeWarning) !== null && (
                     <motion.div
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: 'auto' }}
@@ -512,7 +574,9 @@ function GroupSection({
                     >
                       <div className="flex items-start gap-2 px-3 py-2.5 rounded-xl bg-destructive/8 border border-destructive/20">
                         <AlertTriangle className="w-3.5 h-3.5 text-destructive shrink-0 mt-0.5" />
-                        <p className="text-xs text-destructive leading-relaxed">{deliveryError}</p>
+                        <p className="text-xs text-destructive leading-relaxed">
+                          {deliveryError ?? rangeWarning}
+                        </p>
                       </div>
                     </motion.div>
                   )}
@@ -575,7 +639,7 @@ function DeliveryTypeBtn({
 }: {
   active: boolean
   icon: React.ReactNode
-  label: string
+  label: React.ReactNode
   onClick: () => void
 }) {
   return (

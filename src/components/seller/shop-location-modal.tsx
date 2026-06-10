@@ -14,6 +14,7 @@ import { useAddressFormFields } from '@/hooks/use-address-form-fields'
 import { useAutoGeocode } from '@/hooks/use-auto-geocode'
 import { FieldSugDropdown } from '@/components/ui/field-sug-dropdown'
 import { RadiusInput } from '@/components/ui/radius-input'
+import { InfoTooltip } from '@/components/ui/info-tooltip'
 import { cn } from '@/lib/utils'
 
 const markerIcon = L.divIcon({
@@ -469,7 +470,10 @@ export function ShopLocationModal({
           {/* Radius */}
           <div className="px-5 pt-4 pb-2">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-nav-text/80">Радиус обслуживания</span>
+              <span className="flex items-center gap-1.5 text-sm text-nav-text/80">
+                Радиус обслуживания
+                <InfoTooltip text="Покупатели дальше этого расстояния не видят ваш магазин в каталоге." />
+              </span>
               <span className="text-sm font-medium text-accent">
                 {radius !== null ? formatMeters(radius) : 'Не задан'}
               </span>

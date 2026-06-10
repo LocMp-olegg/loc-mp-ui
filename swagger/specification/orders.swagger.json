@@ -1174,6 +1174,52 @@
         }
       }
     },
+    "/api/orders/Orders/{id}/seller-delivered": {
+      "post": {
+        "tags": [
+          "Orders"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/orders/Orders/{id}/seller-picked-up": {
+      "post": {
+        "tags": [
+          "Orders"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/orders/Orders/{id}/start-seller-delivery": {
       "post": {
         "tags": [
@@ -2370,6 +2416,9 @@
           },
           "courierAssignment": {
             "$ref": "#/components/schemas/CourierAssignmentDto"
+          },
+          "isSellerDelivery": {
+            "type": "boolean"
           },
           "dispute": {
             "$ref": "#/components/schemas/DisputeDto"

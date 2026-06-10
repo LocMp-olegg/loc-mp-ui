@@ -207,11 +207,7 @@ export function useShopForm(
     try {
       await ShopsService.patchApiCatalogShopsCourierDelivery({
         id: shopId,
-        requestBody: {
-          allow: form.allowCourier,
-          maxDistanceMeters:
-            form.allowCourier && form.maxCourierMeters ? Number(form.maxCourierMeters) : null,
-        },
+        requestBody: { allow: form.allowCourier },
       })
     } catch {
       errors.push('курьерская доставка')
@@ -223,6 +219,16 @@ export function useShopForm(
       })
     } catch {
       errors.push('доставка продавцом')
+    }
+    try {
+      await ShopsService.patchApiCatalogShopsDeliveryDistance({
+        id: shopId,
+        requestBody: {
+          maxDistanceMeters: form.maxCourierMeters ? Number(form.maxCourierMeters) : null,
+        },
+      })
+    } catch {
+      errors.push('радиус доставки')
     }
     setCourierSaving(false)
     if (errors.length > 0) {

@@ -395,7 +395,7 @@ export function CourierOrderModal({
                       })()
                     }
                     disabled={actionBusy}
-                    className="w-full h-10 rounded-xl bg-green-600/90 hover:bg-green-600 text-white text-sm font-medium flex items-center justify-center gap-2 transition-colors cursor-pointer disabled:opacity-50"
+                    className="w-full h-10 rounded-xl bg-primary text-primary-foreground text-sm font-medium flex items-center justify-center gap-2 hover:bg-primary/90 transition-colors cursor-pointer disabled:opacity-50"
                   >
                     {actionBusy ? (
                       <Loader2 className="w-4 h-4 animate-spin" />

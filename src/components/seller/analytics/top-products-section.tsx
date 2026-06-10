@@ -1,8 +1,9 @@
 import React, { useState, useMemo, useCallback } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Package2, BarChart2, List, Info, ChevronUp, ChevronDown } from 'lucide-react'
+import { Package2, BarChart2, List, ChevronUp, ChevronDown } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { useTopProducts } from '@/hooks/use-seller-analytics'
+import { InfoTooltip } from '@/components/ui/info-tooltip'
 import { cn } from '@/lib/utils'
 import type { PeriodType } from '@/api/analytics'
 
@@ -62,16 +63,6 @@ function formatMoney(v: number | null | undefined): string {
   }).format(v)
 }
 
-function InfoTooltip({ text }: { text: string }) {
-  return (
-    <span className="relative group inline-flex items-center">
-      <Info className="w-3 h-3 text-muted-foreground/60 cursor-help" />
-      <span className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-52 rounded-xl border border-border bg-card px-3 py-2 text-xs leading-snug text-foreground shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-50 text-left font-normal normal-case">
-        {text}
-      </span>
-    </span>
-  )
-}
 
 type ChartEntry = {
   name: string

@@ -230,6 +230,8 @@ export function OrderDetailModal({ orderId, onClose, onActionDone }: OrderDetail
     markReady,
     markReadyForCourier,
     startSellerDelivery,
+    sellerPickedUp,
+    sellerDelivered,
     cancel,
     openDispute,
     approveCourierApp,
@@ -243,6 +245,7 @@ export function OrderDetailModal({ orderId, onClose, onActionDone }: OrderDetail
   const { shop } = useShopById(order?.shopId ?? undefined)
 
   const isDeliveryOrder = order?.deliveryType === 'Delivery'
+  const isSellerDelivery = order?.isSellerDelivery ?? false
   const hasCourierAssigned = !!order?.courierAssignment
   const assignedCourierRating = useCourierRating(order?.courierAssignment?.courierId)
   const pendingApps = courierApplications.filter((a) => a.status === 'Pending')
@@ -265,8 +268,7 @@ export function OrderDetailModal({ orderId, onClose, onActionDone }: OrderDetail
   const handleConfirmAndDeliver = async () => {
     const confirmOk = await confirm()
     if (!confirmOk) return
-    const deliverOk = await startSellerDelivery()
-    if (deliverOk) onActionDone()
+    await startSellerDelivery()
   }
 
   const handleMarkReady = async () => {
@@ -280,7 +282,16 @@ export function OrderDetailModal({ orderId, onClose, onActionDone }: OrderDetail
   }
 
   const handleStartSellerDelivery = async () => {
-    const ok = await startSellerDelivery()
+    await startSellerDelivery()
+  }
+
+  const handleSellerPickedUp = async () => {
+    const ok = await sellerPickedUp()
+    if (ok) onActionDone()
+  }
+
+  const handleSellerDelivered = async () => {
+    const ok = await sellerDelivered()
     if (ok) onActionDone()
   }
 
@@ -293,7 +304,8 @@ export function OrderDetailModal({ orderId, onClose, onActionDone }: OrderDetail
   const canActOnOrder =
     order?.status === 'Pending' ||
     order?.status === 'Confirmed' ||
-    order?.status === 'ReadyForCourier'
+    order?.status === 'ReadyForCourier' ||
+    (order?.status === 'InDelivery' && isSellerDelivery)
 
   const modal = (
     <AnimatePresence>
@@ -325,7 +337,9 @@ export function OrderDetailModal({ orderId, onClose, onActionDone }: OrderDetail
                 <h2 className="text-sm font-semibold text-foreground">
                   Заказ #{shortOrderId(order?.id)}
                 </h2>
-                {order?.status && <OrderStatusBadge status={order.status} />}
+                {order?.status && (
+                  <OrderStatusBadge status={order.status} isSellerDelivery={isSellerDelivery} />
+                )}
               </div>
               <button
                 type="button"
@@ -360,9 +374,15 @@ export function OrderDetailModal({ orderId, onClose, onActionDone }: OrderDetail
                     )}
                     <span className="flex items-center gap-1 ml-auto shrink-0">
                       {order.deliveryType === 'Delivery' ? (
-                        <>
-                          <Truck className="w-3.5 h-3.5" /> Курьер
-                        </>
+                        isSellerDelivery ? (
+                          <>
+                            <Truck className="w-3.5 h-3.5" /> Доставка магазином
+                          </>
+                        ) : (
+                          <>
+                            <Truck className="w-3.5 h-3.5" /> Курьер
+                          </>
+                        )
                       ) : (
                         <>
                           <Store className="w-3.5 h-3.5" /> Самовывоз
@@ -449,8 +469,8 @@ export function OrderDetailModal({ orderId, onClose, onActionDone }: OrderDetail
                     </section>
                   )}
 
-                  {/* Courier applications — shown only for Confirmed + Delivery without assignment */}
-                  {order.status === 'Confirmed' && isDeliveryOrder && !hasCourierAssigned && (
+                  {/* Courier applications — shown only for Confirmed + Delivery, not seller delivery */}
+                  {order.status === 'Confirmed' && isDeliveryOrder && !isSellerDelivery && (
                     <section>
                       <div className="flex items-center gap-2 mb-2">
                         <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
@@ -646,7 +666,40 @@ export function OrderDetailModal({ orderId, onClose, onActionDone }: OrderDetail
                 )}
 
                 {order?.status === 'ReadyForCourier' && (
-                  <CancelForm busy={actionBusy} onCancel={handleCancel} />
+                  <>
+                    {isSellerDelivery && (
+                      <button
+                        type="button"
+                        onClick={() => void handleSellerPickedUp()}
+                        disabled={actionBusy}
+                        className="w-full h-9 rounded-xl bg-primary text-primary-foreground text-sm font-medium flex items-center justify-center gap-1.5 hover:bg-primary/90 transition-colors cursor-pointer disabled:opacity-50"
+                      >
+                        {actionBusy ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                          <Truck className="w-3.5 h-3.5" />
+                        )}
+                        Забрал товар, везу покупателю
+                      </button>
+                    )}
+                    <CancelForm busy={actionBusy} onCancel={handleCancel} />
+                  </>
+                )}
+
+                {order?.status === 'InDelivery' && isSellerDelivery && (
+                  <button
+                    type="button"
+                    onClick={() => void handleSellerDelivered()}
+                    disabled={actionBusy}
+                    className="w-full h-9 rounded-xl bg-primary text-primary-foreground text-sm font-medium flex items-center justify-center gap-1.5 hover:bg-primary/90 transition-colors cursor-pointer disabled:opacity-50"
+                  >
+                    {actionBusy ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                    )}
+                    Доставлено
+                  </button>
                 )}
               </div>
             )}
