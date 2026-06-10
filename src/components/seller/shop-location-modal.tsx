@@ -159,6 +159,9 @@ export function ShopLocationModal({
   const [label, setLabel] = useState('')
   const [search, setSearch] = useState('')
   const searchRef = useRef<HTMLDivElement>(null)
+  const cityAnchorRef = useRef<HTMLDivElement>(null)
+  const streetAnchorRef = useRef<HTMLDivElement>(null)
+  const houseAnchorRef = useRef<HTMLDivElement>(null)
   const { suggestions, showSuggestions, dispatchSug } = useAddressSuggestions(search, label)
 
   // ── Auto-geocode when address fields are filled manually ──────
@@ -369,7 +372,7 @@ export function ShopLocationModal({
               <label className="block text-xs text-nav-text/50 mb-1.5">
                 Город <span className="text-red-400">*</span>
               </label>
-              <div className="relative">
+              <div className="relative" ref={cityAnchorRef}>
                 <input
                   type="text"
                   value={city}
@@ -382,6 +385,7 @@ export function ShopLocationModal({
                   open={citySug.open}
                   items={citySug.suggestions}
                   onSelect={handleCitySelect}
+                  anchorRef={cityAnchorRef}
                 />
               </div>
               {errors.city && <p className="text-xs text-red-400/80 mt-1">{errors.city}</p>}
@@ -393,7 +397,7 @@ export function ShopLocationModal({
                 <label className="block text-xs text-nav-text/50 mb-1.5">
                   Улица <span className="text-red-400">*</span>
                 </label>
-                <div className="relative">
+                <div className="relative" ref={streetAnchorRef}>
                   <input
                     type="text"
                     value={street}
@@ -406,6 +410,7 @@ export function ShopLocationModal({
                     open={streetSug.open}
                     items={streetSug.suggestions}
                     onSelect={handleStreetSelect}
+                    anchorRef={streetAnchorRef}
                   />
                 </div>
                 {errors.street && <p className="text-xs text-red-400/80 mt-1">{errors.street}</p>}
@@ -414,7 +419,7 @@ export function ShopLocationModal({
                 <label className="block text-xs text-nav-text/50 mb-1.5">
                   Дом <span className="text-red-400">*</span>
                 </label>
-                <div className="relative">
+                <div className="relative" ref={houseAnchorRef}>
                   <input
                     type="text"
                     value={houseNumber}
@@ -427,6 +432,7 @@ export function ShopLocationModal({
                     open={houseSug.open}
                     items={houseSug.suggestions}
                     onSelect={handleHouseSelect}
+                    anchorRef={houseAnchorRef}
                   />
                 </div>
                 {errors.houseNumber && (
