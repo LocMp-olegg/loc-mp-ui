@@ -123,6 +123,7 @@ export function ChatLayout() {
   const [showSupportConfirm, setShowSupportConfirm] = useState(false)
   const [tabBadges, dispatchBadges] = useReducer(badgesReducer, { my: 0, shop: 0 })
   const chatTabCacheRef = useRef<Map<string, ChatsTab>>(new Map())
+  const reloadedForChatIdRef = useRef<string | null>(null)
 
   const { shops } = useMyShops()
   const {
@@ -185,9 +186,13 @@ export function ChatLayout() {
 
   useEffect(() => {
     if (!activeChatId || loading) return
-    if (!chatsRef.current.some((c) => c.id === activeChatId)) {
-      reload()
+    if (chatsRef.current.some((c) => c.id === activeChatId)) {
+      reloadedForChatIdRef.current = null
+      return
     }
+    if (reloadedForChatIdRef.current === activeChatId) return
+    reloadedForChatIdRef.current = activeChatId
+    reload()
   }, [activeChatId, loading, reload])
 
   useEffect(() => {

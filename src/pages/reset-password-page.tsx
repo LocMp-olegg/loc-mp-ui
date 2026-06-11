@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useSearchParams, Link, useNavigate } from 'react-router-dom'
 import { Lock, Eye, EyeOff, Loader2, CheckCircle2, ChevronLeft } from 'lucide-react'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
@@ -9,18 +9,8 @@ import { PasswordStrength } from '@/components/auth/password-strength'
 import { AuthService } from '@/api/identity'
 import { ApiError } from '@/api/identity/core/ApiError'
 import { passwordValid } from '@/lib/auth-validation'
+import { useIsDesktop } from '@/hooks/use-is-desktop'
 import * as React from 'react'
-
-function useIsDesktop() {
-  const [isDesktop, setIsDesktop] = useState(() => window.innerWidth >= 768)
-  useEffect(() => {
-    const mq = window.matchMedia('(min-width: 768px)')
-    const handler = () => setIsDesktop(mq.matches)
-    mq.addEventListener('change', handler)
-    return () => mq.removeEventListener('change', handler)
-  }, [])
-  return isDesktop
-}
 
 export function ResetPasswordPage() {
   const [params] = useSearchParams()

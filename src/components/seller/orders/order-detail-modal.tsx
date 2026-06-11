@@ -18,7 +18,9 @@ import {
   XCircle,
   Users,
   Star,
+  RefreshCw,
 } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import { OrderStatusBadge } from './order-status-badge'
 import { OrderPhotosSection } from './order-photos-section'
 import { DisputeBlock } from '@/components/orders/dispute-block'
@@ -226,6 +228,8 @@ export function OrderDetailModal({ orderId, onClose, onActionDone }: OrderDetail
     actionError,
     courierApplications,
     appsLoading,
+    reload,
+    reloadApps,
     confirm,
     markReady,
     markReadyForCourier,
@@ -341,13 +345,24 @@ export function OrderDetailModal({ orderId, onClose, onActionDone }: OrderDetail
                   <OrderStatusBadge status={order.status} isSellerDelivery={isSellerDelivery} />
                 )}
               </div>
-              <button
-                type="button"
-                onClick={onClose}
-                className="w-7 h-7 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={reload}
+                  disabled={loading}
+                  className="w-7 h-7 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer disabled:opacity-50"
+                  title="Обновить заказ"
+                >
+                  <RefreshCw className={cn('w-3.5 h-3.5', loading && 'animate-spin')} />
+                </button>
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="w-7 h-7 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
             </div>
 
             {/* Body */}
@@ -476,16 +491,24 @@ export function OrderDetailModal({ orderId, onClose, onActionDone }: OrderDetail
                         <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                           Заявки курьеров
                         </p>
-                        {appsLoading && (
+                        {appsLoading ? (
                           <Loader2 className="w-3 h-3 animate-spin text-muted-foreground" />
-                        )}
-                        {!appsLoading && (
+                        ) : (
                           <span className="text-xs text-muted-foreground">
                             {pendingApps.length > 0
                               ? `${pendingApps.length} ожидают`
                               : 'нет заявок'}
                           </span>
                         )}
+                        <button
+                          type="button"
+                          onClick={reloadApps}
+                          disabled={appsLoading}
+                          className="ml-auto flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer disabled:opacity-50"
+                        >
+                          <RefreshCw className={cn('w-3 h-3', appsLoading && 'animate-spin')} />
+                          Обновить
+                        </button>
                       </div>
 
                       {pendingApps.length === 0 && !appsLoading ? (

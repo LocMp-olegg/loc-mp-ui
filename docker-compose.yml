@@ -1,0 +1,17 @@
+services:
+  frontend:
+    build:
+      context: .
+      args:
+        VITE_DADATA_KEY: ${VITE_DADATA_KEY}
+        VITE_DADATA_SECRET: ${VITE_DADATA_SECRET}
+    ports:
+      - "5173:80"
+    networks:
+      - marketplace_net
+    restart: unless-stopped
+
+networks:
+  marketplace_net:
+    name: marketplace_net
+    external: true
