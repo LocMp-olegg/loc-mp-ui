@@ -32,7 +32,10 @@ function calcPos(anchor: HTMLElement): DropPos {
   const top =
     spaceBelow >= MAX_DROP_H
       ? r.bottom + 4
-      : Math.max(MARGIN, r.top - 4 - Math.min(MAX_DROP_H, spaceBelow < 80 ? MAX_DROP_H : spaceBelow))
+      : Math.max(
+          MARGIN,
+          r.top - 4 - Math.min(MAX_DROP_H, spaceBelow < 80 ? MAX_DROP_H : spaceBelow),
+        )
 
   return { top, left, width: dropW }
 }

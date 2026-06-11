@@ -33,7 +33,10 @@ export function SellerChatsPage() {
   })
 
   const displayed = useMemo(
-    () => (tab === 'shop' && selectedShopId ? chats.filter((c) => c.referenceId === selectedShopId) : chats),
+    () =>
+      tab === 'shop' && selectedShopId
+        ? chats.filter((c) => c.referenceId === selectedShopId)
+        : chats,
     [chats, selectedShopId, tab],
   )
 
