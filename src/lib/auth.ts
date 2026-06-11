@@ -1,4 +1,5 @@
-const TOKEN_ENDPOINT = 'http://localhost:5000/connect/token'
+const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:5000'
+const TOKEN_ENDPOINT = `${API_BASE}/connect/token`
 const REFRESH_TOKEN_KEY = 'rt'
 const CLIENT_ID = 'default-client'
 
@@ -95,7 +96,7 @@ function _getUrl(input: RequestInfo | URL): string {
 export function installFetchInterceptor(): void {
   window.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
     const url = _getUrl(input)
-    const isExternal = url.startsWith('http') && !url.includes('localhost')
+    const isExternal = url.startsWith('http') && !url.startsWith(API_BASE)
     if (url.includes('/connect/token') || isExternal) {
       return _originalFetch(input, init)
     }

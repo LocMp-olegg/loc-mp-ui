@@ -32,6 +32,8 @@ interface AuthContextType {
   refreshUser: () => Promise<void>
 }
 
+const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:5000'
+
 const AuthContext = createContext<AuthContextType | null>(null)
 
 function userFromToken(token: string, fallbackEmail?: string): AuthUser {
@@ -67,7 +69,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(userFromToken(token))
         // Sync roles from profile: refresh_token grant may return stale claims
         try {
-          const res = await fetch('http://localhost:5000/api/identity/profile')
+          const res = await fetch(`${API_BASE}/api/identity/profile`)
           if (!cancelled && res.ok) {
             const profile = (await res.json()) as { roles?: string[] | null }
             if (!cancelled && Array.isArray(profile.roles) && profile.roles.length > 0) {
@@ -112,7 +114,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const token = await refreshAccessToken()
     setUser(userFromToken(token))
     try {
-      const res = await fetch('http://localhost:5000/api/identity/profile')
+      const res = await fetch(`${API_BASE}/api/identity/profile`)
       if (res.ok) {
         const profile = (await res.json()) as { roles?: string[] | null }
         if (Array.isArray(profile.roles) && profile.roles.length > 0) {
