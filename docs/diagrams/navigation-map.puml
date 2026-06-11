@@ -1,0 +1,206 @@
+@startuml navigation-map
+title <size:16><b>loc-mp-ui</b></size>\n<color:#555>Навигационная карта · Зоны доступа</color>
+
+' ─── Стиль ───────────────────────────────────────────────────────────────────
+skinparam defaultFontName "Segoe UI", Arial, sans-serif
+skinparam defaultFontSize 14
+skinparam roundcorner 8
+skinparam shadowing false
+skinparam nodesep 2
+skinparam ranksep 40
+skinparam ArrowColor #546E7A
+skinparam ArrowThickness 1.2
+skinparam linetype ortho
+skinparam actor {
+    BackgroundColor #E8F5E9
+    BorderColor #2E7D32
+    FontColor #1B5E20
+    FontStyle bold
+}
+skinparam component {
+    BackgroundColor White
+    BorderColor #78909C
+    FontColor #263238
+    BorderThickness 1.1
+}
+skinparam rectangle {
+    BorderThickness 1.8
+    FontColor #263238
+    BackgroundColor transparent
+}
+skinparam note {
+    BackgroundColor #FFF9C4
+    BorderColor #F9A825
+    FontColor #4E342E
+    BorderThickness 1.1
+    roundcorner 6
+}
+
+' ─── Акторы ──────────────────────────────────────────────────────────────────
+together {
+    actor "Гость\n(анонимный)" as Guest
+    actor "Покупатель\n(User)" as Buyer
+    actor "Продавец\n(Seller)" as Seller
+    actor "Курьер\n(Courier)" as Courier
+}
+
+' ─── ЗОНА 1: Публичная ───────────────────────────────────────────────────────
+rectangle "<b>  ПУБЛИЧНАЯ ЗОНА  </b>\n<size:9>Доступна без аутентификации · RootLayout → Layout</size>" #E8F5E9 {
+
+    rectangle "Каталог" #D0EDDA {
+        component "**Главная**\n/" as Home
+        component "**Категория**\n/category/:id" as Category
+        component "**Поиск**\n/search\n<size:9>?q= | ?tag=</size>" as Search
+    }
+
+    rectangle "Карточки" #D0EDDA {
+        component "**Товар**\n/product/:id" as Product
+        component "**Магазин**\n/shop/:id" as Shop
+        component "**Продавец**\n/sellers/:id" as SellerProfile
+        component "**Курьер**\n/couriers/:id" as CourierPublic
+        component "**Отзыв**\n/reviews/:id" as ReviewDetail
+    }
+
+    rectangle "Аутентификация" #D0EDDA {
+        component "**Вход / Регистрация**\n/login" as Login
+        component "**Сброс пароля**\n/reset-password\n<size:9>?token=&email=</size>" as ResetPassword
+    }
+}
+
+' ─── ЗОНА 2: Защищённая ──────────────────────────────────────────────────────
+rectangle "<b>  ЗАЩИЩЁННАЯ ЗОНА  </b>\n<size:9>RequireAuth — наличие JWT · redirect → /login при отсутствии</size>" #E8EAF6 {
+
+    rectangle "Профиль и аккаунт" #CDD1EC {
+        component "**Профиль**\n/profile" as Profile
+        component "**Уведомления**\n/notifications" as Notifications
+    }
+
+    rectangle "Корзина и избранное" #CDD1EC {
+        component "**Корзина**\n/cart" as Cart
+        component "**Избранное**\n/favorites" as Favorites
+    }
+
+    rectangle "Заказы" #CDD1EC {
+        component "**Мои заказы**\n/orders" as Orders
+        component "**Детали заказа**\n/orders/:id" as OrderDetail
+    }
+
+    rectangle "Отзывы" #CDD1EC {
+        component "**Новый отзыв**\n/reviews/new\n<size:9>?orderId=</size>" as ReviewNew
+        component "**Мои отзывы**\n/my-reviews" as MyReviews
+    }
+
+    rectangle "Чаты · ChatLayout" #CDD1EC {
+        component "**Новый чат**\n/chats/new" as NewChat
+        component "**Чат**\n/chats/:id" as ChatDetail
+    }
+}
+
+' ─── ЗОНА 3: Продавец ────────────────────────────────────────────────────────
+rectangle "<b>  ЗОНА ПРОДАВЦА  </b>\n<size:9>RequireSeller — роль Seller в JWT · SellerLayout</size>" #FFF3E0 {
+
+    rectangle "Магазины" #FFE4B0 {
+        component "**Мои магазины**\n/seller/shops" as SellerShops
+        component "**Создать магазин**\n/seller/shops/new" as SellerShopNew
+        component "**Редакт. магазин**\n/seller/shops/:id/edit" as SellerShopEdit
+    }
+
+    rectangle "Товары" #FFE4B0 {
+        component "**Мои товары**\n/seller/products" as SellerProducts
+        component "**Создать товар**\n/seller/products/new" as SellerProductNew
+        component "**Редакт. товар**\n/seller/products/:id/edit" as SellerProductEdit
+    }
+
+    rectangle "Операции" #FFE4B0 {
+        component "**Заказы продавца**\n/seller/orders" as SellerOrders
+        component "**Аналитика**\n/seller/analytics" as SellerAnalytics
+        component "**Чаты продавца**\n/seller/chats" as SellerChats
+    }
+}
+
+' ─── ЗОНА 4: Курьер ──────────────────────────────────────────────────────────
+rectangle "<b>  ЗОНА КУРЬЕРА  </b>\n<size:9>CourierLayout · роль Courier</size>" #F3E5F5 {
+
+    rectangle "Панель курьера" #E1BEE7 {
+        component "**Профиль**\n/courier/profile" as CourierDashProfile
+        component "**Активные заказы**\n/courier/orders" as CourierOrders
+        component "**История доставок**\n/courier/history" as CourierHistory
+        component "**Отзывы**\n/courier/reviews" as CourierReviews
+    }
+}
+
+' ─── Акторы → точки входа ────────────────────────────────────────────────────
+Guest   -[#2E7D32,bold]down->  Home
+Buyer   -[#1565C0,bold]down->  Home
+Seller  -[#E65100,bold]down->  Home
+Courier -[#7B1FA2,bold]down->  Home
+
+Seller  -[#E65100,bold]down->   SellerShops       : /seller → /seller/shops
+Courier -[#7B1FA2,bold]down->   CourierDashProfile : /courier → /courier/profile
+
+' ─── Навигация: публичная зона ───────────────────────────────────────────────
+Home      -[#37474F]->      Category      : клик на категорию
+Home      -[#37474F]->      Search        : строка поиска
+Home      -[#37474F]->      Product       : клик на карточку товара
+Product   -[#37474F]->      Shop          : название магазина
+Product   -[#37474F]->      ReviewDetail  : клик на отзыв
+Shop      -[#37474F]->      SellerProfile : ссылка на профиль продавца
+Shop      -[#37474F]->      Product       : карточка товара
+Category  -[#37474F]->      Product
+Search    -[#37474F]->      Product
+
+' ─── Переходы: гость → вход ──────────────────────────────────────────────────
+Home      -[#E53935,dashed]->  Login    : <color:#E53935>клик на защищённый раздел</color>
+Login     -[#2E7D32,dashed]->  Home     : <color:#2E7D32>успешный вход</color>
+
+' ─── Навигация: защищённая зона ──────────────────────────────────────────────
+Profile     -[#3949AB]->   Notifications  : ссылка в меню
+Orders      -[#3949AB]->   OrderDetail
+OrderDetail -[#3949AB]->   ReviewNew      : «Оставить отзыв»
+OrderDetail -[#3949AB]->   NewChat        : написать продавцу
+OrderDetail -[#3949AB]->   CourierPublic  : страница курьера доставки
+ReviewNew   -[#3949AB]->   ReviewDetail   : после отправки (1800 мс)
+MyReviews   -[#3949AB]->   ReviewNew      : «Оценить заказ» (pending)
+MyReviews   -[#3949AB]->   ReviewDetail
+NewChat     -[#3949AB]->   ChatDetail     : создан чат
+
+' ─── Переход: смена роли → зона продавца ─────────────────────────────────────
+Profile   -[#F57C00,dashed]->  SellerShops : <color:#F57C00>стать продавцом\n(isSeller: true)</color>
+
+' ─── Навигация: зона продавца ────────────────────────────────────────────────
+SellerShops    -[#E65100]->  SellerShopNew
+SellerShops    -[#E65100]->  SellerShopEdit
+SellerProducts -[#E65100]->  SellerProductNew
+SellerProducts -[#E65100]->  SellerProductEdit
+
+SellerShops    -[#E65100,dashed]->  SellerProducts  : боковая навигация
+SellerShops    -[#E65100,dashed]->  SellerOrders    : боковая навигация
+SellerShops    -[#E65100,dashed]->  SellerAnalytics : боковая навигация
+SellerShops    -[#E65100,dashed]->  SellerChats     : боковая навигация
+
+SellerShops    -[#37474F,dashed]->  Home            : «← Главная»
+
+' ─── Навигация: зона курьера ─────────────────────────────────────────────────
+CourierDashProfile -[#7B1FA2,dashed]->  CourierOrders   : боковая навигация
+CourierDashProfile -[#7B1FA2,dashed]->  CourierHistory  : боковая навигация
+CourierDashProfile -[#7B1FA2,dashed]->  CourierReviews  : боковая навигация
+CourierDashProfile -[#37474F,dashed]->  Home            : «← Главная»
+
+' ─── Легенда ─────────────────────────────────────────────────────────────────
+legend bottom
+  <b>Условные обозначения</b>
+  |= Линия |= Значение |
+  |= <color:#37474F>——————</color> |= Навигационный переход (ссылка / кнопка) |
+  |= <color:#3949AB>——————</color> |= Переход внутри защищённой зоны |
+  |= <color:#E65100>——————</color> |= Переход внутри зоны продавца |
+  |= <color:#7B1FA2>——————</color> |= Переход внутри зоны курьера |
+  |= <color:#E53935>- - - -</color> |= Редирект при отсутствии аутентификации |
+  |= <color:#2E7D32>- - - -</color> |= Редирект после успешного входа |
+  |= <color:#F57C00>- - - -</color> |= Условный переход (смена роли) |
+  |= <back:#E8F5E9>          </back> |= Публичная зона (без аутентификации) |
+  |= <back:#E8EAF6>          </back> |= Защищённая зона (RequireAuth) |
+  |= <back:#FFF3E0>          </back> |= Зона продавца (RequireSeller + роль Seller) |
+  |= <back:#F3E5F5>          </back> |= Зона курьера (CourierLayout + роль Courier) |
+endlegend
+
+@enduml
